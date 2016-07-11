@@ -21,6 +21,7 @@ appsModalText = "e \t emacs\nb \t chrome\nt \t terminal\ns \t slack"
 function modalA:entered() hs.alert.closeAll(); alert(appsModalText, 999999) end
 
 modalW:bind("","escape", function() exitModals() end)
+modal:bind("","space", function() exitModals(); modal:enter() end)
 
 function exitModals()
   modalA:exit(); modalW:exit(); modal:exit()
