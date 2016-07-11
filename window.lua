@@ -46,15 +46,8 @@ hs.fnutils.each({"h", "l", "k", "j"}, function(arrow)
 end)
 
 -- moving windows around screens
-hs.fnutils.each({"n", "p"}, function(arrow)
-    -- local dir = { n = "previous", p = "next"}
-    local dir = { n = "West", p = "East"}
-    modalW:bind({"alt"}, arrow, function()
-        undo:push()
-        fw()["moveOneScreen"..dir[arrow]]()
-        -- fw():moveToScreen(fw():screen()[dir[arrow]](), nil, true)
-    end)
-end)
+modalW:bind({'alt'}, 'n', function() undo:push(); fw():moveOneScreenWest() end)
+modalW:bind({'alt'}, 'p', function() undo:push(); fw():moveOneScreenEast() end)
 
 -- jumping between windows
 hs.fnutils.each({"h", "l", "k", "j"}, function(arrow)
