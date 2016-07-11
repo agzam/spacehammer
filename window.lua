@@ -94,37 +94,3 @@ function undo:pop()
 end
 
 modalW:bind("", "u", function() undo:pop() end)
-
--- OLD
--- center and enlarge current window; hold to maximize
--- bind({"cmd", "alt", "ctrl"}, "F", rect({1/8, 1/8, 3/4, 3/4}), nil, rect({0, 0, 1, 1}))
-
--- arrow-based window movement/resize operations
--- hs.fnutils.each({"h", "l", "k", "j"}, function(arrow)
---     local dir = { h = "Left", j = "Down", k = "Up", l = "Right"}
-
---     bind({"cmd", "ctrl", "shift"}, arrow, -- set to screen halves; hold for quadrants
---       rect(arrowMap[arrow].half),
---       nil,
---       rect(quadrant(arrowMap[arrow].half, arrowMap[arrowMap[arrow].complement].half))
---     )
-
---     bind({"cmd", "alt"}, arrow, -- move windows incrementally
---       rect(arrowMap[arrow].movement),
---       nil,
---       rect(arrowMap[arrow].movement)
---     )
-
---     bind({"cmd", "ctrl"}, arrow, -- move windows by grid increments
---       function() undo:push(); hs.grid['pushWindow'..dir[arrow]](fw()) end
---     )
-
---     bind({"cmd", "alt", "shift"}, arrow, -- resize windows by grid increments
---       function() undo:push(); hs.grid['resizeWindow'..arrowMap[arrow].resize](fw()) end
---     )
-
---   end)
-
-
-
--- bind({"ctrl", "alt"}, "z", function() undo:pop() end)
