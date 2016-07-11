@@ -1,0 +1,27 @@
+[[http://spacemacs.org/][Spacemacs]] inspired configuration for [[http://www.hammerspoon.org/][Hammerspoon]]
+
+#+BEGIN_SRC bash
+git clone https://github.com/agzam/spacehammer ~/.hammerspoon
+#+END_SRC
+
+** Keybindings 
+*** ~Ctrl-Cmd SPC w~ - Windows
+    - ~hjkl~ - for jumping between application windows
+    - ~Cmd + hjkl~ - moving windows around halves of the screen
+    - ~Alt + hjkl~ - moving in increments
+    - ~Shift + hjkl~ - re-sizing active window
+    - ~g~ - moving with [[http://www.hammerspoon.org/docs/hs.grid.html][hs.grid]]
+    - ~m~ - maximize active window
+    - ~u~ - undo
+
+*** ~Ctrl-Cmd SPC a~ - Apps
+    - ~e~ - Emacs
+    - ~b~ - Chrome
+    - ~t~ - Terminal
+    - ~s~ - Slack
+
+** TODO: [0/4]
+   - [ ] - I'd like to find a way to jump to Chrome window with specific profile (right now ~Ctrl-Cmd SPC a b~ will switch to Chrome, but if you have multiple profiles you have to manually find the one you need) 
+   - [ ] - I use Chrome Dev-tools a lot, would be nice to automate things, e.g.: Keybinding that opens devtools and creates a vertical split with main window on the left and devtools on the right
+   - [ ] - Moving active window between monitors for some reason sometimes doesn't work (maybe Hammerspoon's bug?)
+   - [ ] - Pressing ~SPC~ at any level of modal should return to the root
