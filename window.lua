@@ -49,12 +49,14 @@ end)
 modalW:bind({'alt'}, 'n', function() undo:push(); fw():moveOneScreenWest() end)
 modalW:bind({'alt'}, 'p', function() undo:push(); fw():moveOneScreenEast() end)
 
+-- hs.window.setFrameCorrectness = true
+
 -- jumping between windows
 hs.fnutils.each({"h", "l", "k", "j"}, function(arrow)
     local dir = { h = "West", j = "South", k = "North", l = "East"}
     modalW:bind("", arrow, function()
-                  undo:push()
-                  fw()['focusWindow'..dir[arrow]](nil, nil, true)
+                  hs.window.filter['focus'..dir[arrow]]()
+                  highlighActiveWin()
                   exitModals()
     end)
 end)
@@ -66,6 +68,7 @@ modalW:bind("", "g", function()
               undo:push()
               hs.grid.setGrid("2x2")
               hs.grid.show(function() hs.grid.setGrid(gridSize) end)
+              exitModals()
 end)
 
 -- undo for window operations
@@ -87,3 +90,13 @@ function undo:pop()
 end
 
 modalW:bind("", "u", function() undo:pop() end)
+
+function highlighActiveWin()
+  local rect = hs.drawing.rectangle(fw():frame())
+  rect:setStrokeColor({["red"]=1,  ["blue"]=0, ["green"]=1, ["alpha"]=1})
+  rect:setStrokeWidth(5)
+  rect:setFill(false)
+  rect:show()
+  hs.timer.doAfter(0.5, function() rect:delete() end)
+end
+

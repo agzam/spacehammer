@@ -43,6 +43,7 @@ hs.fnutils.each({
       local app = hs.appfinder.appFromName(item.app)
       if app then
         app:activate()
+        hs.timer.doAfter(0.2, highlighActiveWin)
         app:unhide()
       end
     end
