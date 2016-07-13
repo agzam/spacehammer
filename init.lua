@@ -10,7 +10,7 @@ function modal:exited() hs.alert.closeAll() end
 modalW = hs.hotkey.modal.new();
 modal:bind("","w", function() modalW:enter() end)
 
-winmanText = "hjkl \t\t\t\t jumping\ncmd + hjkl \t halves\nalt + hjkl \t\t increments\nshift + hjkl \t resize\ng \t\t\t\t\t grid\nm \t\t\t\t maximize\nu \t\t\t\t\t undo"
+winmanText = "hjkl \t\t\t\t jumping\ncmd + hjkl \t halves\nalt + hjkl \t\t increments\nshift + hjkl \t resize\ncmd + n, p \t next, prev screen\ng \t\t\t\t\t grid\nm \t\t\t\t maximize\nu \t\t\t\t\t undo"
 
 function modalW:entered() hs.alert.closeAll(); alert(winmanText, 999999) end
 

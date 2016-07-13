@@ -1,3 +1,5 @@
+hs.window.setFrameCorrectness = true
+
 -- define window movement/resize operation mappings
 local arrowMap = {
   k = { half = { 0, 0, 1,.5}, movement = { 0,-20}, complement = "h", resize = "Shorter" },
@@ -46,8 +48,8 @@ hs.fnutils.each({"h", "l", "k", "j"}, function(arrow)
 end)
 
 -- moving windows around screens
-modalW:bind({'alt'}, 'n', function() undo:push(); fw():moveOneScreenWest() end)
-modalW:bind({'alt'}, 'p', function() undo:push(); fw():moveOneScreenEast() end)
+modalW:bind({'cmd'}, 'n', function() undo:push(); fw():moveOneScreenWest() end)
+modalW:bind({'cmd'}, 'p', function() undo:push(); fw():moveOneScreenEast() end)
 
 -- hs.window.setFrameCorrectness = true
 
