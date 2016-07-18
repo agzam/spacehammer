@@ -1,4 +1,4 @@
-hs.window.setFrameCorrectness = true
+-- hs.window.setFrameCorrectness = true
 
 -- define window movement/resize operation mappings
 local arrowMap = {
@@ -101,4 +101,3 @@ function highlighActiveWin()
   rect:show()
   hs.timer.doAfter(0.5, function() rect:delete() end)
 end
-

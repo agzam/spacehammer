@@ -1,7 +1,7 @@
 require "preload"
 
 -- Modal activation / deactivation
-modal = hs.hotkey.modal.new({"ctrl", "cmd"}, "space")
+modal = hs.hotkey.modal.new({"cmd"}, "space")
 mainModalText = "w - windows\na - apps"
 function modal:entered() alert(mainModalText, 999999 ) end
 modal:bind("","escape", function() modal:exit() end)
@@ -17,7 +17,7 @@ function modalW:entered() hs.alert.closeAll(); alert(winmanText, 999999) end
 modalA = hs.hotkey.modal.new();
 modal:bind("","a", function() modalA:enter() end)
 
-appsModalText = "e \t emacs\nb \t chrome\nt \t terminal\ns \t slack"
+appsModalText = "e \t emacs\nc \t chrome\nt \t terminal\ns \t slack\nb \t brave"
 function modalA:entered() hs.alert.closeAll(); alert(appsModalText, 999999) end
 
 modalW:bind("","escape", function() exitModals() end)
@@ -28,14 +28,14 @@ function exitModals()
 end
 
 require "window"
+require "slack"
 
 -- applications modal
 hs.fnutils.each({
     { key = "t", app = "iTerm" },
-    { key = "b", app = "Google Chrome" },
-    { key = "e", app = "Emacs" },
-    { key = "s", app = "Slack" }
-                }, function(item)
+    { key = "c", app = "Google Chrome" },
+    { key = "b", app = "Brave" },
+    { key = "e", app = "Emacs" }}, function(item)
 
     local appActivation = function()
       hs.application.launchOrFocus(item.app)
@@ -50,6 +50,7 @@ hs.fnutils.each({
 
     modalA:bind("", item.key, function() appActivation(); exitModals() end)
 end)
+
 
 hs.alert.show("Config Loaded")
 
