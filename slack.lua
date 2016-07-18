@@ -16,16 +16,24 @@ modalA:bind("", "s", function()
               exitModals()
 end)
 
-local app = hs.appfinder.appFromName("Slack")
-
-hs.fnutils.each({{key = "e", dir = 3}, {key = "y", dir = -3}}, function(i)
-    local scrollFn = function()
-      local app = fw():application()
-      if app:title() == "Slack" then
-        hs.eventtap.scrollWheel({0, i.dir}, {}) -- scroll down
-      end
+function hsAppWatcher(appName, eventType, appObject)
+  if (eventType == hs.application.watcher.activated) then
+    if (appName == "Slack") then
+      hs.fnutils.each(scrollKeys, function(k) k:enable() end)
+    else
+      hs.fnutils.each(scrollKeys, function(k) k:disable() end)
     end
+  end
+end
 
-    hs.hotkey.bind({"ctrl"}, i.key, scrollFn, nil, scrollFn)
+scrollKeys = {}
+hs.fnutils.each({{key = "e", dir = -3}, {key = "y", dir = 3}}, function(k)
+    function scrollFn()
+      hs.eventtap.scrollWheel({0, k.dir}, {})
+    end
+    scrollKeys[k.key] = hs.hotkey.new({"ctrl"}, k.key, scrollFn, nil, scrollFn)
 end)
+
+local appWatcher = hs.application.watcher.new(hsAppWatcher)
+appWatcher:start()
 

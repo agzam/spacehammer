@@ -35,7 +35,8 @@ hs.fnutils.each({
     { key = "t", app = "iTerm" },
     { key = "c", app = "Google Chrome" },
     { key = "b", app = "Brave" },
-    { key = "e", app = "Emacs" }}, function(item)
+    { key = "e", app = "Emacs" },
+    { key = "g", app = "Gitter" }}, function(item)
 
     local appActivation = function()
       hs.application.launchOrFocus(item.app)
