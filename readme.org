@@ -6,8 +6,9 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 
 ** Keybindings 
 *** ~Cmd SPC w~ - Windows
-    - ~hjkl~ - for jumping between application windows
-    - ~Cmd + hjkl~ - moving windows around halves of the screen
+    - ~Cmd + hjkl~ - for jumping between application windows
+    - ~hjkl~ - moving windows around halves of the screen
+    - ~n/p~ - moving to prev/next monitor
     - ~Alt + hjkl~ - moving in increments
     - ~Shift + hjkl~ - re-sizing active window
     - ~g~ - moving with [[http://www.hammerspoon.org/docs/hs.grid.html][hs.grid]]

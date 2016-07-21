@@ -31,7 +31,7 @@ modalW:bind("","m", function() rect({0, 0, 1, 1})() end)
 hs.fnutils.each({"h", "l", "k", "j"}, function(arrow)
     local dir = { h = "Left", j = "Down", k = "Up", l = "Right"}
     -- screen halves
-    modalW:bind({"cmd"}, arrow, function()
+    modalW:bind({}, arrow, function()
                   undo:push()
                   rect(arrowMap[arrow].half)()
     end)
@@ -48,15 +48,15 @@ hs.fnutils.each({"h", "l", "k", "j"}, function(arrow)
 end)
 
 -- moving windows around screens
-modalW:bind({'cmd'}, 'n', function() undo:push(); fw():moveOneScreenWest() end)
-modalW:bind({'cmd'}, 'p', function() undo:push(); fw():moveOneScreenEast() end)
+modalW:bind({}, 'n', function() undo:push(); fw():moveOneScreenWest() end)
+modalW:bind({}, 'p', function() undo:push(); fw():moveOneScreenEast() end)
 
 -- hs.window.setFrameCorrectness = true
 
 -- jumping between windows
 hs.fnutils.each({"h", "l", "k", "j"}, function(arrow)
     local dir = { h = "West", j = "South", k = "North", l = "East"}
-    modalW:bind("", arrow, function()
+    modalW:bind({"cmd"}, arrow, function()
                   hs.window.filter['focus'..dir[arrow]]()
                   highlighActiveWin()
                   exitModals()

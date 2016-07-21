@@ -5,7 +5,7 @@
 
 modalA:bind("", "s", function()
               hs.application.launchOrFocus("Slack")
-              local app = hs.appfinder.appFromName("Slack")
+              local app = hs.application.find("Slack")
               if app then
                 app:activate()
                 hs.timer.doAfter(0.2, highlighActiveWin)
