@@ -2,7 +2,15 @@
 hs.window.animationDuration = 0
 
 -- auto reload config
-configFileWatcher = hs.pathwatcher.new(hs.configdir, hs.reload):start()
+configFileWatcher =
+  hs.pathwatcher.new(hs.configdir, function(files)
+                       local isLuaFileChange = utils.some(files, function(p)
+                                                            return utils.contains(utils.split(p, "%p"), "lua")
+                       end)
+                       if isLuaFileChange then
+                         hs.reload()
+                       end
+  end):start()
 
 -- persist console history across launches
 hs.shutdownCallback = function() hs.settings.set('history', hs.console.getHistory()) end
@@ -21,4 +29,5 @@ clear = hs.console.clearConsole
 reload = hs.reload
 pbcopy = hs.pasteboard.setContents
 std = hs.stdlib and require("hs.stdlib")
+utils = hs.fnutils
 hyper = {'⌘', '⌃'}
