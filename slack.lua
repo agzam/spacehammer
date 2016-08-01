@@ -1,7 +1,9 @@
 -- Improving Slack
 -- as "Apps" modal lets you switch to Slack, and shows "Jump to" dialog box
+
 -- Slack doesn't allow scrolling thread by using only keyboard -
---  this module introduces C-e, C-y bindings for scrolling 
+--  this module introduces C-j, C-k bindings for scrolling
+--  C-g - takes you to the end of thread
 
 modalA:bind("", "s", function()
               hs.application.launchOrFocus("Slack")
@@ -16,24 +18,37 @@ modalA:bind("", "s", function()
               exitModals()
 end)
 
-function hsAppWatcher(appName, eventType, appObject)
-  if (eventType == hs.application.watcher.activated) then
-    if (appName == "Slack") then
-      hs.fnutils.each(scrollKeys, function(k) k:enable() end)
-    else
-      hs.fnutils.each(scrollKeys, function(k) k:disable() end)
-    end
-  end
+-- to correctly scroll the window, mouse pointer should be within the frame (otherwise it would scroll other windows that do not belong to Slack)
+function setMouseCursorOnSlack()
+  local sf = hs.application.find("Slack"):findWindow("Slack"):frame()
+  local desired_point = hs.geometry.point(sf._x + sf._w - 20, sf._y + sf._h - 100) 
+  hs.mouse.setAbsolutePosition(desired_point)
 end
 
+hs.window.filter.new('Slack')
+  :subscribe(hs.window.filter.windowFocused,function()
+               -- Slack on focus
+               hs.fnutils.each(scrollKeys, function(k) k:enable() end)
+               slackJumpToEnd = hs.hotkey.bind({"ctrl"}, "g",
+                 function()
+                   setMouseCursorOnSlack()
+                   hs.eventtap.scrollWheel({0, -5000}, {}) -- from my experience this number is big enough to take you to the end of thread
+                 end, nil, nil)
+            end)
+:subscribe(hs.window.filter.windowUnfocused,function()
+             -- Slack lost focus
+             hs.fnutils.each(scrollKeys, function(k) k:disable() end)
+             slackJumpToEnd:disable()
+          end)
+
 scrollKeys = {}
-hs.fnutils.each({{key = "e", dir = -3}, {key = "y", dir = 3}}, function(k)
+slackJumpToEnd = {}
+
+-- when Slack is active, pressing C-j, C-k should force to scroll discussion thread window up and down
+hs.fnutils.each({{key = "j", dir = -3}, {key = "k", dir = 3}}, function(k)
     function scrollFn()
+      setMouseCursorOnSlack()
       hs.eventtap.scrollWheel({0, k.dir}, {})
     end
     scrollKeys[k.key] = hs.hotkey.new({"ctrl"}, k.key, scrollFn, nil, scrollFn)
 end)
-
-local appWatcher = hs.application.watcher.new(hsAppWatcher)
-appWatcher:start()
-

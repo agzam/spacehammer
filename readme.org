@@ -25,7 +25,8 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 ** Other features
 *** Slack
      - Switching to Slack via "Apps" modal automatically opens Slack's "Jump to" dialog
-     - Better way to scroll in Slack App's current thread window Ctrl-E, Ctrl-Y
+     - Scrolling current Slack thread with C-j, C-k
+     - Jumping to the end of thread with C-g
 
 ** TODO: [2/9]
    - [X] Moving active window between monitors for some reason sometimes doesn't work (maybe Hammerspoon's bug?)
