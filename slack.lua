@@ -21,7 +21,7 @@ end)
 -- to correctly scroll the window, mouse pointer should be within the frame (otherwise it would scroll other windows that do not belong to Slack)
 function setMouseCursorOnSlack()
   local sf = hs.application.find("Slack"):findWindow("Slack"):frame()
-  local desired_point = hs.geometry.point(sf._x + sf._w - 20, sf._y + sf._h - 100) 
+  local desired_point = hs.geometry.point(sf._x + sf._w - (sf._w * 0.10), sf._y + sf._h - (sf._h * 0.10)) 
   hs.mouse.setAbsolutePosition(desired_point)
 end
 
