@@ -34,11 +34,17 @@ hs.window.filter.new('Slack')
                    setMouseCursorOnSlack()
                    hs.eventtap.scrollWheel({0, -5000}, {}) -- from my experience this number is big enough to take you to the end of thread
                  end, nil, nil)
+
+               slackInsertEmoji = hs.hotkey.bind({"cmd"}, "i",
+                 function()
+                   hs.eventtap.keyStroke({"cmd", "shift"}, "\\")
+                 end, nil, nil)
             end)
 :subscribe(hs.window.filter.windowUnfocused,function()
              -- Slack lost focus
              hs.fnutils.each(scrollKeys, function(k) k:disable() end)
              slackJumpToEnd:disable()
+             slackInsertEmoji:disable()
           end)
 
 scrollKeys = {}
