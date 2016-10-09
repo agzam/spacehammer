@@ -1,25 +1,32 @@
--- Improving Slack
--- as "Apps" modal lets you switch to Slack, and shows "Jump to" dialog box
+-- This module is to improve workflow in Slack
+local windows = require "windows"
+local slack = {}
 
--- Slack doesn't allow scrolling thread by using only keyboard -
---  this module introduces C-j, C-k bindings for scrolling
+slack.bind = function(modal, fsm)
+  -- Open "Jump to dialog immediately after jumping to Slack GUI through `Apps` modal"
+
+  modal:bind("", "s", function()
+                hs.application.launchOrFocus("Slack")
+                local app = hs.application.find("Slack")
+                if app then
+                  app:activate()
+                  hs.timer.doAfter(0.2, windows.highlighActiveWin)
+                  hs.eventtap.keyStroke({"cmd"}, "k")
+                  app:unhide()
+                end
+
+                fsm:toMain()
+  end)
+
+
+end
+
+-- Slack client doesn't allow convenient method to scrolling in thread with keyboard 
+-- adding C-j, C-k bindings for scrolling
+
+-- to correctly scroll in Slack's thread window, the mouse pointer have to be within its frame (otherwise it would scroll things in whatever app cursor is currently pointing at)
 --  C-g - takes you to the end of thread
-
-modalA:bind("", "s", function()
-              hs.application.launchOrFocus("Slack")
-              local app = hs.application.find("Slack")
-              if app then
-                app:activate()
-                hs.timer.doAfter(0.2, highlighActiveWin)
-                hs.eventtap.keyStroke({"cmd"}, "k")
-                app:unhide()
-              end
-
-              exitModals()
-end)
-
--- to correctly scroll the window, mouse pointer should be within the frame (otherwise it would scroll other windows that do not belong to Slack)
-function setMouseCursorOnSlack()
+local function setMouseCursorOnSlack()
   local sf = hs.application.find("Slack"):findWindow("Slack"):frame()
   local desired_point = hs.geometry.point(sf._x + sf._w - (sf._w * 0.10), sf._y + sf._h - (sf._h * 0.10)) 
   hs.mouse.setAbsolutePosition(desired_point)
@@ -71,3 +78,5 @@ hs.fnutils.each({{key = "j", dir = -3}, {key = "k", dir = 3}}, function(k)
     -- pressing M-j, M-k for "previous/next item in the list"
     slackLocalKeys[{key = k, mod = "alt"}] = hs.hotkey.new({"alt"}, k.key, jumpItem, nil, jumpItem)
 end)
+
+return slack
