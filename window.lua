@@ -48,8 +48,8 @@ hs.fnutils.each({"h", "l", "k", "j"}, function(arrow)
 end)
 
 -- moving windows around screens
-modalW:bind({}, 'n', function() undo:push(); fw():moveOneScreenWest() end)
-modalW:bind({}, 'p', function() undo:push(); fw():moveOneScreenEast() end)
+modalW:bind({}, 'p', function() undo:push(); fw():moveOneScreenNorth() end)
+modalW:bind({}, 'n', function() undo:push(); fw():moveOneScreenSouth() end)
 
 -- hs.window.setFrameCorrectness = true
 
@@ -68,7 +68,7 @@ hs.grid.setMargins({0, 0})
 modalW:bind("", "g", function()
               local gridSize = hs.grid.getGrid()
               undo:push()
-              hs.grid.setGrid("2x2")
+              hs.grid.setGrid("3x2")
               hs.grid.show(function() hs.grid.setGrid(gridSize) end)
               exitModals()
 end)

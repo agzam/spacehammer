@@ -28,7 +28,7 @@ end
 hs.window.filter.new('Slack')
   :subscribe(hs.window.filter.windowFocused,function()
                -- Slack on focus
-               hs.fnutils.each(scrollKeys, function(k) k:enable() end)
+               hs.fnutils.each(slackLocalKeys, function(k) k:enable() end)
                slackJumpToEnd = hs.hotkey.bind({"ctrl"}, "g",
                  function()
                    setMouseCursorOnSlack()
@@ -42,19 +42,32 @@ hs.window.filter.new('Slack')
             end)
 :subscribe(hs.window.filter.windowUnfocused,function()
              -- Slack lost focus
-             hs.fnutils.each(scrollKeys, function(k) k:disable() end)
+             hs.fnutils.each(slackLocalKeys, function(k) k:disable() end)
              slackJumpToEnd:disable()
              slackInsertEmoji:disable()
           end)
 
-scrollKeys = {}
+slackLocalKeys = {}
 slackJumpToEnd = {}
 
--- when Slack is active, pressing C-j, C-k should force to scroll discussion thread window up and down
+-- when Slack is active ...
 hs.fnutils.each({{key = "j", dir = -3}, {key = "k", dir = 3}}, function(k)
     function scrollFn()
       setMouseCursorOnSlack()
       hs.eventtap.scrollWheel({0, k.dir}, {})
     end
-    scrollKeys[k.key] = hs.hotkey.new({"ctrl"}, k.key, scrollFn, nil, scrollFn)
+    -- pressing C-j, C-k should force to scroll discussion thread window up and down
+    slackLocalKeys[{key = k, mod = "ctrl"}] = hs.hotkey.new({"ctrl"}, k.key, scrollFn, nil, scrollFn)
+
+    function jumpItem()
+      setMouseCursorOnSlack()
+      if k.key == "j" then
+        hs.eventtap.keyStroke({"alt"}, "down")
+      elseif k.key == "k" then
+        hs.eventtap.keyStroke({"alt"}, "up")
+      end
+    end
+
+    -- pressing M-j, M-k for "previous/next item in the list"
+    slackLocalKeys[{key = k, mod = "alt"}] = hs.hotkey.new({"alt"}, k.key, jumpItem, nil, jumpItem)
 end)
