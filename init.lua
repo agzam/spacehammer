@@ -11,10 +11,15 @@ end
 modals = {
   main = {
     init = function(self, fsm) 
-      self.modal = hs.hotkey.modal.new({"cmd"}, "space")
+      if self.modal then
+        self.modal:enter()
+      else
+        self.modal = hs.hotkey.modal.new({"cmd"}, "space")
+      end
+      self.modal:bind("","space", nil, function() fsm:toIdle(); windows.activateApp("Alfred 3") end)
       self.modal:bind("","w", nil, function() fsm:toWindows() end)
       self.modal:bind("","a", nil, function() fsm:toApps() end)
-      self.modal:bind("","escape", function() fsm:toMain() end)
+      self.modal:bind("","escape", function() fsm:toIdle() end)
       function self.modal:entered() displayModalText "w - windows\na - apps" end
     end 
   },
@@ -22,7 +27,8 @@ modals = {
     init = function(self, fsm)
       self.modal = hs.hotkey.modal.new()
       displayModalText "cmd + hjkl \t jumping\nhjkl \t\t\t\t halves\nalt + hjkl \t\t increments\nshift + hjkl \t resize\nn, p \t next, prev screen\ng \t\t\t\t\t grid\nm \t\t\t\t maximize\nu \t\t\t\t\t undo"
-      self.modal:bind('','h', function() alert('h pressed while in windows modal') end)
+      self.modal:bind("","escape", function() fsm:toIdle() end)
+      self.modal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
       windows.bind(self.modal, fsm)
       self.modal:enter()
     end
@@ -31,6 +37,8 @@ modals = {
     init = function(self, fsm)
       self.modal = hs.hotkey.modal.new()
       displayModalText "e \t emacs\nc \t chrome\nt \t terminal\ns \t slack\nb \t brave"
+      self.modal:bind("","escape", function() fsm:toIdle() end)
+      self.modal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
       hs.fnutils.each({
           { key = "t", app = "iTerm" },
           { key = "c", app = "Google Chrome" },
@@ -38,18 +46,7 @@ modals = {
           { key = "e", app = "Emacs" },
           { key = "g", app = "Gitter" }}, function(item)
 
-          local appActivation = function()
-            hs.application.launchOrFocus(item.app)
-
-            local app = hs.application.find(item.app)
-            if app then
-              app:activate()
-              hs.timer.doAfter(0.1, windows.highlighActiveWin)
-              app:unhide()
-            end
-          end
-
-          self.modal:bind("", item.key, function() appActivation(); fsm:toMain()  end)
+          self.modal:bind("", item.key, function() windows.activateApp(item.app); fsm:toIdle()  end)
       end)
 
       slack.bind(self.modal, fsm)
@@ -73,20 +70,30 @@ exitAllModals = function()
 end
 
 local fsm = machine.create({
-    initial = 'main',
+    initial = "idle",
     events = {
-      { name = 'toMain',    from = '*', to = 'main' },
-      { name = 'toWindows', from = 'main', to = 'windows' },
-      { name = 'toApps',    from = 'main', to = 'apps' }
+      { name = "toIdle",    from = "*", to = "idle" },
+      { name = "toMain",    from = '*', to = "main" },
+      { name = "toWindows", from = {'main','idle'}, to = "windows" },
+      { name = "toApps",    from = {'main', 'idle'}, to = "apps" }
     },
     callbacks = {
-      onmain = function(self, event, from, to)
-        exitAllModals()
-        initModal(to, self)
+      onidle = function(self, event, from, to)
         hs.alert.closeAll()
+        exitAllModals()
       end,
-      onwindows = function(self, event, from, to) initModal(to, self) end,
-      onapps = function(self, event, from, to) initModal(to, self) end
+      onmain = function(self, event, from, to)
+        -- modals[from].modal:exit()
+        initModal(to, self)
+      end,
+      onwindows = function(self, event, from, to)
+        -- modals[from].modal:exit()
+        initModal(to, self)
+      end,
+      onapps = function(self, event, from, to)
+        -- modals[from].modal:exit()
+        initModal(to, self)
+      end
     }
 })
 

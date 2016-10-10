@@ -15,7 +15,7 @@ slack.bind = function(modal, fsm)
                   app:unhide()
                 end
 
-                fsm:toMain()
+                fsm:toIdle()
   end)
 
 

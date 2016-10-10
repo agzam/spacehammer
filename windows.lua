@@ -58,7 +58,7 @@ windows.bind = function(modal, fsm)
                 undo:push()
                 hs.grid.setGrid("3x2")
                 hs.grid.show(function() hs.grid.setGrid(gridSize) end)
-                fsm:toMain()
+                fsm:toIdle()
   end)
 
   -- jumping between windows
@@ -101,6 +101,17 @@ windows.highlighActiveWin = function()
   rect:setFill(false)
   rect:show()
   hs.timer.doAfter(0.5, function() rect:delete() end)
+end
+
+windows.activateApp = function(appName)
+  hs.application.launchOrFocus(appName)
+
+  local app = hs.application.find(appName)
+  if app then
+    app:activate()
+    hs.timer.doAfter(0.1, windows.highlighActiveWin)
+    app:unhide()
+  end
 end
 
 return windows
