@@ -100,7 +100,7 @@ windows.highlighActiveWin = function()
   rect:setStrokeWidth(5)
   rect:setFill(false)
   rect:show()
-  hs.timer.doAfter(0.5, function() rect:delete() end)
+  hs.timer.doAfter(0.3, function() rect:delete() end)
 end
 
 windows.activateApp = function(appName)
@@ -115,7 +115,6 @@ windows.activateApp = function(appName)
 end
 
 windows.setMouseCursorAtApp = function(appTitle)
-  alert("setting cursor")
   local sf = hs.application.find(appTitle):findWindow(appTitle):frame()
   local desired_point = hs.geometry.point(sf._x + sf._w - (sf._w * 0.10), sf._y + sf._h - (sf._h * 0.10)) 
   hs.mouse.setAbsolutePosition(desired_point)
