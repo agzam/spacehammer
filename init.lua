@@ -2,6 +2,7 @@ require "preload"
 local machine = require "statemachine"
 local windows = require "windows"
 local slack = require "slack"
+require "preview-app"
 
 local displayModalText = function(txt)
   hs.alert.closeAll()
@@ -100,5 +101,3 @@ local fsm = machine.create({
 fsm:toMain()
 
 hs.alert.show("Config Loaded")
-
-
