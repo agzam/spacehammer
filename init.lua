@@ -9,6 +9,19 @@ local displayModalText = function(txt)
   alert(txt, 999999)
 end
 
+allowedApps = {"Emacs", "iTerm2"}
+hs.hints.showTitleThresh = 4
+hs.hints.titleMaxSize = 10
+hs.hints.fontSize = 30
+hs.hints.hintChars = {"S","A","D","F","J","K","L","E","W","C","M","P","G","H"}
+
+local filterAllowedApps = function(w)
+  if (not w:isStandard()) and (not utils.contains(allowedApps, w:application():name())) then
+    return false;
+  end
+  return true;
+end
+
 modals = {
   main = {
     init = function(self, fsm) 
@@ -20,8 +33,13 @@ modals = {
       self.modal:bind("","space", nil, function() fsm:toIdle(); windows.activateApp("Alfred 3") end)
       self.modal:bind("","w", nil, function() fsm:toWindows() end)
       self.modal:bind("","a", nil, function() fsm:toApps() end)
+      self.modal:bind("","j", nil, function()
+                        local wns = hs.fnutils.filter(hs.window.allWindows(), filterAllowedApps)
+                        hs.hints.windowHints(wns, nil, true)
+                        fsm:toIdle()
+      end)
       self.modal:bind("","escape", function() fsm:toIdle() end)
-      function self.modal:entered() displayModalText "w - windows\na - apps" end
+      function self.modal:entered() displayModalText "w - windows\na - apps\n j - jump" end
     end 
   },
   windows = {
@@ -53,7 +71,7 @@ modals = {
       slack.bind(self.modal, fsm)
 
       self.modal:enter()
-    end,
+    end
   }
 }
 
