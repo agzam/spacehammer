@@ -26,7 +26,10 @@ end
 
 windows.bind = function(modal, fsm)
   -- maximize window
-  modal:bind("","m", function() rect({0, 0, 1, 1})() end)
+  modal:bind("","m", function()
+               rect({0, 0, 1, 1})()
+               windows.highlighActiveWin()
+  end)
 
   -- undo
   modal:bind("", "u", function() undo:pop() end)
@@ -63,11 +66,12 @@ windows.bind = function(modal, fsm)
 
   -- jumping between windows
   hs.fnutils.each({"h", "l", "k", "j"}, function(arrow)
-      local dir = { h = "West", j = "South", k = "North", l = "East"}
       modal:bind({"cmd"}, arrow, function()
-          hs.window.filter['focus'..dir[arrow]]()
+          if arrow == "h" then fw().filter.defaultCurrentSpace:focusWindowWest(nil, true, true) end
+          if arrow == "l" then fw().filter.defaultCurrentSpace:focusWindowEast(nil, true, true) end
+          if arrow == "j" then fw().filter.defaultCurrentSpace:focusWindowSouth(nil, true, true) end
+          if arrow == "k" then fw().filter.defaultCurrentSpace:focusWindowNorth(nil, true, true) end
           windows.highlighActiveWin()
-          exitModals()
       end)
   end)
 
