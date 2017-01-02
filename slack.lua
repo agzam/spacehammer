@@ -21,7 +21,6 @@ slack.bind = function(modal, fsm)
 end
 
 -- Slack client doesn't allow convenient method to scrolling in thread with keyboard 
--- adding C-j, C-k bindings for scrolling
 
 -- to correctly scroll in Slack's thread window, the mouse pointer have to be within its frame (otherwise it would scroll things in whatever app cursor is currently pointing at)
 local function setMouseCursorOnSlack()
@@ -29,7 +28,7 @@ local function setMouseCursorOnSlack()
 end
 
 hs.window.filter.new('Slack')
-  :subscribe(hs.window.filter.windowFocused,function()
+  :subscribe(hs.window.filter.windowFocused, function()
                -- Slack is in focus
                hs.fnutils.each(slackLocalKeys, function(k) k:enable() end)
                --  C-g - takes you to the end of thread
@@ -51,9 +50,13 @@ hs.window.filter.new('Slack')
              slackInsertEmoji:disable()
           end)
 
-
--- when Slack is active ...
-hs.fnutils.each({{key = "j", dir = -3}, {key = "k", dir = 3}}, function(k)
+-- adding C-j|C-e, C-k|C-y bindings for scrolling up and down
+-- when Slack is active:
+hs.fnutils.each({
+    {key = "j", dir = -3},
+    {key = "k", dir = 3},
+    {key = "e", dir = -3},
+    {key = "y", dir = 3}}, function(k)
     local function scrollFn()
       setMouseCursorOnSlack()
       hs.eventtap.scrollWheel({0, k.dir}, {})
