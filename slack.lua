@@ -77,4 +77,16 @@ hs.fnutils.each({
     slackLocalKeys[{key = k, mod = "alt"}] = hs.hotkey.new({"alt"}, k.key, jumpItem, nil, jumpItem)
 end)
 
+-- C-n|C-p - up and down
+hs.fnutils.each({
+    {key = "p", dir = "up"},
+    {key = "n", dir = "down"}}, function(k)
+
+    local function upNdown()
+      hs.eventtap.keyStroke({}, k.dir)
+    end
+
+    slackLocalKeys[{key = k}]= hs.hotkey.new({"ctrl"}, k.key, upNdown, nil, upNdown)
+end)
+
 return slack
