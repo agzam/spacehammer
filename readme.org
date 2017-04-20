@@ -9,9 +9,8 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
    Ideally I wanted to stay in the home row and control as much as I can with ~HJKL~ keys. Adding tens (possibly hundreds) of key-combo shortcuts for every single desirable action is not a good solution.
 
    Hammerspoon is incredibly powerful tool, and it has allowed me to take my workflow to a completely different level. Jumping between apps, controlling windows, searching things has become such a joyful experience. And no need to learn and memorize multitude of keystrokes. Or have to use the mouse or arrow keys.
-**** Note
-     Main keybinding is set to ~Cmd SPC~, that by default might be set for something else in OS X. *You're gonna need to clear that key combination* . Go to your Preferences/Keyboard, find associated keybinding and *clear it out*, simply unchecking the checkbox may not be sufficient.
-     If you choose to have some different key combo for Spacehammer's default action - you're gonna have to modify ~/.hammerspoon/init.lua.
+**** Important note!
+     Main key combo is set to ~Cmd SPC~. By default, in OS X it's used for something else (usually for Spotlight). *You're gonna need to rebind that key combination*. Go to your Preferences/Keyboard, find associated keybinding and change it. Unfortunately, simply disabling it is NOT enough. You have to set it to be something else e.g. ~Ctrl+Cmd+Shift+\~ or anything else (I dunno use your imagination), it doesn't really matter, since you can then uncheck the checkbox. If you decide that ~Cmd SPC~ not very convenient for you - simply modify ~/.hammerspoon/init.lua and set it to whatever you like.
 
 *** ~Cmd SPC w~ - Windows
     - ~Cmd + hjkl~ - for jumping between application windows
