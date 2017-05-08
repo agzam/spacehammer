@@ -2,6 +2,8 @@ require "preload"
 local machine = require "statemachine"
 local windows = require "windows"
 local slack = require "slack"
+local multimedia = require "multimedia"
+
 require "preview-app"
 
 local displayModalText = function(txt)
@@ -33,13 +35,14 @@ modals = {
       self.modal:bind("","space", nil, function() fsm:toIdle(); windows.activateApp("Alfred 3") end)
       self.modal:bind("","w", nil, function() fsm:toWindows() end)
       self.modal:bind("","a", nil, function() fsm:toApps() end)
+      self.modal:bind("", "m", nil, function() fsm:toMedia() end)
       self.modal:bind("","j", nil, function()
                         local wns = hs.fnutils.filter(hs.window.allWindows(), filterAllowedApps)
                         hs.hints.windowHints(wns, nil, true)
                         fsm:toIdle()
       end)
       self.modal:bind("","escape", function() fsm:toIdle() end)
-      function self.modal:entered() displayModalText "w - windows\na - apps\n j - jump" end
+      function self.modal:entered() displayModalText "w \t- windows\na \t- apps\n j \t- jump\nm - media" end
     end 
   },
   windows = {
@@ -72,6 +75,18 @@ modals = {
 
       self.modal:enter()
     end
+  },
+  media = {
+    init = function(self, fsm)
+      self.modal = hs.hotkey.modal.new()
+      displayModalText "h \t previous track\nl \t next track\nk \t volume up\nj \t volume down\np \t play/pause\na \t launch player"
+
+      self.modal:bind("","escape", function() fsm:toIdle() end)
+      self.modal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
+
+      multimedia.bind(self.modal, fsm)
+      self.modal:enter()
+    end
   }
 }
 
@@ -94,7 +109,8 @@ local fsm = machine.create({
       { name = "toIdle",    from = "*", to = "idle" },
       { name = "toMain",    from = '*', to = "main" },
       { name = "toWindows", from = {'main','idle'}, to = "windows" },
-      { name = "toApps",    from = {'main', 'idle'}, to = "apps" }
+      { name = "toApps",    from = {'main', 'idle'}, to = "apps" },
+      { name = "toMedia",   from = {'main', 'idle'}, to = "media" }
     },
     callbacks = {
       onidle = function(self, event, from, to)
@@ -112,7 +128,10 @@ local fsm = machine.create({
       onapps = function(self, event, from, to)
         -- modals[from].modal:exit()
         initModal(to, self)
-      end
+      end,
+      onmedia = function(self, event, from, to)
+        initModal(to, self)
+      end,
     }
 })
 

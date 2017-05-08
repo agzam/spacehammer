@@ -31,6 +31,11 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 
 *** ~Cmd SPC SPC~ - open Alfred search bar
 
+
+*** ~Cmd SPC m~ - multimedia controls
+    Why? Because different external keyboards impose their own ways to control media. Also Spacehammer way allows you to keep your fingers in the "home row". 
+    Currently it's configured to work with Google Play Music Desktop Player. /Yes, I'm that strange dude who's not on Spotify and have Google Music subscription, even though I don't work at Google./
+
 ** Other features
 *** Slack Desktop Client enhancements
      - Switching to Slack via "Apps" modal automatically opens Slack's "Jump to" dialog
