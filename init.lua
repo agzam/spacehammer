@@ -3,6 +3,7 @@ local machine = require "statemachine"
 local windows = require "windows"
 local slack = require "slack"
 local multimedia = require "multimedia"
+local vim = require "vim"
 
 require "preview-app"
 
@@ -36,13 +37,14 @@ modals = {
       self.modal:bind("","w", nil, function() fsm:toWindows() end)
       self.modal:bind("","a", nil, function() fsm:toApps() end)
       self.modal:bind("", "m", nil, function() fsm:toMedia() end)
+      self.modal:bind("", "v", nil, function() fsm:toVim() end)
       self.modal:bind("","j", nil, function()
                         local wns = hs.fnutils.filter(hs.window.allWindows(), filterAllowedApps)
                         hs.hints.windowHints(wns, nil, true)
                         fsm:toIdle()
       end)
       self.modal:bind("","escape", function() fsm:toIdle() end)
-      function self.modal:entered() displayModalText "w \t- windows\na \t- apps\n j \t- jump\nm - media" end
+      function self.modal:entered() displayModalText "w \t- windows\na \t- apps\n j \t- jump\nm - media \n v - vim" end
     end 
   },
   windows = {
@@ -87,6 +89,18 @@ modals = {
       multimedia.bind(self.modal, fsm)
       self.modal:enter()
     end
+  },
+  vim = {
+    init = function(self, fsm)
+      self.modal = hs.hotkey.modal.new()
+      displayModalText "hjkl \t movement"
+
+      self.modal:bind("","escape", function() fsm:toIdle() end)
+      self.modal:bind({"cmd"}, "space", nil, function() fsm:toVim() end)
+
+      vim.bind(self.modal, fsm)
+      self.modal:enter()
+    end
   }
 }
 
@@ -110,7 +124,8 @@ local fsm = machine.create({
       { name = "toMain",    from = '*', to = "main" },
       { name = "toWindows", from = {'main','idle'}, to = "windows" },
       { name = "toApps",    from = {'main', 'idle'}, to = "apps" },
-      { name = "toMedia",   from = {'main', 'idle'}, to = "media" }
+      { name = "toMedia",   from = {'main', 'idle'}, to = "media" },
+      { name = "toVim",   from = {'main', 'idle'}, to = "vim" }
     },
     callbacks = {
       onidle = function(self, event, from, to)
@@ -130,6 +145,9 @@ local fsm = machine.create({
         initModal(to, self)
       end,
       onmedia = function(self, event, from, to)
+        initModal(to, self)
+      end,
+      onvim = function(self, event, from, to)
         initModal(to, self)
       end,
     }
