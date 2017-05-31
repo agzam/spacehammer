@@ -20,7 +20,7 @@ multimedia.bind = function(modal, fsm)
   local sDn = multimedia.mKey("sound_down")
   modal:bind("", "j", sDn, nil, sDn)
   local pl = function() multimedia.mKey("play")(); fsm:toIdle() end
-  modal:bind("", "p", pl)
+  modal:bind("", "s", pl)
 end
 
 return multimedia

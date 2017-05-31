@@ -79,7 +79,7 @@ modals = {
   media = {
     init = function(self, fsm)
       self.modal = hs.hotkey.modal.new()
-      displayModalText "h \t previous track\nl \t next track\nk \t volume up\nj \t volume down\np \t play/pause\na \t launch player"
+      displayModalText "h \t previous track\nl \t next track\nk \t volume up\nj \t volume down\ns \t play/pause\na \t launch player"
 
       self.modal:bind("","escape", function() fsm:toIdle() end)
       self.modal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
