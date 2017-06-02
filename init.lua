@@ -1,4 +1,5 @@
 require "preload"
+require "keybindings"
 local machine = require "statemachine"
 local windows = require "windows"
 local slack = require "slack"
