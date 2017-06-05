@@ -12,7 +12,7 @@ slack.bind = function(modal, fsm)
                 if app then
                   app:activate()
                   hs.timer.doAfter(0.2, windows.highlighActiveWin)
-                  hs.eventtap.keyStroke({"cmd"}, "k")
+                  hs.eventtap.keyStroke({"cmd"}, "t")
                   app:unhide()
                 end
 

@@ -44,57 +44,57 @@ local function keymap(sourceKey, sourceMod, targetKey, targetMod, repeatDelay)
 end
 
 -- ------------------
--- move
+-- simple vi-mode 
 -- ------------------
 local arrows = {
-    h = 'left',
-    j = 'down',
-    k = 'up',
-    l = 'right'
+  h = 'left',
+  j = 'down',
+  k = 'up',
+  l = 'right'
 }
-for k, v in pairs(arrows) do
+local enableSimpleViMode = function()
+  for k, v in pairs(arrows) do
     keymap(k, 'alt', v, '')
     keymap(k, 'alt+shift', v, 'alt')
     keymap(k, 'alt+shift+ctrl', v, 'shift')
+  end
 end
+local disableSimpleViMode = function()
+  for k,v in pairs (arrows) do
+    hs.hotkey.disableAll({'alt'}, k);
+  end
+end
+utils.applyAppSpecific({'Emacs'}, disableSimpleViMode, nil, false)
+utils.applyAppSpecific({'Emacs'}, enableSimpleViMode, nil, true)
 
--- keymap('y', 'alt', 'home', '')
--- keymap('u', 'alt', 'end', '')
--- keymap('i', 'alt', 'pageup', '')
--- keymap('o', 'alt', 'pagedown', '')
+-- ----------------------------
+-- tab switching with Cmd++h/l 
+-- ----------------------------
+local left_right = {h = '[', l = ']'}
+local enableSimpleTabSwithing = function()
+  for k, v in pairs(left_right) do
+    keymap(k, 'cmd', v, 'cmd+shift')
+  end
+end
+local disableSimpleTabSwitching = function()
+  for k, v in pairs(left_right) do
+    hs.hotkey.disableAll({'cmd'}, k);
+  end
+end
+local tabSwitchIn = {'Google Chrome', 'iTerm2'}
+-- enables simple tab switching in listed apps, and ignores keybinding in others - Cmd-h/l can have different meaning in other apps 
+utils.applyAppSpecific(tabSwitchIn, enableSimpleTabSwithing, nil, nil)
+utils.applyAppSpecific(tabSwitchIn, disableSimpleTabSwitching, nil, true)
 
--- -- ------------------
--- -- delete
--- -- ------------------
--- keymap('d', 'alt', 'delete', '')
--- keymap('f', 'alt', 'forwarddelete', '')
--- keymap('d', 'alt+shift', 'delete', 'alt')
--- keymap('f', 'alt+shift', 'forwarddelete', 'alt')
+-- ----------------------------
+-- App switcher with Cmd++j/k 
+-- ----------------------------
+switcher = hs.window.switcher.new(utils.globalfilter, {textSize = 12,
+                                                       showTitles = false,
+                                                       showThumbnails = false,
+                                                       showSelectedTitle = false,
+                                                       selectedThumbnailSize = 640,
+                                                       backgroundColor = {0, 0, 0, 0}})
 
--- -- ------------------
--- -- functionalities
--- -- ------------------
--- keymap('n', 'alt', 'tab', 'ctrl+shift', REPEAT_SLOWER)
--- keymap('m', 'alt', 'tab', 'ctrl', REPEAT_SLOWER)
-
--- keymap('q', 'alt', 'escape', '', NO_REPEAT)
-
--- -- ------------------
--- -- system
--- -- ------------------
--- -- not working
--- -- keymap('a', 'alt', 'CAPS_LOCK', nil, NO_REPEAT)
-
--- keymap('p', 'alt', 'PLAY', nil, NO_REPEAT)
--- keymap('[', 'alt', 'REWIND', nil, NO_REPEAT)
--- keymap(']', 'alt', 'FAST', nil, NO_REPEAT)
--- keymap(',', 'alt', 'SOUND_DOWN', nil)
--- keymap('.', 'alt', 'SOUND_UP', nil)
--- keymap('/', 'alt', 'MUTE', nil)
-
--- keymap('1', 'alt', 'PLAY', nil, NO_REPEAT)
--- keymap('2', 'alt', 'REWIND', nil, NO_REPEAT)
--- keymap('3', 'alt', 'FAST', nil, NO_REPEAT)
--- keymap('f1', 'alt', 'MUTE', nil)
--- keymap('f2', 'alt', 'SOUND_DOWN', nil)
--- keymap('f3', 'alt', 'SOUND_UP', nil)
+hs.hotkey.bind('cmd','j', function() switcher:next() end)
+hs.hotkey.bind('cmd','k', function() switcher:previous() end)
