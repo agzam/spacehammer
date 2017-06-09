@@ -60,7 +60,8 @@ module.keymap = function(sourceKey, sourceMod, targetKey, targetMod, repeatDelay
 
     local fn = nil
     if targetMod == nil then
-        fn = hs.fnutils.partial(keyStrokeSystem, string.upper(targetKey), repeatDelay)
+        -- fn = hs.fnutils.partial(keyStrokeSystem, string.upper(targetKey), repeatDelay)
+        fn = hs.fnutils.partial(keyStroke, nil, targetKey, repeatDelay)
     else
         targetMod = module.splitStr(targetMod, '+')
         fn = hs.fnutils.partial(keyStroke, targetMod, targetKey, repeatDelay)
@@ -72,19 +73,20 @@ module.keymap = function(sourceKey, sourceMod, targetKey, targetMod, repeatDelay
     end
 end
 
---- Filter that includes full-screen apps 
+--- Filter that includes full-screen apps
+hs.window.filter.ignoreAlways['Alfred3'] = true
 module.globalfilter = hs.window.filter.new()
-  :setAppFilter('iTerm2', {allowRoles = '*', allowTitles = 0})
-  :setAppFilter('Emacs', {allowRoles = '*', allowTitles = 1})
+  :setAppFilter('Emacs', {allowRoles={'AXUnknown', 'AXStandardWindow'}})
+  :setAppFilter('iTerm2', {allowRoles='AXUnknown'})
 
----- Function 
+---- Function
 ---- Applies specified functions for when window is focused and unfocused
 ----
 ---- Parameters:
-----  
+----
 ---- appNames - table of appNames
 ---- focusedFn - function applied when one of the apps listed is focused
----  unfocusedFn - function applied when one of the apps listed is unfocused 
+---  unfocusedFn - function applied when one of the apps listed is unfocused
 ---  ignore - reverses the order of the operation: apply given fns for any app except those listed in appNames
 ---
 function module.applyAppSpecific(appNames, focusedFn, unfocusedFn, ignore)

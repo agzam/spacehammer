@@ -1,7 +1,7 @@
 local utils = require "utils"
 
 -- ------------------
--- simple vi-mode 
+-- simple vi-mode
 -- ------------------
 local arrows = {
   h = 'left',
@@ -11,7 +11,7 @@ local arrows = {
 }
 local enableSimpleViMode = function()
   for k, v in pairs(arrows) do
-    utils.keymap(k, 'alt', v, '')
+    utils.keymap(k, 'alt', v, nil)
     utils.keymap(k, 'alt+shift', v, 'alt')
     utils.keymap(k, 'alt+shift+ctrl', v, 'shift')
   end
@@ -25,7 +25,7 @@ utils.applyAppSpecific({'Emacs'}, disableSimpleViMode, nil, false)
 utils.applyAppSpecific({'Emacs'}, enableSimpleViMode, nil, true)
 
 -- ----------------------------
--- tab switching with Cmd++h/l 
+-- tab switching with Cmd++h/l
 -- ----------------------------
 local left_right = {h = '[', l = ']'}
 local enableSimpleTabSwithing = function()
@@ -39,9 +39,9 @@ local disableSimpleTabSwitching = function()
   end
 end
 local tabSwitchIn = {'Google Chrome', 'iTerm2'}
--- enables simple tab switching in listed apps, and ignores keybinding in others - Cmd-h/l can have different meaning in other apps 
+-- -- enables simple tab switching in listed apps, and ignores keybinding in others - Cmd-h/l can have different meaning in other apps
 utils.applyAppSpecific(tabSwitchIn, enableSimpleTabSwithing, nil, nil)
-utils.applyAppSpecific(tabSwitchIn, disableSimpleTabSwitching, nil, true)
+-- utils.applyAppSpecific(tabSwitchIn, disableSimpleTabSwitching, nil, true)
 
 --- setting conflicting Cmd+L (jump to address bar) keybinding to Cmd+Shift+L
 utils.applyAppSpecific({'Google Chrome'},
@@ -53,14 +53,15 @@ utils.applyAppSpecific({'Google Chrome'},
   end, nil, nil)
 
 -- ----------------------------
--- App switcher with Cmd++j/k 
+-- App switcher with Cmd++j/k
 -- ----------------------------
-switcher = hs.window.switcher.new(utils.globalfilter, {textSize = 12,
-                                                       showTitles = false,
-                                                       showThumbnails = false,
-                                                       showSelectedTitle = false,
-                                                       selectedThumbnailSize = 640,
-                                                       backgroundColor = {0, 0, 0, 0}})
+switcher = hs.window.switcher.new(utils.globalfilter,
+                                  {textSize = 12,
+                                   showTitles = false,
+                                   showThumbnails = false,
+                                   showSelectedTitle = false,
+                                   selectedThumbnailSize = 640,
+                                   backgroundColor = {0, 0, 0, 0}})
 
 hs.hotkey.bind({'cmd'},'j', function() switcher:next() end)
 hs.hotkey.bind({'cmd'},'k', function() switcher:previous() end)
