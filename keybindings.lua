@@ -41,7 +41,7 @@ end
 local tabSwitchIn = {'Google Chrome', 'iTerm2'}
 -- -- enables simple tab switching in listed apps, and ignores keybinding in others - Cmd-h/l can have different meaning in other apps
 utils.applyAppSpecific(tabSwitchIn, enableSimpleTabSwithing, nil, nil)
--- utils.applyAppSpecific(tabSwitchIn, disableSimpleTabSwitching, nil, true)
+utils.applyAppSpecific(tabSwitchIn, disableSimpleTabSwitching, nil, true)
 
 --- setting conflicting Cmd+L (jump to address bar) keybinding to Cmd+Shift+L
 utils.applyAppSpecific({'Google Chrome'},
@@ -55,7 +55,7 @@ utils.applyAppSpecific({'Google Chrome'},
 -- ----------------------------
 -- App switcher with Cmd++j/k
 -- ----------------------------
-switcher = hs.window.switcher.new(utils.globalfilter,
+switcher = hs.window.switcher.new(utils.globalfilter(),
                                   {textSize = 12,
                                    showTitles = false,
                                    showThumbnails = false,

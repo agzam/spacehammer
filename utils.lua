@@ -74,11 +74,13 @@ module.keymap = function(sourceKey, sourceMod, targetKey, targetMod, repeatDelay
 end
 
 --- Filter that includes full-screen apps
-hs.window.filter.ignoreAlways['Alfred3'] = true
-module.globalfilter = hs.window.filter.new()
+-- hs.window.filter.ignoreAlways['Alfred3'] = true
+module.globalfilter = function()
+  return hs.window.filter.new()
+  -- :setDefaultFilter(true, {allowRoles = 'AXStandardWindow'})
   :setAppFilter('Emacs', {allowRoles={'AXUnknown', 'AXStandardWindow'}})
   :setAppFilter('iTerm2', {allowRoles='AXUnknown'})
-
+end
 ---- Function
 ---- Applies specified functions for when window is focused and unfocused
 ----
@@ -98,7 +100,7 @@ function module.applyAppSpecific(appNames, focusedFn, unfocusedFn, ignore)
     end
   end
 
-  module.globalfilter
+  module.globalfilter()
   :subscribe(hs.window.filter.windowFocused, function() runFn(focusedFn) end)
   :subscribe(hs.window.filter.windowUnfocused, function() runFn(unfocusedFn) end)
 end
