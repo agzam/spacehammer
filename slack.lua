@@ -56,9 +56,7 @@ keybindings.appSpecific["Slack"] = {
       keybindings.activateAppKey("Slack", k)
     end
   end,
-  deactivated = function()
-    keybindings.deactivateAppKeys("Slack")
-  end
+  deactivated = function() keybindings.deactivateAppKeys("Slack") end
 }
 
 module.bind = function(modal, fsm)

@@ -100,7 +100,7 @@ module.appSpecific = {
         module.activateAppKey("Google Chrome", hs.fnutils.copy(hk))
       end
     end,
-    deactivated = function() module.deactivateAppKeys("Google Chrome") end
+    deactivated = function() module.deactivateAppKeys("Google Chrome") end,
   },
   ["iTerm2"] = {
     activated = function()
@@ -108,7 +108,7 @@ module.appSpecific = {
         module.activateAppKey("iTerm2", hs.fnutils.copy(hk))
       end
     end,
-    deactivated = function() module.deactivateAppKeys("iTerm2") end
+    deactivated = function() module.deactivateAppKeys("iTerm2") end,
   }
 }
 
@@ -124,6 +124,10 @@ hs.application.watcher.new(
     end
     for app, modes in pairs(module.appSpecific) do
       if app == appName then
+        -- terminated is the same as deactivated, right?
+        if event == hs.application.watcher["terminated"] and modes["deactivated"] then
+          modes["deactivated"]()
+        end
         for mode, fn in pairs(modes) do
           if event == hs.application.watcher[mode] then fn() end
         end

@@ -119,7 +119,7 @@ windows.activateApp = function(appName)
 end
 
 windows.setMouseCursorAtApp = function(appTitle)
-  local sf = hs.application.find(appTitle):findWindow(appTitle):frame()
+  local sf = hs.application.find(appTitle):focusedWindow():frame()
   local desired_point = hs.geometry.point(sf._x + sf._w - (sf._w * 0.10), sf._y + sf._h - (sf._h * 0.10))
   hs.mouse.setAbsolutePosition(desired_point)
 end

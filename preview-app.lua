@@ -1,20 +1,23 @@
 local windows = require "windows"
-local previewAppKeys = {}
+local keybindings = require "keybindings"
 
-hs.fnutils.each({{key = "j", dir = "down" }, { key = "k", dir = "up"}}, function(k)
-    local function scrollFn()
-      hs.eventtap.keyStroke({""}, k.dir)
+local previewAppHotKeys = {}
+
+-- j/k for scrolling up and down
+for k, dir in pairs({j = -5, k = 5}) do
+  local function scrollFn()
+    windows.setMouseCursorAtApp("Preview")
+    hs.eventtap.scrollWheel({0, dir}, {})
+  end
+  table.insert(previewAppHotKeys, hs.hotkey.new("", k, scrollFn, nil, scrollFn))
+end
+
+-- enable/disable hotkeys
+keybindings.appSpecific["Preview"] = {
+  activated = function()
+    for _,k in pairs(previewAppHotKeys) do
+      keybindings.activateAppKey("Preview", k)
     end
-    -- pressing `j, k` for scrolling
-    previewAppKeys[{key = k}] = hs.hotkey.new("", k.key, scrollFn, nil, scrollFn)
-end)
-
-hs.window.filter.new('Preview')
-  :subscribe(hs.window.filter.windowFocused, function()
-               -- Preview app is in focus
-               hs.fnutils.each(previewAppKeys, function(k) k:enable() end)
-            end)
-  :subscribe(hs.window.filter.windowUnfocused,function()
-               -- Preview app lost the focus
-               hs.fnutils.each(previewAppKeys, function(k) k:disable() end)
-            end)
+  end,
+  deactivated = function() keybindings.deactivateAppKeys("Preview") end,
+}
