@@ -1,3 +1,4 @@
+local module = {}
 local utils = require "utils"
 
 -- ------------------
@@ -21,36 +22,6 @@ local disableSimpleViMode = function()
     hs.hotkey.disableAll({'alt'}, k);
   end
 end
-utils.applyAppSpecific({'Emacs'}, disableSimpleViMode, nil, false)
-utils.applyAppSpecific({'Emacs'}, enableSimpleViMode, nil, true)
-
--- ----------------------------
--- tab switching with Cmd++h/l
--- ----------------------------
-local left_right = {h = '[', l = ']'}
-local enableSimpleTabSwithing = function()
-  for k, v in pairs(left_right) do
-    utils.keymap(k, 'cmd', v, 'cmd+shift')
-  end
-end
-local disableSimpleTabSwitching = function()
-  for k, v in pairs(left_right) do
-    hs.hotkey.disableAll({'cmd'}, k);
-  end
-end
-local tabSwitchIn = {'Google Chrome', 'iTerm2'}
--- -- enables simple tab switching in listed apps, and ignores keybinding in others - Cmd-h/l can have different meaning in other apps
-utils.applyAppSpecific(tabSwitchIn, enableSimpleTabSwithing, nil, nil)
-utils.applyAppSpecific(tabSwitchIn, disableSimpleTabSwitching, nil, true)
-
---- setting conflicting Cmd+L (jump to address bar) keybinding to Cmd+Shift+L
-utils.applyAppSpecific({'Google Chrome'},
-  function()
-    hs.hotkey.bind({'cmd', 'shift'}, 'l', function()
-        local app = hs.window.focusedWindow():application()
-        app:selectMenuItem({'File', 'Open Location…'})
-    end)
-  end, nil, nil)
 
 -- ----------------------------
 -- App switcher with Cmd++j/k
@@ -66,8 +37,92 @@ switcher = hs.window.switcher.new(utils.globalfilter(),
 hs.hotkey.bind({'cmd'},'j', function() switcher:next() end)
 hs.hotkey.bind({'cmd'},'k', function() switcher:previous() end)
 
-function getChromeMenus()
-  local app = hs.window.filter.new{'Google Chrome'}:getWindows()[1]:application()
-  local mn =  app:findMenuItem({'File', 'Open Location…'})
-  return app:selectMenuItem({'File', 'Open Location…'})
+-- ----------------------------
+-- tab switching with Cmd++h/l
+-- ----------------------------
+local left_right = { h = "[", l = "]"}
+local simpleTabSwitching = {}
+for dir, key in pairs(left_right) do
+  local tapFn = function() hs.eventtap.keyStroke({"shift", "cmd"}, key) end
+  simpleTabSwitching[dir] = hs.hotkey.new({"cmd"}, dir, tapFn, nil, tapFn)
 end
+-- ------------------
+-- App specific keybindings
+-- ------------------
+appSpecificKeys = {}
+
+-- Given an app name and hs.hotkey, binds that hotkey when app activates
+module.activateAppKey = function(app, hotkey)
+  if not appSpecificKeys[app] then
+    appSpecificKeys[app] = {}
+  end
+  for a, keys in pairs(appSpecificKeys) do
+    if not keys[hotkey.idx] then
+      keys[hotkey.idx] = hotkey
+    end
+    for idx, hk in pairs(keys) do
+      if idx == hotkey.idx then
+        hk:enable()
+      end
+    end
+  end
+end
+
+-- Disables specific hotkeys for a given app name
+module.deactivateAppKeys = function(app)
+  for a, keys in pairs(appSpecificKeys) do
+    if a == app then
+      for _,hk in pairs(keys) do
+        hk:disable()
+      end
+    end
+  end
+end
+
+module.appSpecific = {
+  ["*"] = {
+    activated = function() enableSimpleViMode() end
+  },
+  ["Emacs"] = {
+    activated = function() disableSimpleViMode() end
+  },
+  ["Google Chrome"] = {
+    activated = function()
+      --- setting conflicting Cmd+L (jump to address bar) keybinding to Cmd+Shift+L
+      local hk = hs.hotkey.new({'cmd', 'shift'}, 'l', function()
+          local app = hs.window.focusedWindow():application()
+          app:selectMenuItem({'File', 'Open Location…'})
+      end)
+      module.activateAppKey("Google Chrome", hk)
+
+      for k, hk in pairs(simpleTabSwitching) do
+        module.activateAppKey("Google Chrome", hk)
+      end
+    end,
+    deactivated = function() module.deactivateAppKeys("Google Chrome") end
+  },
+  ["iTerm2"] = {
+    activated = function()
+      for k, hk in pairs(simpleTabSwitching) do
+        module.activateAppKey("iTerm2", hk)
+      end
+    end,
+    deactivated = function() module.deactivateAppKeys("iTerm2") end
+  }
+}
+
+-- Creates a new watcher and runs all the functions for specific `appName` and `events`
+-- listed in the module in `module.appSpecific`
+hs.application.watcher.new(
+  function(appName, event, appObj)
+    for app, modes in pairs(module.appSpecific) do
+      if app == appName or app == "*" then
+        for mode, fn in pairs(modes) do
+          if event == hs.application.watcher[mode] then fn() end
+        end
+      end
+    end
+  end
+):start()
+
+return module
