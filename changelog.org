@@ -1,0 +1,8 @@
+[2017-06-25 Sun]
+- Sierra compatibility
+  Since Karabiner is not compatible anymore (starting with Sierra), had to find ways to get similar features
+- ~keybdings~ module
+- App switcher with =Cmd+j/k=
+- Simple tab switcher for Chrome and iTerm2 with =Cmd+h/l=
+- Simple =Vi-mode= with =Alt+j/k/l/m=
+- App specific keybindings

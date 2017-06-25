@@ -6,51 +6,61 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 
 ** Why?
    I love Vim keybindings and I needed to find a better, more efficient way to manage windows and jump between the apps.
-   Ideally I wanted to stay in the home row and control as much as I can with ~HJKL~ keys. Adding tens (possibly hundreds) of key-combo shortcuts for every single desirable action is not a good solution.
+   Ideally I wanted to stay in the home row and control as much as I can with =HJKL= keys. Adding tens (possibly hundreds) of key-combo shortcuts for every single desirable action is not a good solution.
 
    Hammerspoon is incredibly powerful tool, and it has allowed me to take my workflow to a completely different level. Jumping between apps, controlling windows, searching things has become such a joyful experience. And no need to learn and memorize multitude of keystrokes. Or have to use the mouse or arrow keys.
 **** Important note!
-     Main key combo is set to ~Cmd SPC~. By default, in OS X it's used for something else (usually for Spotlight). *You're gonna need to rebind that key combination*. Go to your Preferences/Keyboard, find associated keybinding and change it. Unfortunately, simply disabling it is NOT enough. You have to set it to be something else e.g. ~Ctrl+Cmd+Shift+\~ or anything else (I dunno use your imagination), it doesn't really matter, since you can then uncheck the checkbox. If you decide that ~Cmd SPC~ not very convenient for you - simply modify ~/.hammerspoon/init.lua and set it to whatever you like.
+     Main key combo is set to =Cmd SPC=. By default, in OS X it's used for something else (usually for Spotlight). *You're gonna need to rebind that key combination*. Go to your Preferences/Keyboard, find associated keybinding and change it. Unfortunately, simply disabling it is NOT enough. You have to set it to be something else e.g. =Ctrl+Cmd+Shift+\= or whatever (I dunno - use your imagination), it doesn't really matter, since you can then uncheck the checkbox. If you find that =Cmd SPC= ain't very convenient for you - simply modify =~/.hammerspoon/init.lua= and set it to whatever keybinding you like.
 
-*** ~Cmd SPC w~ - Windows
-    - ~Cmd + hjkl~ - for jumping between application windows
-    - ~hjkl~ - moving windows around halves of the screen
-    - ~n/p~ - moving to prev/next monitor
-    - ~Alt + hjkl~ - moving in increments
-    - ~Shift + hjkl~ - re-sizing active window
-    - ~g~ - resizing with [[http://www.hammerspoon.org/docs/hs.grid.html][hs.grid]]
-    - ~m~ - maximize active window
-    - ~u~ - undo window operation 
+*** =Cmd SPC w= - Windows
+    - =Cmd + hjkl= - for jumping between application windows
+    - =hjkl= - moving windows around halves of the screen
+    - =n/p= - moving to prev/next monitor
+    - =Alt + hjkl= - moving in increments
+    - =Shift + hjkl= - re-sizing active window
+    - =g= - re-sizing with [[http://www.hammerspoon.org/docs/hs.grid.html][hs.grid]]
+    - =m= - maximize active window
+    - =u= - undo window operation 
+      
+*** =Cmd SPC a= - Apps
+    - =e= - Emacs
+    - =c= - Chrome
+    - =t= - Terminal
+    - =s= - Slack
+    - =b= - Brave
 
-*** ~Cmd SPC a~ - Apps
-    - ~e~ - Emacs
-    - ~c~ - Chrome
-    - ~t~ - Terminal
-    - ~s~ - Slack
-    - ~b~ - Brave
+*** =Cmd SPC SPC= - open Alfred search bar
 
-*** ~Cmd SPC SPC~ - open Alfred search bar
-
-
-*** ~Cmd SPC m~ - multimedia controls
+*** =Cmd SPC m= - multimedia controls
     Why? Because different external keyboards impose their own ways to control media. Also Spacehammer way allows you to keep your fingers in the "home row". 
     Currently it's configured to work with Google Play Music Desktop Player. /Yes, I'm that strange dude who's not on Spotify and have Google Music subscription, even though I don't work at Google./
 
 ** Other features
+*** Alternative App Switcher =Cmd j/k=
+*** Simple tab switcher for Chrome and iTerm =Cmd h/l=
+    =Cmd l= in Chrome re-mapped to =Cmd+Shift l=
+*** Simple vi-mode
+    =Alt h/j/k/l=
+    
+    =Alt+Shift h/j/k/l=
+    
+    =Alt+Ctrl+Shift h/j/k/l=
 *** Slack Desktop Client enhancements
      - Switching to Slack via "Apps" modal automatically opens Slack's "Jump to" dialog
-     - Scrolling current Slack thread with ~C-j~, ~C-k~
-     - Jumping to the end of the thread with ~C-g~
-     - Adding emoji to the last message - ~Cmd-I~ (sorry, but default ~Cmd-Shift+\~ horribly inconvenient) 
-
-** TODO: [0/7]
-   - [ ] ~jk~ for exiting modals
-   - [ ] I'd like to find a way to jump to Chrome window with specific profile (right now ~Ctrl-Cmd SPC a b~ will switch to Chrome, but if you have multiple profiles you have to manually find the one you need) 
-   - [ ] I use Chrome Dev-tools a lot, would be nice to automate things, e.g.: Keybinding that opens devtools and creates a vertical split with main window on the left and devtools on the right
-   - [ ] Being able to enter selected passwords from keychain (not sure how I'm gonna do this one)
+     - Scrolling current Slack thread with =C-j/C-k= or =C-e/C-y=
+     - Jumping to the end of the thread with =C-g=
+     - Adding emoji to the last message - =Cmd-i= (sorry, but default =Cmd-Shift+\= is horribly inconvenient)
+     - =C-o/C-i= - jumping back and forth in history
+*** Preview app
+    =j/k= to scroll
+    
+** TODO: [0/6]
+   - [ ] =jk= or =fd= to exit modals (like =evil-escape-key-sequence= in Emacs)
+   - [ ] window configuration profiles
+   - [ ] I'd like to find a way to jump to Chrome window with specific profile (right now =Ctrl-Cmd SPC a c= will switch to Chrome, but if you have multiple profiles you have to manually find the one you need) 
+   - [ ] better module organization - so modals can be added without much hassle
    - [ ] Better than default HUD display
-   - [ ] Org-pomodoro (show current task in menubar)
    - [ ] Disable currently non-available keys. Only specified keys should be usable if a mode
 
 ** Customizing
-I think this part is pretty easy. Lua is extremely simple language. I shamelessly borrowed this [[https://github.com/kyleconroy/lua-state-machine][state-machine implementation]], and that makes adding new modes and extending current ones a piece of cake.
+   I think this part is quite straightforward. Lua is extremely simple language. I shamelessly borrowed this [[https://github.com/kyleconroy/lua-state-machine][state-machine implementation]], and that makes adding new modes and extending current ones a piece of cake.
