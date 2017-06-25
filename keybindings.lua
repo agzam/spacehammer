@@ -40,11 +40,12 @@ hs.hotkey.bind({'cmd'},'k', function() switcher:previous() end)
 -- ----------------------------
 -- tab switching with Cmd++h/l
 -- ----------------------------
-local left_right = { h = "[", l = "]"}
 local simpleTabSwitching = {}
-for dir, key in pairs(left_right) do
-  local tapFn = function() hs.eventtap.keyStroke({"shift", "cmd"}, key) end
-  simpleTabSwitching[dir] = hs.hotkey.new({"cmd"}, dir, tapFn, nil, tapFn)
+for dir, key in pairs({ h = "[", l = "]"}) do
+  local tf = function()
+    hs.eventtap.keyStroke({"shift", "cmd"}, key)
+  end
+  simpleTabSwitching[dir] = hs.hotkey.new({"cmd"}, dir, tf, nil, tf)
 end
 -- ------------------
 -- App specific keybindings
@@ -57,7 +58,7 @@ module.activateAppKey = function(app, hotkey)
     appSpecificKeys[app] = {}
   end
   for a, keys in pairs(appSpecificKeys) do
-    if not keys[hotkey.idx] then
+    if (a == app or app == "*") and not keys[hotkey.idx] then
       keys[hotkey.idx] = hotkey
     end
     for idx, hk in pairs(keys) do
@@ -89,14 +90,14 @@ module.appSpecific = {
   ["Google Chrome"] = {
     activated = function()
       --- setting conflicting Cmd+L (jump to address bar) keybinding to Cmd+Shift+L
-      local hk = hs.hotkey.new({'cmd', 'shift'}, 'l', function()
+      local cmdSL = hs.hotkey.new({'cmd', 'shift'}, 'l', function()
           local app = hs.window.focusedWindow():application()
           app:selectMenuItem({'File', 'Open Location…'})
       end)
-      module.activateAppKey("Google Chrome", hk)
+      module.activateAppKey("Google Chrome", cmdSL)
 
       for k, hk in pairs(simpleTabSwitching) do
-        module.activateAppKey("Google Chrome", hk)
+        module.activateAppKey("Google Chrome", hs.fnutils.copy(hk))
       end
     end,
     deactivated = function() module.deactivateAppKeys("Google Chrome") end
@@ -104,7 +105,7 @@ module.appSpecific = {
   ["iTerm2"] = {
     activated = function()
       for k, hk in pairs(simpleTabSwitching) do
-        module.activateAppKey("iTerm2", hk)
+        module.activateAppKey("iTerm2", hs.fnutils.copy(hk))
       end
     end,
     deactivated = function() module.deactivateAppKeys("iTerm2") end
@@ -115,8 +116,14 @@ module.appSpecific = {
 -- listed in the module in `module.appSpecific`
 hs.application.watcher.new(
   function(appName, event, appObj)
+    -- first executing all fns in `appSpecific["*"]`
+    for k,v in pairs (hs.application.watcher) do
+      if v == event and module.appSpecific["*"][k] then
+        module.appSpecific["*"][k]()
+      end
+    end
     for app, modes in pairs(module.appSpecific) do
-      if app == appName or app == "*" then
+      if app == appName then
         for mode, fn in pairs(modes) do
           if event == hs.application.watcher[mode] then fn() end
         end
