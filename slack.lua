@@ -4,7 +4,7 @@ local keybindings = require "keybindings"
 local module = {}
 
 local function setMouseCursorOnSlack()
-  windows.setMouseCursorAtApp "Slack"
+  windows.setMouseCursorAtApp("Slack")
 end
 
 local slackLocalHotkeys = {

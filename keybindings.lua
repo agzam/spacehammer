@@ -18,7 +18,7 @@ local enableSimpleViMode = function()
   end
 end
 local disableSimpleViMode = function()
-  for k,v in pairs (arrows) do
+  for k,_ in pairs (arrows) do
     hs.hotkey.disableAll({'alt'}, k);
   end
 end
