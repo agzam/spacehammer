@@ -1,5 +1,7 @@
 local multimedia = {}
 
+multimedia.musicApp = "Google Play Music Desktop Player"
+
 multimedia.mKey = function (key)
   return function()
     hs.eventtap.event.newSystemKeyEvent(string.upper(key), true):post()
@@ -10,7 +12,7 @@ end
 
 multimedia.bind = function(modal, fsm)
   modal:bind("", "a", function()
-               hs.application.launchOrFocus("Google Play Music Desktop Player")
+               hs.application.launchOrFocus(multimedia.musicApp)
                fsm:toIdle()
   end)
   modal:bind("", "h", function() multimedia.mKey("previous")(); fsm:toIdle() end)

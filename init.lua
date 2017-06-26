@@ -1,5 +1,5 @@
 require "preload"
-require "keybindings"
+local keybindings = require "keybindings"
 local machine = require "statemachine"
 local windows = require "windows"
 local slack = require "slack"
@@ -40,8 +40,7 @@ modals = {
       self.modal:bind("","j", nil, function()
                         local wns = hs.fnutils.filter(hs.window.allWindows(), filterAllowedApps)
                         hs.hints.windowHints(wns, nil, true)
-                        fsm:toIdle()
-      end)
+                        fsm:toIdle() end)
       self.modal:bind("","escape", function() fsm:toIdle() end)
       function self.modal:entered() displayModalText "w \t- windows\na \t- apps\n j \t- jump\nm - media" end
     end
@@ -62,17 +61,16 @@ modals = {
       displayModalText "e\t emacs\ng \t chrome\n i\t iTerm\n s\t slack\n b\t brave"
       self.modal:bind("","escape", function() fsm:toIdle() end)
       self.modal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
-      hs.fnutils.each({
-          { key = "i", app = "iTerm" },
-          { key = "g", app = "Google Chrome" },
-          { key = "b", app = "Brave" },
-          { key = "e", app = "Emacs" }}, function(item)
-
-          self.modal:bind("", item.key, function() windows.activateApp(item.app); fsm:toIdle()  end)
-      end)
+      for key, app in pairs({
+          i = "iTerm2",
+          g = "Google Chrome",
+          b = "Brave",
+          e = "Emacs",
+          m = multimedia.musicApp}) do
+        self.modal:bind("", key, function() windows.activateApp(app); fsm:toIdle() end)
+      end
 
       slack.bind(self.modal, fsm)
-
       self.modal:enter()
     end
   },
