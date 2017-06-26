@@ -49,7 +49,7 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
      - Switching to Slack via "Apps" modal automatically opens Slack's "Jump to" dialog
      - Scrolling current Slack thread with =C-j/C-k= or =C-e/C-y=
      - Jumping to the end of the thread with =C-g=
-     - Adding emoji to the last message - =Cmd-i= (sorry, but default =Cmd-Shift+\= is horribly inconvenient)
+     - Adding emoji to the last message - =C-r= (sorry, but default =Cmd-Shift+\= is horribly inconvenient)
      - =C-o/C-i= - jumping back and forth in history
 *** Preview app
     =j/k= to scroll

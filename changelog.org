@@ -6,3 +6,4 @@
 - Simple tab switcher for Chrome and iTerm2 with =Cmd+h/l=
 - Simple =Vi-mode= with =Alt+j/k/l/m=
 - App specific keybindings
+- Changed Slack reaction key to =C-r=, so =Cmd+i= can be used to switch between current application windows

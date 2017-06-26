@@ -16,7 +16,7 @@ local slackLocalHotkeys = {
       hs.eventtap.scrollWheel({0, -5000}, {})
     end, nil, nil),
   -- add a reaction
-  hs.hotkey.bind({"cmd"}, "i",
+  hs.hotkey.bind({"ctrl"}, "r",
     function()
       hs.eventtap.keyStroke({"cmd", "shift"}, "\\")
     end, nil, nil)
