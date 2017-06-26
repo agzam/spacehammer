@@ -27,7 +27,7 @@ end
 windows.bind = function(modal, fsm)
   -- maximize window
   modal:bind("","m", function()
-               rect({0, 0, 1, 1})()
+               fw():maximize(0)
                windows.highlighActiveWin()
   end)
 
@@ -45,7 +45,7 @@ windows.bind = function(modal, fsm)
       -- incrementally
       modal:bind({"alt"}, arrow, function()
           undo:push()
-          hs.grid['pushWindow'..dir[arrow]](fw()) 
+          hs.grid['pushWindow'..dir[arrow]](fw())
       end)
 
       modal:bind({"shift"}, arrow, function()

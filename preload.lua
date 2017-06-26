@@ -1,5 +1,5 @@
 -- The default duration for animations, in seconds. Initial value is 0.2; set to 0 to disable animations.
-hs.window.animationDuration = 0
+hs.window.animationDuration = 0.2
 
 -- auto reload config
 configFileWatcher =
