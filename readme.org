@@ -24,8 +24,8 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
       
 *** =Cmd SPC a= - Apps
     - =e= - Emacs
-    - =c= - Chrome
-    - =t= - Terminal
+    - =g= - Chrome
+    - =i= - iTerm
     - =s= - Slack
     - =b= - Brave
 

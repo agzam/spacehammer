@@ -13,10 +13,10 @@ local displayModalText = function(txt)
 end
 
 allowedApps = {"Emacs", "iTerm2"}
+hs.hints.style = "vimperator"
 hs.hints.showTitleThresh = 4
 hs.hints.titleMaxSize = 10
 hs.hints.fontSize = 30
-hs.hints.hintChars = {"S","A","D","F","J","K","L","E","W","C","M","P","G","H"}
 
 local filterAllowedApps = function(w)
   if (not w:isStandard()) and (not utils.contains(allowedApps, w:application():name())) then
@@ -27,7 +27,7 @@ end
 
 modals = {
   main = {
-    init = function(self, fsm) 
+    init = function(self, fsm)
       if self.modal then
         self.modal:enter()
       else
@@ -44,7 +44,7 @@ modals = {
       end)
       self.modal:bind("","escape", function() fsm:toIdle() end)
       function self.modal:entered() displayModalText "w \t- windows\na \t- apps\n j \t- jump\nm - media" end
-    end 
+    end
   },
   windows = {
     init = function(self, fsm)
@@ -59,15 +59,14 @@ modals = {
   apps = {
     init = function(self, fsm)
       self.modal = hs.hotkey.modal.new()
-      displayModalText "e \t emacs\nc \t chrome\nt \t terminal\ns \t slack\nb \t brave"
+      displayModalText "e\t emacs\ng \t chrome\n i\t iTerm\n s\t slack\n b\t brave"
       self.modal:bind("","escape", function() fsm:toIdle() end)
       self.modal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
       hs.fnutils.each({
-          { key = "t", app = "iTerm" },
-          { key = "c", app = "Google Chrome" },
+          { key = "i", app = "iTerm" },
+          { key = "g", app = "Google Chrome" },
           { key = "b", app = "Brave" },
-          { key = "e", app = "Emacs" },
-          { key = "g", app = "Gitter" }}, function(item)
+          { key = "e", app = "Emacs" }}, function(item)
 
           self.modal:bind("", item.key, function() windows.activateApp(item.app); fsm:toIdle()  end)
       end)
