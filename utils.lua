@@ -67,9 +67,9 @@ module.keymap = function(sourceKey, sourceMod, targetKey, targetMod, repeatDelay
         fn = hs.fnutils.partial(keyStroke, targetMod, targetKey, repeatDelay)
     end
     if noRepeat then
-        hs.hotkey.bind(sourceMod, sourceKey, fn, nil, nil)
+        return hs.hotkey.new(sourceMod, sourceKey, fn, nil, nil)
     else
-        hs.hotkey.bind(sourceMod, sourceKey, fn, nil, fn)
+        return hs.hotkey.new(sourceMod, sourceKey, fn, nil, fn)
     end
 end
 
