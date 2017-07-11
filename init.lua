@@ -3,13 +3,60 @@ local keybindings = require "keybindings"
 local machine = require "statemachine"
 local windows = require "windows"
 local slack = require "slack"
-local multimedia = require "multimedia"
 
 require "preview-app"
+logger = hs.logger.new('balls')
+formatText = function(textMap)
+  local longest = 0
+  maxKeyCombo = hs.fnutils.each(textMap, function(textmapping)
+                                    len = string.len(textmapping['key'])
+                                    newLongest = len > longest
+                                    if newLongest then
+                                      longest = len
+                                    end
+                                         end
+  )
+  hs.fnutils.each(textMap, function(textmapping)
+                    len = string.len(textmapping['key'])
+                    logger:e(len)
+                    padding = longest - len
+
+                    i = 0
+                    while i < padding do
+                      textmapping['key'] = textmapping['key'] .. ' '
+                      i = i + 1
+                    end
+  end)
+  local finalText = ''
+  hs.fnutils.each(textMap, function(textmapping)
+                    finalText = finalText .. textmapping['key'] .. ' → ' .. textmapping['name'] .. '\n'
+  end)
+  return finalText
+end
 
 local displayModalText = function(txt)
   hs.alert.closeAll()
-  alert(txt, 999999)
+  alert(formatText(txt),
+        {
+          textFont = "MesloLGMDZ-RegularForPowerline",
+          textSize = 26,
+          radius = 5,
+          fillColor = {
+            red = .05,
+            green = .12,
+            blue = .17,
+            alpha = 0.7
+          },
+          textColor = {
+            red = .91,
+            green = .88,
+            blue = .8
+          },
+          strokeColor = {
+            black = 1,
+            alpha = 0.7
+          }
+        }, 999999)
 end
 
 allowedApps = {"Emacs", "iTerm2"}
@@ -36,19 +83,72 @@ modals = {
       self.modal:bind("","space", nil, function() fsm:toIdle(); windows.activateApp("Alfred 3") end)
       self.modal:bind("","w", nil, function() fsm:toWindows() end)
       self.modal:bind("","a", nil, function() fsm:toApps() end)
-      self.modal:bind("", "m", nil, function() fsm:toMedia() end)
       self.modal:bind("","j", nil, function()
                         local wns = hs.fnutils.filter(hs.window.allWindows(), filterAllowedApps)
                         hs.hints.windowHints(wns, nil, true)
                         fsm:toIdle() end)
       self.modal:bind("","escape", function() fsm:toIdle() end)
-      function self.modal:entered() displayModalText "w \t- windows\na \t- apps\n j \t- jump\nm - media" end
+      function self.modal:entered()
+        displayModalText({
+            {
+              key = 'w',
+              name = 'windows'
+            },
+            {
+              key = 'a',
+              name = 'apps'
+            },
+            {
+              key = 'j',
+              name = 'jump'
+            }
+          })
+      end
     end
   },
   windows = {
     init = function(self, fsm)
       self.modal = hs.hotkey.modal.new()
-      displayModalText "cmd + hjkl \t jumping\nhjkl \t\t\t\t halves\nalt + hjkl \t\t increments\nshift + hjkl \t resize\nn, p \t next, prev screen\ng \t\t\t\t\t grid\nm \t\t\t\t maximize\nu \t\t\t\t\t undo"
+      displayModalText({
+          {
+            key = 'cmd + hjkl',
+            name = 'jumping'
+          },
+          {
+            key = 'hjkl',
+            name = 'halves'
+          },
+          {
+            key = 'alt + hjkl',
+            name = 'increments'
+          },
+          {
+            key = 'shift + hjkl',
+            name = 'resize'
+
+          },
+          {
+            key = 'np',
+            name = 'next and prev screen'
+
+          },
+          {
+            key = 'g',
+            name = 'grid'
+
+          },
+          {
+            key = 'm',
+            name = 'maximize'
+
+          },
+          {
+            key = 'u',
+            name = 'undo'
+
+          }
+      })
+
       self.modal:bind("","escape", function() fsm:toIdle() end)
       self.modal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
       windows.bind(self.modal, fsm)
@@ -58,7 +158,38 @@ modals = {
   apps = {
     init = function(self, fsm)
       self.modal = hs.hotkey.modal.new()
-      displayModalText "e\t emacs\ng \t chrome\n i\t iTerm\n s\t slack\n b\t brave"
+      displayModalText({
+        {
+          key = 'e',
+          name = 'emacs'
+
+        },
+        {
+          key = 'g',
+          name = 'chrome'
+
+         },
+        {
+          key = 'i',
+          name = 'iTerm'
+
+        },
+        {
+          key = 's',
+          name = 'slack'
+
+        },
+        {
+          key = 'b',
+          name = 'brave'
+
+        },
+        {
+          key = 't',
+          name = 'telegram'
+
+        }
+      })
       self.modal:bind("","escape", function() fsm:toIdle() end)
       self.modal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
       for key, app in pairs({
@@ -66,23 +197,12 @@ modals = {
           g = "Google Chrome",
           b = "Brave",
           e = "Emacs",
-          m = multimedia.musicApp}) do
+          t = "Telegram"
+      }) do
         self.modal:bind("", key, function() windows.activateApp(app); fsm:toIdle() end)
       end
 
       slack.bind(self.modal, fsm)
-      self.modal:enter()
-    end
-  },
-  media = {
-    init = function(self, fsm)
-      self.modal = hs.hotkey.modal.new()
-      displayModalText "h \t previous track\nl \t next track\nk \t volume up\nj \t volume down\ns \t play/pause\na \t launch player"
-
-      self.modal:bind("","escape", function() fsm:toIdle() end)
-      self.modal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
-
-      multimedia.bind(self.modal, fsm)
       self.modal:enter()
     end
   }
@@ -101,36 +221,50 @@ exitAllModals = function()
   end)
 end
 
+
+buildTopLevelCallbacks = function(topLevelNames)
+  dickhandler = function(self, event, from, to)
+    initModal(to, self)
+  end
+
+  calldicks = {
+    onidle = function(self, event, from, to)
+      hs.alert.closeAll()
+      exitAllModals()
+    end,
+    onmain = dickhandler
+  };
+  hs.fnutils.each(topLevelNames, function(command)
+                    calldicks['on' .. command] = dickhandler
+  end)
+  return calldicks
+end
+
+function titleCase( first, rest )
+  return first:upper()..rest:lower()
+end
+
+buildTopLevelEvents = function(topLevelNames)
+  eventdicks = {
+    { name = "toIdle", from = "*", to = "idle" },
+    { name = "toMain", from = "*", to = "main" },
+  }
+
+  hs.fnutils.each(topLevelNames, function(command)
+                    if command ~= 'main' then
+                      hs.fnutils.concat(eventdicks, {
+                                          { name = 'to' .. string.gsub(command, "(%a)([%w_']*)", titleCase), from = { 'main', 'idle' }, to = '' .. command }
+                      })
+                    end
+  end)
+  return eventdicks
+end
+
+topLevel = { 'windows', 'apps' }
 local fsm = machine.create({
     initial = "idle",
-    events = {
-      { name = "toIdle",    from = "*", to = "idle" },
-      { name = "toMain",    from = '*', to = "main" },
-      { name = "toWindows", from = {'main','idle'}, to = "windows" },
-      { name = "toApps",    from = {'main', 'idle'}, to = "apps" },
-      { name = "toMedia",   from = {'main', 'idle'}, to = "media" }
-    },
-    callbacks = {
-      onidle = function(self, event, from, to)
-        hs.alert.closeAll()
-        exitAllModals()
-      end,
-      onmain = function(self, event, from, to)
-        -- modals[from].modal:exit()
-        initModal(to, self)
-      end,
-      onwindows = function(self, event, from, to)
-        -- modals[from].modal:exit()
-        initModal(to, self)
-      end,
-      onapps = function(self, event, from, to)
-        -- modals[from].modal:exit()
-        initModal(to, self)
-      end,
-      onmedia = function(self, event, from, to)
-        initModal(to, self)
-      end,
-    }
+    events = buildTopLevelEvents(topLevel),
+    callbacks = buildTopLevelCallbacks(topLevel)
 })
 
 fsm:toMain()
