@@ -38,7 +38,7 @@ local displayModalText = function(txt)
   hs.alert.closeAll()
   alert(formatText(txt),
         {
-          textFont = "MesloLGMDZ-RegularForPowerline",
+          textFont = "Courier",
           textSize = 26,
           radius = 5,
           fillColor = {
