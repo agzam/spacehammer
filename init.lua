@@ -80,9 +80,10 @@ modals = {
       else
         self.modal = hs.hotkey.modal.new({"cmd"}, "space")
       end
-      self.modal:bind("","space", nil, function() fsm:toIdle(); windows.activateApp("Alfred 3") end)
+      self.modal:bind("","space", nil, function() fsm:toIdle(); windows.activateApp("Alfred 2") end)
       self.modal:bind("","w", nil, function() fsm:toWindows() end)
       self.modal:bind("","a", nil, function() fsm:toApps() end)
+      self.modal:bind("","s", nil, function() fsm:toSystem() end)
       self.modal:bind("","j", nil, function()
                         local wns = hs.fnutils.filter(hs.window.allWindows(), filterAllowedApps)
                         hs.hints.windowHints(wns, nil, true)
@@ -97,6 +98,10 @@ modals = {
             {
               key = 'a',
               name = 'apps'
+            },
+            {
+              key = 's',
+              name = 'system'
             },
             {
               key = 'j',
@@ -188,6 +193,11 @@ modals = {
           key = 't',
           name = 'telegram'
 
+        },
+        {
+          key = 'n',
+          name = 'notes'
+
         }
       })
       self.modal:bind("","escape", function() fsm:toIdle() end)
@@ -197,9 +207,32 @@ modals = {
           g = "Google Chrome",
           b = "Brave",
           e = "Emacs",
-          t = "Telegram"
+          t = "Telegram",
+          n = "Notes"
       }) do
         self.modal:bind("", key, function() windows.activateApp(app); fsm:toIdle() end)
+      end
+
+      slack.bind(self.modal, fsm)
+      self.modal:enter()
+    end
+  },
+  system = {
+    init = function(self, fsm)
+      self.modal = hs.hotkey.modal.new()
+      displayModalText({
+          {
+            key = 'l',
+            name = 'lockscreen'
+
+          }
+      })
+      self.modal:bind("","escape", function() fsm:toIdle() end)
+      self.modal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
+      for key, fn in pairs({
+          l = function() hs.caffeinate.lockScreen(); fsm:toIdle() end
+      }) do
+        self.modal:bind("", key, fn)
       end
 
       slack.bind(self.modal, fsm)
@@ -260,7 +293,7 @@ buildTopLevelEvents = function(topLevelNames)
   return eventdicks
 end
 
-topLevel = { 'windows', 'apps' }
+topLevel = { 'windows', 'apps', 'system' }
 local fsm = machine.create({
     initial = "idle",
     events = buildTopLevelEvents(topLevel),
