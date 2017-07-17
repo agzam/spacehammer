@@ -1,7 +1,7 @@
 [[http://www.hammerspoon.org/][Hammerspoon]] config inspired by [[http://spacemacs.org/][Spacemacs]]
 
 #+BEGIN_SRC bash
-git clone https://github.com/agzam/spacehammer ~/.hammerspoon
+git clone https://github.com/BelfordZ/spacehammer ~/.hammerspoon
 #+END_SRC
 
 ** Rationale
