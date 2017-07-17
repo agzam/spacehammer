@@ -37,30 +37,7 @@ local disableSimpleViMode = function()
   end
 end
 
--- ----------------------------
--- App switcher with Cmd++j/k
--- ----------------------------
-switcher = hs.window.switcher.new(utils.globalfilter(),
-                                  {textSize = 12,
-                                   showTitles = false,
-                                   showThumbnails = false,
-                                   showSelectedTitle = false,
-                                   selectedThumbnailSize = 640,
-                                   backgroundColor = {0, 0, 0, 0}})
 
-hs.hotkey.bind({'cmd'},'j', function() switcher:next() end)
-hs.hotkey.bind({'cmd'},'k', function() switcher:previous() end)
-
--- ----------------------------
--- tab switching with Cmd++h/l
--- ----------------------------
-local simpleTabSwitching = {}
-for dir, key in pairs({ h = "[", l = "]"}) do
-  local tf = function()
-    hs.eventtap.keyStroke({"shift", "cmd"}, key)
-  end
-  simpleTabSwitching[dir] = hs.hotkey.new({"cmd"}, dir, tf, nil, tf)
-end
 -- ------------------
 -- App specific keybindings
 -- ------------------
@@ -104,29 +81,6 @@ module.appSpecific = {
     activated = function()
       disableSimpleViMode()
     end
-  },
-  ["Google Chrome"] = {
-    activated = function()
-      --- setting conflicting Cmd+L (jump to address bar) keybinding to Cmd+Shift+L
-      local cmdSL = hs.hotkey.new({'cmd', 'shift'}, 'l', function()
-          local app = hs.window.focusedWindow():application()
-          app:selectMenuItem({'File', 'Open Location…'})
-      end)
-      module.activateAppKey("Google Chrome", cmdSL)
-
-      for k, hk in pairs(simpleTabSwitching) do
-        module.activateAppKey("Google Chrome", hs.fnutils.copy(hk))
-      end
-    end,
-    deactivated = function() module.deactivateAppKeys("Google Chrome") end,
-  },
-  ["iTerm2"] = {
-    activated = function()
-      for k, hk in pairs(simpleTabSwitching) do
-        module.activateAppKey("iTerm2", hs.fnutils.copy(hk))
-      end
-    end,
-    deactivated = function() module.deactivateAppKeys("iTerm2") end,
   }
 }
 
@@ -156,4 +110,6 @@ module.watcher = module.watcher or
 
 module.watcher:start()
 
+
 return module
+
