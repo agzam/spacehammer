@@ -40,7 +40,7 @@ end
 -- ----------------------------
 -- App switcher with Cmd++j/k
 -- ----------------------------
-switcher = hs.window.switcher.new(utils.globalfilter(),
+switcher = hs.window.switcher.new(utils.globalFilter(),
                                   {textSize = 12,
                                    showTitles = false,
                                    showThumbnails = false,

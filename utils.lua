@@ -34,9 +34,10 @@ local REPEAT_SLOWER = 100 * 1000
 local NO_REPEAT = -1
 
 local function keyStroke(mod, key, repeatDelay)
+    mod = mod or {}
     hs.eventtap.event.newKeyEvent(mod, key, true):post()
     if repeatDelay <= 0 then
-        repeatDelay = REPEAT_FASTER
+      repeatDelay = REPEAT_FASTER
     end
     hs.timer.usleep(repeatDelay)
     hs.eventtap.event.newKeyEvent(mod, key, false):post()
@@ -75,7 +76,7 @@ end
 
 --- Filter that includes full-screen apps
 -- hs.window.filter.ignoreAlways['Alfred3'] = true
-module.globalfilter = function()
+module.globalFilter = function()
   return hs.window.filter.new()
   -- :setDefaultFilter(true, {allowRoles = 'AXStandardWindow'})
   :setAppFilter('Emacs', {allowRoles={'AXUnknown', 'AXStandardWindow'}})
@@ -100,7 +101,7 @@ function module.applyAppSpecific(appNames, focusedFn, unfocusedFn, ignore)
     end
   end
 
-  module.globalfilter()
+  module.globalFilter()
   :subscribe(hs.window.filter.windowFocused, function() runFn(focusedFn) end)
   :subscribe(hs.window.filter.windowUnfocused, function() runFn(unfocusedFn) end)
 end
