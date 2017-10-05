@@ -11,15 +11,16 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
    Hammerspoon is incredibly powerful tool, and it has allowed me to take my workflow to a completely different level. Jumping between apps, controlling windows, searching things, etc. become so much nicer. And no need to memorize myriad of keystrokes. Or have to use mouse/touchpad or arrow keys - it just slows you down.
 ** Features
 **** =Cmd SPC w= - Windows
-     - =Cmd + hjkl= - for jumping between application windows
      - =hjkl= - moving windows around halves of the screen
-     - =n/p= - moving to prev/next monitor
-     - =Alt + hjkl= - moving in increments
+     - =Ctrl + hjkl= - for jumping between application windows (handy for side by side windows)
+     - =w= - jump to previous window
+     - =n/p= - moving current window to prev/next monitor
+     - =Alt + hjkl= - moving in increments (works across monitors)
      - =Shift + hjkl= - re-sizing active window
      - =g= - re-sizing with [[http://www.hammerspoon.org/docs/hs.grid.html][hs.grid]]
      - =m= - maximize active window
-     - =u= - undo window operation 
-      
+     - =u= - undo last window operation (similar to Spacemacs's =SPC w u=)
+
 **** =Cmd SPC a= - Apps
      - =e= - Emacs
      - =g= - Chrome
@@ -27,10 +28,13 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
      - =s= - Slack
      - =b= - Brave
 
+     you can add more
+
 **** =Cmd SPC SPC= - open Alfred search bar
+     basically pressing =SPC= in any modal takes you to Alfred search popup
 
 **** =Cmd SPC m= - multimedia controls
-     Why? Because different external keyboards impose their own ways to control media. Also Spacehammer allows you to keep your fingers in the "home row". 
+     Why? Because different external keyboards impose their own ways to control media. Also Spacehammer allows you to keep your fingers in the "home row".
      Currently it's configured to work with Google Play Music Desktop Player. /Yes, I'm that strange dude who's not on Spotify and have Google Music subscription, even though I don't work at Google./ If you don't like that - change the =musicApp= name in =multimedia.lua=
 
 ** Other features
@@ -38,30 +42,32 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 **** Simple tab switcher for Chrome and iTerm =Cmd h/l=
      =Cmd l= in Chrome re-mapped to =Cmd+Shift l=
 **** Simple vi-mode
-     =Alt h/j/k/l=
-    
-     =Alt+Shift h/j/k/l=
-    
-     =Alt+Ctrl+Shift h/j/k/l=
+     - =Alt h/j/k/l= - simple left/right/up/down
+     - =Alt+Shift h/j/k/l= - word wise left/right/up/down
+     - =Alt+Ctrl+Shift h/j/k/l= - selecting things
+
+     These can be disabled in certain apps (by default they they are ignored in Emacs)
 **** Slack Desktop Client enhancements
-      - Switching to Slack via "Apps" modal automatically opens Slack's "Jump to" dialog
+      - Switching to Slack via "Apps" modal =CMD+SPC a s= - automatically opens Slack's "Jump to" dialog
       - Scrolling current Slack thread with =C-j/C-k= or =C-e/C-y=
       - Jumping to the end of the thread with =C-g=
       - Adding emoji to the last message - =C-r= (sorry, but default =Cmd-Shift+\= is horribly inconvenient)
       - =C-o/C-i= - jumping back and forth in history
 **** Preview app
      =j/k= to scroll
-    
+
 ** Important note!
      Main key combo is set to =Cmd SPC=. By default, in OS X it's used for something else (usually for Spotlight). *You're gonna need to rebind that key combination*. Go to your Preferences/Keyboard, find associated keybinding and change it. Unfortunately, simply disabling it is NOT enough. You have to set it to be something else e.g. =Ctrl+Cmd+Shift+\= or whatever (I dunno - use your imagination), it doesn't really matter, since you can then uncheck the checkbox. If you find that =Cmd SPC= ain't very convenient for you - simply modify =~/.hammerspoon/init.lua= and set it to whatever keybinding you like.
-** TODO 
+** TODO
    - [ ] =jk= or =fd= to exit modals (like =evil-escape-key-sequence= in Emacs)
-   - [ ] window configuration profiles
-   - [ ] =Cmd SPC Tab= to switch to previous window
+   - [ ] window configuration profiles (similar to Layouts feature in Spacemacs)
+   - [X] =Cmd SPC Tab= to switch to previous window
+        This is now done, it's bound to =CMD+Spc+w= - similar to Spacemacs's =SPC w w=
    - [ ] better module organization - so modals can be added without much hassle
-   - [ ] Disable non-available keys in a modal. Keys that not listed should be simply ignored
-   - [ ] I'd like to find a way to jump to Chrome window with specific profile (right now =Ctrl-Cmd SPC a c= will switch to Chrome, but if you have multiple profiles you have to manually find the one you need) 
-   - [ ] Better than default HUD display
+   - [ ] Disable non-available keys in a modal. Keys that not listed should be simply ignored see #1
+   - [ ] I'd like to find a way to jump to Chrome window with specific profile (right now =Ctrl-Cmd SPC a c= will switch to Chrome, but if you have multiple profiles you have to manually find the one you need)
+   - [ ] Another thing I want is to be able to toggle ChromeDevtools panel - this is somewhat tricky, see [[https://github.com/Hammerspoon/hammerspoon/issues/1506][this issue]]
+   - [ ] Better than default HUD display (something less obtrusive than ~hs.alert~ would be nice
 
 ** Customizing
-   I think this part is quite straightforward. Lua is extremely simple language /although to be honest I'd rather prefer something Lisp-y: Clojurescript or Scheme/. I shamelessly borrowed this [[https://github.com/kyleconroy/lua-state-machine][state-machine implementation]], and that makes adding new modes and extending current ones a piece of cake.
+   This is quite straightforward. Lua is extremely simple language /although to be honest I'd rather prefer something Lisp-y: Clojurescript or Scheme/. I shamelessly borrowed this [[https://github.com/kyleconroy/lua-state-machine][state-machine implementation]], and that makes adding new modes and extending current ones a piece of cake.
