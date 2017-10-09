@@ -1,8 +1,6 @@
 local windows = {}
 local utils = require "utils"
 
-hs.grid.setMargins({0, 0})
-hs.grid.setGrid("2x2")
 -- hs.window.setFrameCorrectness = true
 
 -- undo for window operations
@@ -78,29 +76,30 @@ local function resizeWindow(modal, arrow)
   end)
 end
 
+hs.grid.setMargins({0, 0})
+hs.grid.setGrid("2x2")
+
 local function showGrid(fsm)
-  local gridSize = hs.grid.getGrid()
-  undo:push()
-  hs.grid.show(function() hs.grid.setGrid(gridSize) end)
+  hs.grid.show()
   fsm:toIdle()
 end
 
-windows.bind = function(modal, fsm)
+local bind = function(hotkeyMmodal, fsm)
   -- maximize window
-  modal:bind("","m", maximizeWindowFrame)
+  hotkeyMmodal:bind("","m", maximizeWindowFrame)
   -- undo
-  modal:bind("", "u", function() undo:pop() end)
+  hotkeyMmodal:bind("", "u", function() undo:pop() end)
   -- moving/re-sizing windows
-  hs.fnutils.each({"h", "l", "k", "j"}, hs.fnutils.partial(resizeWindow, modal))
+  hs.fnutils.each({"h", "l", "k", "j"}, hs.fnutils.partial(resizeWindow, hotkeyMmodal))
   -- window grid
-  modal:bind("", "g", hs.fnutils.partial(showGrid, fsm))
+  hotkeyMmodal:bind("", "g", hs.fnutils.partial(showGrid, fsm))
   -- jumping between windows
-  hs.fnutils.each({"h", "l", "k", "j"}, hs.fnutils.partial(windowJump, modal, fsm))
+  hs.fnutils.each({"h", "l", "k", "j"}, hs.fnutils.partial(windowJump, hotkeyMmodal, fsm))
   -- quick jump to the last window
-  modal:bind({}, 'w', hs.fnutils.partial(jumpToLastWindow, fsm))
+  hotkeyMmodal:bind({}, 'w', hs.fnutils.partial(jumpToLastWindow, fsm))
   -- moving windows between monitors
-  modal:bind({}, 'p', function() undo:push(); fw():moveOneScreenNorth() end)
-  modal:bind({}, 'n', function() undo:push(); fw():moveOneScreenSouth() end)
+  hotkeyMmodal:bind({}, 'p', function() undo:push(); fw():moveOneScreenNorth() end)
+  hotkeyMmodal:bind({}, 'n', function() undo:push(); fw():moveOneScreenSouth() end)
 end
 
 function undo:push()
@@ -144,6 +143,18 @@ windows.setMouseCursorAtApp = function(appTitle)
   local sf = hs.application.find(appTitle):focusedWindow():frame()
   local desired_point = hs.geometry.point(sf._x + sf._w - (sf._w * 0.10), sf._y + sf._h - (sf._h * 0.10))
   hs.mouse.setAbsolutePosition(desired_point)
+end
+
+windows.addState = function(modal)
+  modal.addState("windows", {
+                   init = function(self, fsm)
+                     self.modal = hs.hotkey.modal.new()
+                     modal.displayModalText("cmd + hjkl \t jumping\nhjkl \t\t\t\t halves\nalt + hjkl \t\t increments\nshift + hjkl \t resize\nn, p \t next, prev screen\ng \t\t\t\t\t grid\nm \t\t\t\t maximize\nu \t\t\t\t\t undo")
+                     self.modal:bind("","escape", function() fsm:toIdle() end)
+                     self.modal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
+                     bind(self.modal, fsm)
+                     self.modal:enter()
+  end})
 end
 
 return windows
