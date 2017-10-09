@@ -12,7 +12,7 @@ end
 
 modal.exitAllModals = function()
   hs.fnutils.each(modal.states, function(s)
-                    if s.modal then s.modal:exit() end
+                    if s.hotkeyModal then s.hotkeyModal:exit() end
   end)
 end
 
@@ -39,21 +39,21 @@ modal.states = {
   main = {
     from = "*", to = "main",
     init = function(self, fsm)
-      if self.modal then
-        self.modal:enter()
+      if self.hotkeyModal then
+        self.hotkeyModal:enter()
       else
-        self.modal = hs.hotkey.modal.new({"cmd"}, "space")
+        self.hotkeyModal = hs.hotkey.modal.new({"cmd"}, "space")
       end
-      self.modal:bind("","space", nil, function() fsm:toIdle(); windows.activateApp("Alfred 3") end)
-      self.modal:bind("","w", nil, function() fsm:toWindows() end)
-      self.modal:bind("","a", nil, function() fsm:toApps() end)
-      self.modal:bind("", "m", nil, function() fsm:toMedia() end)
-      self.modal:bind("","j", nil, function()
+      self.hotkeyModal:bind("","space", nil, function() fsm:toIdle(); windows.activateApp("Alfred 3") end)
+      self.hotkeyModal:bind("","w", nil, function() fsm:toWindows() end)
+      self.hotkeyModal:bind("","a", nil, function() fsm:toApps() end)
+      self.hotkeyModal:bind("", "m", nil, function() fsm:toMedia() end)
+      self.hotkeyModal:bind("","j", nil, function()
                         local wns = hs.fnutils.filter(hs.window.allWindows(), filterAllowedApps)
                         hs.hints.windowHints(wns, nil, true)
                         fsm:toIdle() end)
-      self.modal:bind("","escape", function() fsm:toIdle() end)
-      function self.modal:entered()
+      self.hotkeyModal:bind("","escape", function() fsm:toIdle() end)
+      function self.hotkeyModal:entered()
         modal.displayModalText "w \t- windows\na \t- apps\n j \t- jump\nm - media"
       end
     end
@@ -85,8 +85,8 @@ modal.createMachine = function()
   end
 
   return stateMachine.create({ initial = "idle",
-                                   events = events,
-                                   callbacks = params(self)})
+                               events = events,
+                               callbacks = params(self)})
 end
 
 return modal

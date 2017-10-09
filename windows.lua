@@ -148,12 +148,12 @@ end
 windows.addState = function(modal)
   modal.addState("windows", {
                    init = function(self, fsm)
-                     self.modal = hs.hotkey.modal.new()
+                     self.hotkeyModal = hs.hotkey.modal.new()
                      modal.displayModalText("cmd + hjkl \t jumping\nhjkl \t\t\t\t halves\nalt + hjkl \t\t increments\nshift + hjkl \t resize\nn, p \t next, prev screen\ng \t\t\t\t\t grid\nm \t\t\t\t maximize\nu \t\t\t\t\t undo")
-                     self.modal:bind("","escape", function() fsm:toIdle() end)
-                     self.modal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
-                     bind(self.modal, fsm)
-                     self.modal:enter()
+                     self.hotkeyModal:bind("","escape", function() fsm:toIdle() end)
+                     self.hotkeyModal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
+                     bind(self.hotkeyModal, fsm)
+                     self.hotkeyModal:enter()
   end})
 end
 
