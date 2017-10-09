@@ -1,12 +1,12 @@
-local module = {}
+local utils = {}
 local i
 
-function module.tempNotify(timeout, notif)
+function utils.tempNotify(timeout, notif)
   notif:send()
   hs.timer.doAfter(timeout, function() notif:withdraw() end)
 end
 
-function module.splitStr(str, sep)
+function utils.splitStr(str, sep)
   if sep == nil then
     sep = "%s"
   end
@@ -19,13 +19,14 @@ function module.splitStr(str, sep)
   return t
 end
 
-function module.strToTable(str)
+function utils.strToTable(str)
   local t = {}
   for i = 1, #str do
     t[i] = str:sub(i, i)
   end
   return t
 end
+
 --- --------------------------
 --- Keymap utils
 --- --------------------------
@@ -53,7 +54,7 @@ local function keyStrokeSystem(key, repeatDelay)
 end
 
 -- Map sourceKey + sourceMod -> targetKey + targetMod
-module.keymap = function(sourceKey, sourceMod, targetKey, targetMod, repeatDelay)
+utils.keymap = function(sourceKey, sourceMod, targetKey, targetMod, repeatDelay)
     sourceMod = sourceMod or {}
 
     repeatDelay = repeatDelay or REPEAT_FASTER
@@ -64,7 +65,7 @@ module.keymap = function(sourceKey, sourceMod, targetKey, targetMod, repeatDelay
         -- fn = hs.fnutils.partial(keyStrokeSystem, string.upper(targetKey), repeatDelay)
         fn = hs.fnutils.partial(keyStroke, nil, targetKey, repeatDelay)
     else
-        targetMod = module.splitStr(targetMod, '+')
+        targetMod = utils.splitStr(targetMod, '+')
         fn = hs.fnutils.partial(keyStroke, targetMod, targetKey, repeatDelay)
     end
     if noRepeat then
@@ -76,7 +77,7 @@ end
 
 --- Filter that includes full-screen apps
 -- hs.window.filter.ignoreAlways['Alfred3'] = true
-module.globalFilter = function()
+utils.globalFilter = function()
   return hs.window.filter.new()
   -- :setDefaultFilter(true, {allowRoles = 'AXStandardWindow'})
   :setAppFilter('Emacs', {allowRoles={'AXUnknown', 'AXStandardWindow'}})
@@ -92,7 +93,7 @@ end
 ---  unfocusedFn - function applied when one of the apps listed is unfocused
 ---  ignore - reverses the order of the operation: apply given fns for any app except those listed in appNames
 ---
-function module.applyAppSpecific(appNames, focusedFn, unfocusedFn, ignore)
+function utils.applyAppSpecific(appNames, focusedFn, unfocusedFn, ignore)
   local runFn = function(fnToRun)
     local activeApp = hs.window.focusedWindow():application():name()
     local is_listed = hs.fnutils.contains(appNames, activeApp)
@@ -101,9 +102,13 @@ function module.applyAppSpecific(appNames, focusedFn, unfocusedFn, ignore)
     end
   end
 
-  module.globalFilter()
+  utils.globalFilter()
   :subscribe(hs.window.filter.windowFocused, function() runFn(focusedFn) end)
   :subscribe(hs.window.filter.windowUnfocused, function() runFn(unfocusedFn) end)
 end
 
-return module
+function utils.capitalize(str)
+  return string.gsub(" " .. str, "%W%l", string.upper):sub(2)
+end
+
+return utils
