@@ -15,8 +15,12 @@ apps.addState = function(modal)
                          g = "Google Chrome",
                          b = "Brave",
                          e = "Emacs",
-                         m = multimedia.musicApp}) do
-                       self.hotkeyModal:bind("", key, function() windows.activateApp(app); fsm:toIdle() end)
+                         m = multimedia.musicApp})
+                     do
+                       self.hotkeyModal:bind("", key, function()
+                                               windows.activateApp(app)
+                                               fsm:toIdle()
+                       end)
                      end
 
                      slack.bind(self.hotkeyModal, fsm)

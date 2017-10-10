@@ -48,13 +48,14 @@ modal.states = {
       self.hotkeyModal:bind("","w", nil, function() fsm:toWindows() end)
       self.hotkeyModal:bind("","a", nil, function() fsm:toApps() end)
       self.hotkeyModal:bind("", "m", nil, function() fsm:toMedia() end)
+      self.hotkeyModal:bind("", "x", nil, function() fsm:toEmacs() end)
       self.hotkeyModal:bind("","j", nil, function()
                         local wns = hs.fnutils.filter(hs.window.allWindows(), filterAllowedApps)
                         hs.hints.windowHints(wns, nil, true)
                         fsm:toIdle() end)
       self.hotkeyModal:bind("","escape", function() fsm:toIdle() end)
       function self.hotkeyModal:entered()
-        modal.displayModalText "w \t- windows\na \t- apps\n j \t- jump\nm - media"
+        modal.displayModalText "w \t- windows\na \t- apps\n j \t- jump\nm - media\nx\t- emacs"
       end
     end
   }
