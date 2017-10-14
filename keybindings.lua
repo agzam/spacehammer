@@ -110,7 +110,7 @@ module.appSpecific = {
       --- setting conflicting Cmd+L (jump to address bar) keybinding to Cmd+Shift+L
       local cmdSL = hs.hotkey.new({'cmd', 'shift'}, 'l', function()
           local app = hs.window.focusedWindow():application()
-          app:selectMenuItem({'File', 'Open Location…'})
+          app:selectMenuItem({"File", "Open Location…"})
       end)
       module.activateAppKey("Google Chrome", cmdSL)
 
