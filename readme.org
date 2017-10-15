@@ -6,9 +6,14 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 
 ** Rationale
    I love Vim keybindings and I needed to find a better, more efficient way to manage windows and jump between the apps.
+
    Ideally I wanted to stay in the home row and control as much as I can with =h/j/k/l= keys. Adding tens (possibly hundreds) of key-combo shortcuts for every single desirable action is not a good solution.
 
-   Hammerspoon is incredibly powerful tool, and it has allowed me to take my workflow to a completely different level. Jumping between apps, controlling windows, searching things, etc. become so much nicer. And no need to memorize myriad of keystrokes. Or have to use mouse/touchpad or arrow keys - it just slows you down.
+   Also, unlike in vanilla Vim - a single modal (to switch from Normal to Edit to Select mode) is often not enough. So I've taken approach inspired by [[http://spacemacs.org/][Spacemacs]]. In Spacemacs - there is a single main modifier key - SPACE. Of course I couldn't just use SPACE - because none of the modern operating systems can infer current mode of the operation - /either user is typing or if cursor focused on an input field/. So I have to use a key-combo.
+
+   Hammerspoon is incredibly powerful tool, and it has allowed me to take my workflow to a completely different level. Jumping between apps, controlling windows, searching things, etc. become so much easier - everything follows simple semantics of keeping your fingers on the home row. And no need to memorize myriad of keystrokes. Or have to use mouse/touchpad or arrow keys - that slows you down.
+** Important note!
+   Main key combo is set to =Cmd SPC=. By default, in OS X it's used for something else (usually for Spotlight). *You're gonna need to rebind that key combination*. Go to your Preferences/Keyboard, find associated keybinding and change it. Unfortunately, simply disabling it is NOT enough. You have to set it to be something else e.g. =Ctrl+Cmd+Shift+\= or whatever (I dunno - use your imagination), it doesn't really matter, since you can then uncheck the checkbox. If you find that =Cmd SPC= ain't very convenient for you - simply modify =~/.hammerspoon/init.lua= and set it to whatever keybinding you like.
 ** Features
 **** =Cmd SPC w= - Windows
      - =hjkl= - moving windows around halves of the screen
@@ -54,16 +59,15 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
       - Adding emoji to the last message - =C-r= (sorry, but default =Cmd-Shift+\= is horribly inconvenient)
       - =C-o/C-i= - jumping back and forth in history
 **** Preview app
-     =j/k= to scroll
+     - =j/k= - to scroll
+     - =Ctrl-o/i= - to go to previous/next item
 
-** Important note!
-     Main key combo is set to =Cmd SPC=. By default, in OS X it's used for something else (usually for Spotlight). *You're gonna need to rebind that key combination*. Go to your Preferences/Keyboard, find associated keybinding and change it. Unfortunately, simply disabling it is NOT enough. You have to set it to be something else e.g. =Ctrl+Cmd+Shift+\= or whatever (I dunno - use your imagination), it doesn't really matter, since you can then uncheck the checkbox. If you find that =Cmd SPC= ain't very convenient for you - simply modify =~/.hammerspoon/init.lua= and set it to whatever keybinding you like.
 ** TODO
    - [ ] =jk= or =fd= to exit modals (like =evil-escape-key-sequence= in Emacs)
    - [ ] window configuration profiles (similar to Layouts feature in Spacemacs)
    - [X] =Cmd SPC Tab= to switch to previous window
         This is now done, it's bound to =CMD+Spc+w= - similar to Spacemacs's =SPC w w=
-   - [ ] better module organization - so modals can be added without much hassle
+   - [X] better module organization - so modals can be added without much hassle
    - [ ] Disable non-available keys in a modal. Keys that not listed should be simply ignored see #1
    - [ ] I'd like to find a way to jump to Chrome window with specific profile (right now =Ctrl-Cmd SPC a c= will switch to Chrome, but if you have multiple profiles you have to manually find the one you need)
    - [ ] Another thing I want is to be able to toggle ChromeDevtools panel - this is somewhat tricky, see [[https://github.com/Hammerspoon/hammerspoon/issues/1506][this issue]]

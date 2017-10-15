@@ -1,9 +1,13 @@
-[2017-06-25 Sun]
-- Sierra compatibility
-  Since Karabiner is not compatible anymore (starting with Sierra), had to find ways to get similar features
-- ~keybdings~ module
-- App switcher with =Cmd+j/k=
-- Simple tab switcher for Chrome and iTerm2 with =Cmd+h/l=
-- Simple =Vi-mode= with =Alt+j/k/l/m=
-- App specific keybindings
-- Changed Slack reaction key to =C-r=, so =Cmd+i= can be used to switch between current application windows
+- [2017-06-25 Sun]
+  - Sierra compatibility
+    /*Since Karabiner is not compatible anymore (starting with Sierra), had to find a way to get similar features*/
+  - ~keybdings~ module
+  - App switcher - =Cmd+j/k=
+  - Simple tab switcher for Chrome and iTerm2 - =Cmd+h/l=
+  - Simple =Vi-mode= - =Alt+j/k/l/m=
+  - App specific keybindings
+  - Changed Slack reaction key to =C-r=, so =Cmd+i= can be used to switch between current application windows
+- [2017-10-14 Sat]
+  - Improved modal system - simplifies adding and extending modals
+  - Emacs module
+    currently invokes Emacs to enable system-wide org-capture. Accompanying emacs-lisp code can be found [[https://github.com/agzam/dot-spacemacs/blob/master/layers/ag-org/funcs.el#L144][here]]
