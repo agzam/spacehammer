@@ -4,7 +4,7 @@ local keybindings = require "keybindings"
 local previewAppHotKeys = {}
 
 -- j/k for scrolling up and down
-for k, dir in pairs({j = -2, k = 2}) do
+for k, dir in pairs({j = -3, k = 3}) do
   local function scrollFn()
     windows.setMouseCursorAtApp("Preview")
     hs.eventtap.scrollWheel({0, dir}, {})

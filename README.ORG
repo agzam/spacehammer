@@ -11,11 +11,15 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 
    Also, unlike in vanilla Vim - a single modal (to switch from Normal to Edit to Select mode) is often not enough. So I've taken approach inspired by [[http://spacemacs.org/][Spacemacs]]. In Spacemacs - there is a single main modifier key - SPACE. Of course I couldn't just use SPACE - because none of the modern operating systems can infer current mode of the operation - /either user is typing or if cursor focused on an input field/. So I have to use a key-combo.
 
-   Hammerspoon is incredibly powerful tool, and it has allowed me to take my workflow to a completely different level. Jumping between apps, controlling windows, searching things, etc. become so much easier - everything follows simple semantics of keeping your fingers on the home row. And no need to memorize myriad of keystrokes. Or have to use mouse/touchpad or arrow keys - that slows you down.
+   Hammerspoon is incredibly powerful tool, and it has allowed me to take my workflow to a completely different level. Jumping between apps, controlling windows, searching things, etc. become so much easier - everything follows simple semantics of keeping your fingers on the home row. And no need to memorize myriad of keystrokes. Or to drag your hand to reach for mouse/touchpad/arrow keys - that just slows you down.
 ** Important note!
-   Main key combo is set to =Cmd SPC=. By default, in OS X it's used for something else (usually for Spotlight). *You're gonna need to rebind that key combination*. Go to your Preferences/Keyboard, find associated keybinding and change it. Unfortunately, simply disabling it is NOT enough. You have to set it to be something else e.g. =Ctrl+Cmd+Shift+\= or whatever (I dunno - use your imagination), it doesn't really matter, since you can then uncheck the checkbox. If you find that =Cmd SPC= ain't very convenient for you - simply modify =~/.hammerspoon/init.lua= and set it to whatever keybinding you like.
+   Main key combo is set to =Cmd SPC=. By default, in OS X it's used for something else (usually for Spotlight).
+
+   *You're gonna need to rebind that key combination!*
+
+   Go to your Preferences/Keyboard, find associated keybinding and change it. Unfortunately, simply disabling it is NOT enough. You have to set it to be something else e.g. =Ctrl+Cmd+Shift+\= or whatever (I dunno - use your imagination), it doesn't really matter, since you can then uncheck the checkbox. If you find that =Cmd SPC= ain't very convenient for you - simply modify =~/.hammerspoon/init.lua= and set it to whatever keybinding you like.
 ** Features
-**** =Cmd SPC w= - Windows
+**** =Cmd SPC w= - Window management
      - =hjkl= - moving windows around halves of the screen
      - =Ctrl + hjkl= - for jumping between application windows (handy for side by side windows)
      - =w= - jump to previous window
@@ -26,21 +30,26 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
      - =m= - maximize active window
      - =u= - undo last window operation (similar to Spacemacs's =SPC w u=)
 
-**** =Cmd SPC a= - Apps
+**** =Cmd SPC a= - Apps (quick jump)
      - =e= - Emacs
      - =g= - Chrome
      - =i= - iTerm
      - =s= - Slack
      - =b= - Brave
 
-     you can add more
+     you can add more, also try =Cmd SPC j j=
 
 **** =Cmd SPC SPC= - open Alfred search bar
-     basically pressing =SPC= in any modal takes you to Alfred search popup
+     basically pressing =SPC= anytime in any modal takes you to Alfred search popup
 
 **** =Cmd SPC m= - multimedia controls
-     Why? Because different external keyboards impose their own ways to control media. Also Spacehammer allows you to keep your fingers in the "home row".
-     Currently it's configured to work with Google Play Music Desktop Player. /Yes, I'm that strange dude who's not on Spotify and have Google Music subscription, even though I don't work at Google./ If you don't like that - change the =musicApp= name in =multimedia.lua=
+     Why just not use media-keys?
+
+       a) because different external keyboards impose their own ways to control media.
+
+       b) I'd like to keep fingers on the home row
+
+    it's configured to work with Google Play Music Desktop App. If you want it to be Spotify or anything else - change the value of  =musicApp= in =multimedia.lua= module
 
 ** Other features
 **** Alternative App Switcher =Cmd j/k=
@@ -60,6 +69,7 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
       - =C-o/C-i= - jumping back and forth in history
 **** Preview app
      - =j/k= - to scroll
+     - =n/p= - page up/down
      - =Ctrl-o/i= - to go to previous/next item
 
 ** TODO
@@ -74,4 +84,6 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
    - [ ] Better than default HUD display (something less obtrusive than ~hs.alert~ would be nice
 
 ** Customizing
-   This is quite straightforward. Lua is extremely simple language /although to be honest I'd rather prefer something Lisp-y: Clojurescript or Scheme/. I shamelessly borrowed this [[https://github.com/kyleconroy/lua-state-machine][state-machine implementation]], and that makes adding new modes and extending current ones a piece of cake.
+   This is quite straightforward. Lua is extremely simple language. I shamelessly borrowed this [[https://github.com/kyleconroy/lua-state-machine][state-machine implementation]], and that makes adding new modes and extending current ones a piece of cake.
+
+   If you have any questions, please don't hesitate to ask. If you feel uncomfortable about posting an issue - you can find me in [[https://gitter.im/syl20bnr/spacemacs][Spacemacs's Gitter channel]], or on [[http://clojurians.net/][Clojurians Slack]]
