@@ -51,4 +51,10 @@ emacs.addState = function(modal)
   })
 end
 
+-- whenever I connect to a different display my Emacs frame gets screwed. This is a temporary fix (until) I figure out Display Profiles feature
+-- the relevant elisp function couldn be found here: https://github.com/agzam/dot-spacemacs/blob/master/layers/ag-general/funcs.el#L36
+hs.screen.watcher.new(function()
+    hs.execute("/usr/local/bin/emacsclient" .. " -e '(ag/fix-frame)'")
+end):start()
+
 return emacs
