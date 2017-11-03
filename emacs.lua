@@ -3,7 +3,7 @@ local emacs = {}
 local capture = function(isNote)
   local key = ""
   if isNote then
-    key = "\"c\"" -- key is a string associated with org-capture template
+    key = "\"z\"" -- key is a string associated with org-capture template
   end
   local currentApp = hs.window.focusedWindow();
   local pid = "\"" .. currentApp:pid() .. "\" "
@@ -20,13 +20,10 @@ local bind = function(hotkeyModal, fsm)
                      fsm:toIdle()
                      capture()
   end)
-  hotkeyModal:bind("", "n", function()
+  hotkeyModal:bind("", "z", function()
                      fsm:toIdle()
                      capture(true) -- note on currently clocked in
   end)
-  hotkeyModal:bind("", "t", function()
-                     hs.alert.show(hs.window.focusedWindow():pid(), 2)
-                            end)
 end
 
 emacs.switchToApp = function(pid, title)
@@ -40,7 +37,7 @@ emacs.addState = function(modal)
   modal.addState("emacs", {
                    init = function(self, fsm)
                      self.hotkeyModal = hs.hotkey.modal.new()
-                     modal.displayModalText "c \tcapture\nn\tnote"
+                     modal.displayModalText "c \tcapture\nz\tnote"
 
                      self.hotkeyModal:bind("","escape", function() fsm:toIdle() end)
                      self.hotkeyModal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
@@ -53,8 +50,14 @@ end
 
 -- whenever I connect to a different display my Emacs frame gets screwed. This is a temporary fix (until) I figure out Display Profiles feature
 -- the relevant elisp function couldn be found here: https://github.com/agzam/dot-spacemacs/blob/master/layers/ag-general/funcs.el#L36
-hs.screen.watcher.new(function()
-    hs.execute("/usr/local/bin/emacsclient" .. " -e '(ag/fix-frame)'")
+local function fixEmacsFrame()
+  hs.execute("/usr/local/bin/emacsclient" .. " -e '(ag/fix-frame)'")
+end
+hs.screen.watcher.new(fixEmacsFrame):start()
+hs.caffeinate.watcher.new(function(ev)
+    if ev == hs.caffeinate.watcher.screensDidWake then
+      fixEmacsFrame()
+    end
 end):start()
 
 return emacs
