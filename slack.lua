@@ -19,6 +19,16 @@ local slackLocalHotkeys = {
   hs.hotkey.bind({"ctrl"}, "r",
     function()
       hs.eventtap.keyStroke({"cmd", "shift"}, "\\")
+    end, nil, nil),
+  -- start a thread
+  hs.hotkey.bind({"ctrl"}, "t",
+    function()
+      local d = 50000
+      hs.eventtap.keyStroke(nil, "return", d)
+      for i=1,5,1 do
+        hs.eventtap.keyStroke({"shift"},"tab", d)
+      end
+      hs.eventtap.keyStroke(nil, "return", d)
     end, nil, nil)
 }
 
