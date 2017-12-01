@@ -94,6 +94,9 @@ module.deactivateAppKeys = function(app)
   end
 end
 
+local browserActivated = function(app)
+end
+
 module.appSpecific = {
   ["*"] = {
     activated = function()
@@ -119,6 +122,20 @@ module.appSpecific = {
       end
     end,
     deactivated = function() module.deactivateAppKeys("Google Chrome") end,
+  },
+  ["Firefox"] = {
+    activated = function()
+      --- setting conflicting Cmd+L (jump to address bar) keybinding to Cmd+Shift+L
+      local cmdSL = hs.hotkey.new({'cmd', 'shift'}, 'l', function()
+          hs.eventtap.keyStroke({"cmd", "alt"}, "f")
+      end)
+      module.activateAppKey("Firefox", cmdSL)
+
+      for k, hk in pairs(simpleTabSwitching) do
+        module.activateAppKey("Firefox", hs.fnutils.copy(hk))
+      end
+    end,
+    deactivated = function() module.deactivateAppKeys("Firefox") end,
   },
   ["iTerm2"] = {
     activated = function()

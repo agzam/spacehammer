@@ -7,7 +7,7 @@ apps.addState = function(modal)
   modal.addState("apps", {
                    init = function(self, fsm)
                      self.hotkeyModal = hs.hotkey.modal.new()
-                     modal.displayModalText "e\t emacs\ng \t chrome\n i\t iTerm\n s\t slack\n b\t brave"
+                     modal.displayModalText "e\t emacs\ng \t chrome\n f\t Firefox\n i\t iTerm\n s\t slack\n b\t brave"
                      self.hotkeyModal:bind("","escape", function() fsm:toIdle() end)
                      self.hotkeyModal:bind({"cmd"}, "space", nil, function() fsm:toMain() end)
                      for key, app in pairs({
@@ -15,6 +15,7 @@ apps.addState = function(modal)
                          g = "Google Chrome",
                          b = "Brave",
                          e = "Emacs",
+                         f = "Firefox",
                          m = multimedia.musicApp})
                      do
                        self.hotkeyModal:bind("", key, function()
