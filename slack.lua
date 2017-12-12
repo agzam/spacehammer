@@ -72,7 +72,7 @@ keybindings.appSpecific["Slack"] = {
 module.bind = function(modal, fsm)
   -- Open "Jump to dialog immediately after jumping to Slack GUI through `Apps` modal"
   modal:bind("", "s", function()
-               hs.application.launchOrFocus("Slack")
+               hs.application.launchOrFocus("/Applications/Slack.app")
                local app = hs.application.find("Slack")
                if app then
                  app:activate()
