@@ -134,7 +134,7 @@ windows.activateApp = function(appName)
   local app = hs.application.find(appName)
   if app then
     app:activate()
-    hs.timer.doAfter(0.1, windows.highlighActiveWin)
+    hs.timer.doAfter(0.05, windows.highlighActiveWin)
     app:unhide()
   end
 end

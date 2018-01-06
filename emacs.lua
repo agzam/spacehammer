@@ -53,9 +53,17 @@ end
 local function fixEmacsFrame()
   hs.execute("/usr/local/bin/emacsclient" .. " -e '(ag/fix-frame)'")
 end
-hs.screen.watcher.new(fixEmacsFrame):start()
+hs.screen.watcher.new(function()
+    hs.alert("Screen watcher")
+    fixEmacsFrame()
+    end
+):start()
 hs.caffeinate.watcher.new(function(ev)
-    if ev == hs.caffeinate.watcher.screensDidWake then
+    local mds = { hs.caffeinate.watcher.systemDidWake,
+                  hs.caffeinate.watcher.screensDidUnlock,
+                  hs.caffeinate.watcher.sessionDidBecomeActive }
+    if hs.fnutils.contains(mds, ev) then
+      hs.alert("caffeinate event " .. ev)
       fixEmacsFrame()
     end
 end):start()
