@@ -26,10 +26,20 @@ local bind = function(hotkeyModal, fsm)
   end)
 end
 
-emacs.switchToApp = function(pid, title)
+-- don't remove - this is callable from Emacs
+emacs.switchToApp = function(pid)
   local app = hs.application.applicationForPID(pid)
   if app then
     app:activate()
+  end
+end
+
+-- don't remove - this is callable from Emacs
+emacs.switchToAppAndPasteFromClipboard = function(pid)
+  local app = hs.application.applicationForPID(pid)
+  if app then
+    app:activate()
+    app:selectMenuItem({"Edit", "Paste"})
   end
 end
 
@@ -48,6 +58,30 @@ emacs.addState = function(modal)
   })
 end
 
+emacs.editWithEmacs = function()
+  local currentApp = hs.window.focusedWindow():application()
+  hs.eventtap.keyStroke({"cmd"}, "a")
+  hs.eventtap.keyStroke({"cmd"}, "c")
+
+  local pid = "\"" .. currentApp:pid() .. "\" "
+  local title = "\"" .. currentApp:title() .. "\" "
+
+  hs.execute("/usr/local/bin/emacsclient" ..
+               " -c -F '(quote (name . \"edit\"))'" ..
+               " -e '(ag/edit-with-emacs" .. pid .. title .. " )'", false)
+end
+
+emacs.enableEditWithEmacs = function()
+  emacs.editWithEmacsKey =
+    emacs.editWithEmacsKey or hs.hotkey.new({"cmd", "ctrl"}, "o", nil, emacs.editWithEmacs)
+  emacs.editWithEmacsKey:enable()
+end
+
+emacs.disableEditWithEmacs = function()
+  emacs.editWithEmacsKey:disable()
+end
+
+
 -- whenever I connect to a different display my Emacs frame gets screwed. This is a temporary fix (until) I figure out Display Profiles feature
 -- the relevant elisp function couldn be found here: https://github.com/agzam/dot-spacemacs/blob/master/layers/ag-general/funcs.el#L36
 local function fixEmacsFrame()
@@ -56,15 +90,16 @@ end
 hs.screen.watcher.new(function()
     hs.alert("Screen watcher")
     fixEmacsFrame()
-    end
-):start()
+end):start()
+
 hs.caffeinate.watcher.new(function(ev)
     local mds = { hs.caffeinate.watcher.systemDidWake,
                   hs.caffeinate.watcher.screensDidUnlock,
                   hs.caffeinate.watcher.sessionDidBecomeActive }
+
+    hs.alert("caffeinate event " .. ev)
     if hs.fnutils.contains(mds, ev) then
-      hs.alert("caffeinate event " .. ev)
-      fixEmacsFrame()
+        hs.timer.doAfter(0.1, fixEmacsFrame)
     end
 end):start()
 

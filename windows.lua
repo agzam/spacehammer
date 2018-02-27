@@ -77,7 +77,7 @@ local function resizeWindow(modal, arrow)
 end
 
 hs.grid.setMargins({0, 0})
-hs.grid.setGrid("2x2")
+hs.grid.setGrid("3x2")
 
 local function showGrid(fsm)
   hs.grid.show()
