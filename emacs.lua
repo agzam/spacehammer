@@ -8,18 +8,15 @@ local capture = function(isNote)
   local currentApp = hs.window.focusedWindow();
   local pid = "\"" .. currentApp:pid() .. "\" "
   local title = "\"" .. currentApp:title() .. "\" "
-  hs.timer.delayed.new(0.1, function()
-                         hs.execute("/usr/local/bin/emacsclient" ..
-                                    " -c -F '(quote (name . \"capture\"))'" ..
-                                    " -e '(activate-capture-frame " .. pid .. title .. key .. " )'")
-  end):start()
+  local runStr = "/usr/local/bin/emacsclient" .. " -c -F '(quote (name . \"capture\"))'" .. " -e '(activate-capture-frame " .. pid .. title .. key .. " )'"
+
+  hs.timer.delayed.new(0.1, function() io.popen(runStr) end):start()
 end
 
 local bind = function(hotkeyModal, fsm)
-  hotkeyModal:bind("", "c", function()
-                     fsm:toIdle()
-                     capture()
-  end)
+  hotkeyModal:bind ("", "c", function()
+                      fsm:toIdle()
+                      capture() end)
   hotkeyModal:bind("", "z", function()
                      fsm:toIdle()
                      capture(true) -- note on currently clocked in
@@ -54,8 +51,7 @@ emacs.addState = function(modal)
 
                      bind(self.hotkeyModal, fsm)
                      self.hotkeyModal:enter()
-                   end
-  })
+  end})
 end
 
 emacs.editWithEmacs = function()
@@ -66,9 +62,9 @@ emacs.editWithEmacs = function()
   local pid = "\"" .. currentApp:pid() .. "\" "
   local title = "\"" .. currentApp:title() .. "\" "
 
-  hs.execute("/usr/local/bin/emacsclient" ..
-               " -c -F '(quote (name . \"edit\"))'" ..
-               " -e '(ag/edit-with-emacs" .. pid .. title .. " )'", false)
+  local runStr = "/usr/local/bin/emacsclient" .. " -c -F '(quote (name . \"edit\"))'" .. " -e '(ag/edit-with-emacs" .. pid .. title .. " )'";
+
+  io.popen(runStr)
 end
 
 emacs.enableEditWithEmacs = function()
@@ -85,7 +81,7 @@ end
 -- whenever I connect to a different display my Emacs frame gets screwed. This is a temporary fix (until) I figure out Display Profiles feature
 -- the relevant elisp function couldn be found here: https://github.com/agzam/dot-spacemacs/blob/master/layers/ag-general/funcs.el#L36
 local function fixEmacsFrame()
-  hs.execute("/usr/local/bin/emacsclient" .. " -e '(ag/fix-frame)'")
+  io.popen("/usr/local/bin/emacsclient" .. " -e '(ag/fix-frame)'")
 end
 hs.screen.watcher.new(function()
     hs.alert("Screen watcher")
