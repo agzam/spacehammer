@@ -39,7 +39,7 @@ local disableSimpleViMode = function()
 end
 
 -- ----------------------------
--- App switcher with Cmd++j/k
+-- App switcher with Cmd++n/p
 -- ----------------------------
 switcher = hs.window.switcher.new(utils.globalFilter(),
                                   {textSize = 12,
@@ -49,14 +49,14 @@ switcher = hs.window.switcher.new(utils.globalFilter(),
                                    selectedThumbnailSize = 640,
                                    backgroundColor = {0, 0, 0, 0}})
 
-hs.hotkey.bind({'cmd'},'j', function() switcher:next() end)
-hs.hotkey.bind({'cmd'},'k', function() switcher:previous() end)
+hs.hotkey.bind({'cmd'},'n', function() switcher:next() end)
+hs.hotkey.bind({'cmd'},'p', function() switcher:previous() end)
 
 -- ----------------------------
--- tab switching with Cmd++h/l
+-- tab switching with Cmd++j/k
 -- ----------------------------
 local simpleTabSwitching = {}
-for dir, key in pairs({ h = "[", l = "]"}) do
+for dir, key in pairs({ j = "[", k = "]"}) do
   local tf = function()
     hs.eventtap.keyStroke({"shift", "cmd"}, key)
   end

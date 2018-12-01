@@ -81,7 +81,7 @@ utils.globalFilter = function()
   return hs.window.filter.new()
   -- :setDefaultFilter(true, {allowRoles = 'AXStandardWindow'})
   :setAppFilter('Emacs', {allowRoles={'AXUnknown', 'AXStandardWindow'}})
-  :setAppFilter('iTerm2', {allowRoles='AXUnknown'})
+  -- :setAppFilter('iTerm2', {allowRoles='AXUnknown'})
 end
 ---- Function
 ---- Applies specified functions for when window is focused and unfocused

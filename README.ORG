@@ -52,8 +52,8 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
     it's configured to work with Google Play Music Desktop App. If you want it to be Spotify or anything else - change the value of  =musicApp= in =multimedia.lua= module
 
 ** Other features
-**** Alternative App Switcher =Cmd j/k=
-**** Simple tab switcher for Chrome and iTerm =Cmd h/l=
+**** Alternative App Switcher =Cmd n/p=
+**** Simple tab switcher for Chrome and iTerm =Cmd j/k=
      =Cmd l= in Chrome re-mapped to =Cmd+Shift l=
 **** Simple vi-mode
      - =Alt h/j/k/l= - simple left/right/up/down
