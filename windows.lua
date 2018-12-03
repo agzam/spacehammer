@@ -96,10 +96,12 @@ local bind = function(hotkeyMmodal, fsm)
   -- jumping between windows
   hs.fnutils.each({"h", "l", "k", "j"}, hs.fnutils.partial(windowJump, hotkeyMmodal, fsm))
   -- quick jump to the last window
-  hotkeyMmodal:bind({}, 'w', hs.fnutils.partial(jumpToLastWindow, fsm))
+  hotkeyMmodal:bind({}, "w", hs.fnutils.partial(jumpToLastWindow, fsm))
   -- moving windows between monitors
-  hotkeyMmodal:bind({}, 'p', function() undo:push(); fw():moveOneScreenNorth() end)
-  hotkeyMmodal:bind({}, 'n', function() undo:push(); fw():moveOneScreenSouth() end)
+  hotkeyMmodal:bind({}, "p", function() undo:push(); fw():moveOneScreenNorth(nil, true) end)
+  hotkeyMmodal:bind({"shift"}, "n", function() undo:push(); fw():moveOneScreenWest(nil, true) end)
+  hotkeyMmodal:bind({"shift"}, "p", function() undo:push(); fw():moveOneScreenEast(nil, true) end)
+  hotkeyMmodal:bind({}, "n", function() undo:push(); fw():moveOneScreenSouth(nil, true) end)
 end
 
 function undo:push()
