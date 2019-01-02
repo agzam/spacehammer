@@ -16,12 +16,12 @@ local slackLocalHotkeys = {
       hs.eventtap.scrollWheel({0, -5000}, {})
     end, nil, nil),
   -- add a reaction
-  hs.hotkey.bind({"ctrl"}, "r",
+  hs.hotkey.bind({"alt"}, "r",
     function()
       hs.eventtap.keyStroke({"cmd", "shift"}, "\\")
     end, nil, nil),
   -- start a thread
-  hs.hotkey.bind({"ctrl"}, "t",
+  hs.hotkey.bind({"alt"}, "t",
     function()
       local d = 50000
       hs.eventtap.keyStroke(nil, "return", d)
