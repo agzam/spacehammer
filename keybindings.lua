@@ -98,9 +98,12 @@ end
 local browserActivated = function(app)
 end
 
+controlBracketforEsc = utils.keymap('[', 'ctrl', 'escape', 0)
+
 module.appSpecific = {
   ["*"] = {
     activated = function()
+      controlBracketforEsc:enable()
       enableSimpleViMode()
       emacs.enableEditWithEmacs()
     end

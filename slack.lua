@@ -9,7 +9,7 @@ end
 
 local slackLocalHotkeys = {
   -- jump to end of thread on C-g
-  hs.hotkey.bind({"ctrl"}, "g",
+  hs.hotkey.bind({"alt"}, "g",
     function()
       setMouseCursorOnSlack()
       -- from my experience this number is big enough to take you to the end of thread
