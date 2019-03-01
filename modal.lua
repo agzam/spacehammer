@@ -53,7 +53,12 @@ modal.states = {
                         local wns = hs.fnutils.filter(hs.window.allWindows(), filterAllowedApps)
                         hs.hints.windowHints(wns, nil, true)
                         fsm:toIdle() end)
+
       self.hotkeyModal:bind("","escape", function() fsm:toIdle() end)
+      self.hotkeyModal:bind("","q", function() fsm:toIdle() end)
+      self.hotkeyModal:bind("ctrl","[", function() fsm:toIdle() end)
+      self.hotkeyModal:bind("ctrl","g", function() fsm:toIdle() end)
+
       function self.hotkeyModal:entered()
         modal.displayModalText "w \t- windows\na \t- apps\n j \t- jump\nm - media\nx\t- emacs"
       end

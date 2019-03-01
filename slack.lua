@@ -23,12 +23,12 @@ local slackLocalHotkeys = {
   -- start a thread
   hs.hotkey.bind({"alt"}, "t",
     function()
-      local d = 50000
-      hs.eventtap.keyStroke(nil, "return", d)
-      for i=1,5,1 do
-        hs.eventtap.keyStroke({"shift"},"tab", d)
-      end
-      hs.eventtap.keyStroke(nil, "return", d)
+      hs.eventtap.keyStroke({"shift"}, "tab")
+      hs.eventtap.keyStroke(nil, "up")
+      hs.eventtap.keyStroke(nil, "tab")
+      hs.eventtap.keyStroke(nil, "tab")
+      hs.eventtap.keyStroke(nil, "tab")
+      hs.eventtap.keyStroke(nil, "return")
     end, nil, nil)
 }
 
@@ -44,10 +44,10 @@ for k,dir in pairs({j = -3, k = 3, e = -3, y = 3}) do
   table.insert(slackLocalHotkeys, hs.hotkey.new({"ctrl"}, k, scrollFn, nil, scrollFn))
 end
 
--- C-o/C-i for back and forth in history
+-- Alt-o/Alt-i for back and forth in history
 for k, dir in pairs({o = "[", i = "]"}) do
   local back_forward = function() hs.eventtap.keyStroke({"Cmd"}, dir) end
-  table.insert(slackLocalHotkeys, hs.hotkey.new({"Ctrl"}, k, back_forward, nil, back_forward))
+  table.insert(slackLocalHotkeys, hs.hotkey.new({"Alt"}, k, back_forward, nil, back_forward))
 end
 
 -- C-n|C-p - for up and down (instead of using arrow keys)
