@@ -77,25 +77,16 @@ emacs.disableEditWithEmacs = function()
   emacs.editWithEmacsKey:disable()
 end
 
-
 -- whenever I connect to a different display my Emacs frame gets screwed. This is a temporary fix (until) I figure out Display Profiles feature
--- the relevant elisp function couldn be found here: https://github.com/agzam/dot-spacemacs/blob/master/layers/ag-general/funcs.el#L36
+-- you can find the relevant elisp function here: https://github.com/agzam/dot-spacemacs/blob/master/layers/ag-general/funcs.el#L36
 local function fixEmacsFrame()
   io.popen("/usr/local/bin/emacsclient" .. " -e '(ag/fix-frame)'")
 end
-hs.screen.watcher.new(function()
-    hs.alert("Screen watcher")
-    fixEmacsFrame()
-end):start()
 
-hs.caffeinate.watcher.new(function(ev)
-    local mds = { hs.caffeinate.watcher.systemDidWake,
-                  hs.caffeinate.watcher.screensDidUnlock,
-                  hs.caffeinate.watcher.sessionDidBecomeActive }
-
-    hs.alert("caffeinate event " .. ev)
-    if hs.fnutils.contains(mds, ev) then
-        hs.timer.doAfter(0.1, fixEmacsFrame)
+hs.screen.watcher.newWithActiveScreen(function(isActiveScreenChanged)
+    if isActiveScreenChanged == nil then
+      hs.alert("Screen watcher")
+      fixEmacsFrame()
     end
 end):start()
 
