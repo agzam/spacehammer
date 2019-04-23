@@ -68,31 +68,30 @@ modal.states = {
 
 -- -- each modal has: name, init function
 modal.createMachine = function()
-  -- build events based on modals
   local events = {}
-  local params = function(fsm)
-    local callbacks = {}
-    for k, s in pairs (modal.states) do
-      table.insert(events, { name = "to" .. utils.capitalize(k),
-                             from = s.from or {"main", "idle"},
-                             to = s.to or k})
-      if s.callback then
-        cFn = s.callback
-      else
-        cFn = function(self, event, from, to)
-          local st = modal.states[to]
-          st.init(st, self)
-        end
-      end
-      callbacks["on" .. k] = cFn
-    end
+  local callbacks = {}
 
-    return callbacks
+  for k, s in pairs (modal.states) do
+    table.insert(events, { name = "to" .. utils.capitalize(k),
+                           from = s.from or {"main", "idle"},
+                           to = s.to or k})
+  end
+
+  for k, s in pairs (modal.states) do
+    if s.callback then
+      cFn = s.callback
+    else
+      cFn = function(self, event, from, to)
+        local st = modal.states[to]
+        st.init(st, self)
+      end
+    end
+    callbacks["on" .. k] = cFn
   end
 
   return stateMachine.create({ initial = "idle",
                                events = events,
-                               callbacks = params(self)})
+                               callbacks = callbacks})
 end
 
 return modal
