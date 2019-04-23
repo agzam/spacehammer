@@ -1,17 +1,30 @@
-(global undo [])
+(global undo {})
 
 (fn undo.push [self]
   (let [win (hs.window.focusedWindow)
-        id (: win :id)]
-    (when (and win (not (. undo id)))
-      (tset self id (: win :frame)))))
+        id (: win :id)
+        tbl (. self id)]
+    (when win
+      (when (= (type tbl) :nil)
+        (tset self id []))
+      (when tbl
+        (let [last-el (. tbl (# tbl))]
+          (when (~= last-el (: win :frame))
+            (table.insert tbl (: win :frame))))))))
 
 (fn undo.pop [self]
   (let [win (hs.window.focusedWindow)
-        id (: win :id)]
-    (when (and win (. self id))
-      (: win :setFrame (. self id))
-      (tset self id nil))))
+        id (: win :id)
+        tbl (. self id)]
+    (when (and win tbl)
+      (let [el (table.remove tbl)
+            num-of-undos (# tbl)]
+        (if el
+            (do
+              (: win :setFrame el)
+              (when (< 0 num-of-undos)
+                (alert (.. num-of-undos " undo steps available"))))
+            (alert "nothing to undo"))))))
 
 (fn jump-to-last-window [fsm]
   (let [utils (require :utils)]
