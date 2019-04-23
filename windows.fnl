@@ -1,3 +1,18 @@
+(global undo [])
+
+(fn undo.push [self]
+  (let [win (hs.window.focusedWindow)
+        id (: win :id)]
+    (when (and win (not (. undo id)))
+      (tset self id (: win :frame)))))
+
+(fn undo.pop [self]
+  (let [win (hs.window.focusedWindow)
+        id (: win :id)]
+    (when (and win (. self id))
+      (: win :setFrame (. self id))
+      (tset self id nil))))
+
 (fn jump-to-last-window [fsm]
   (let [utils (require :utils)]
     (-> (utils.globalFilter)
@@ -15,7 +30,7 @@
     (hs.timer.doAfter .3 (fn [] (: rect :delete)))))
 
 (fn maximize-window-frame []
-  ;; (: undo :push)
+  (: undo :push)
   (: (hs.window.focusedWindow) :maximize 0)
   (highlight-active-window))
 
@@ -27,7 +42,7 @@
   :l {:half [.5 0 .5  1] :movement [ 20   0] :complement :k :resize "Wider"}})
 
 (fn rect [rct]
-  ;; undo:push
+  (: undo :push)
   (let [win (hs.window.focusedWindow)]
     (when win (: win :move rct))))
 
@@ -43,21 +58,20 @@
                         (.. :focusWindow)
                         (. slf))]
            (fun slf nil true true)
-           (highlight-active-window)
-           )))))
+           (highlight-active-window))))))
 
 (fn resize-window [modal arrow]
   (let [dir {:h "Left" :j "Down" :k "Up" :l "Right"}]
     ;; screen halves
     (: modal :bind nil arrow
        (fn []
-         ;; undo:push()
+         (: undo :push)
          (rect (. (. arrow-map arrow) :half))))
 
     ;; hs.grid.pushWindowUp/Down/Left/Right
     (: modal :bind [:alt] arrow
        (fn []
-         ;; undo:push()
+         (: undo :push)
          (when (or (= arrow :h) (= arrow :l))
            (hs.grid.resizeWindowThinner (hs.window.focusedWindow)))
          (when (or (= arrow :j) (= arrow :k))
@@ -72,7 +86,7 @@
        [:shift]
        arrow
        (fn []
-         ;; undo:push()
+         (: undo :push)
          (let [dir (-> arrow-map (. arrow) (. :resize))
                gridFn (->> dir (.. :resizeWindow) (. hs.grid))]
            (gridFn (hs.window.focusedWindow)))))))
@@ -82,14 +96,16 @@
 
 (fn show-grid [fsm]
   ;; todo: undo
+  (: undo :push)
   (hs.grid.show)
   (: fsm :toIdle))
 
 (fn bind [hotkeyMmodal fsm]
   ;; maximize window
   (: hotkeyMmodal :bind nil :m maximize-window-frame)
-  ;; todo: undo
-  ;; hotkeyMmodal:bind("", "u", function() undo:pop() end)
+
+  ;; undo last thing
+  (: hotkeyMmodal :bind nil :u (fn [] (: undo :pop)))
 
   ;; moving/re-sizing windows
   (hs.fnutils.each
