@@ -27,6 +27,7 @@ end
 
 multimedia.addState = function(modal)
   modal.addState("media", {
+                   from = "*",
                    init = function(self, fsm)
                      self.hotkeyModal = hs.hotkey.modal.new()
                      modal.displayModalText "h \t previous track\nl \t next track\nk \t volume up\nj \t volume down\ns \t play/pause\na \t launch player"

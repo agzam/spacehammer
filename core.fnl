@@ -13,6 +13,7 @@
 
 (global alert hs.alert.show)
 (global log (fn [s] (hs.alert.show (hs.inspect s) 5)))
+(global fw hs.window.focusedWindow)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  auto reload config   ;;
@@ -38,9 +39,12 @@
 ;; modals ;;
 ;;;;;;;;;;;;
 (local modal (require "modal"))
-(local windows (require "windows"))
 
-(windows.addState modal)
+(each [_ n (pairs [:windows :apps :multimedia :emacs])]
+  (let [module (require n)]
+    (when module.addState
+      (module.addState modal))))
+
 
 (let [state-machine (modal.createMachine)]
   (: state-machine :toMain))

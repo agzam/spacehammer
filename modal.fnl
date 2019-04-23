@@ -1,7 +1,7 @@
 (local modal {})
 (local utils (require "utils"))
 (local statemachine (require "statemachine"))
-;; (local windows (require "windows"))
+(local windows (require "windows"))
 
 (global states {})
 
@@ -39,26 +39,24 @@
                   self nil :space
                   (fn []
                     (: fsm :toIdle)
-                    (alert "jumping to Alfred, yo!")))
+                    (windows.activateApp "Alfred 3")))
 
                  (bind self nil :escape (fn [] (: fsm :toIdle)))
                  (bind self nil :q (fn [] (: fsm :toIdle)))
                  (bind self :ctrl :g (fn [] (: fsm :toIdle)))
 
                  (bind self nil :w (fn [] (: fsm :toWindows)))
-                 ;; (bind self nil :a (fn [] (: fsm :toApps)))
-                 ;; (bind self nil :m (fn [] (: fsm :toMedia)))
-                 ;; (bind self nil :x (fn [] (: fsm :toEmacs)))
+                 (bind self nil :a (fn [] (: fsm :toApps)))
+                 (bind self nil :m (fn [] (: fsm :toMedia)))
+                 (bind self nil :x (fn [] (: fsm :toEmacs)))
 
                  (bind self nil :j (fn []
                                      (let [wns (hs.fnutils.filter (hs.window.allWindows) filter-allowed-apps)]
                                        (hs.hints.windowHints wns nil true)
                                        (: fsm :toIdle))))
 
-                 (set self.hotkeyModal.entered
-                      (partial
-                       display-modal-text
-                       "w \t- windows\na \t- apps\n j \t- jump\nm - media\nx\t- emacs")))}})
+                 (fn self.hotkeyModal.entered []
+                   (display-modal-text "w \t- windows\na \t- apps\n j \t- jump\nm - media\nx\t- emacs")))}})
 
 (fn create-machine []
   (let [events {}

@@ -42,6 +42,7 @@ end
 
 emacs.addState = function(modal)
   modal.addState("emacs", {
+                   from = "*",
                    init = function(self, fsm)
                      self.hotkeyModal = hs.hotkey.modal.new()
                      modal.displayModalText "c \tcapture\nz\tnote"

@@ -5,6 +5,7 @@ local slack = require "slack"
 
 apps.addState = function(modal)
   modal.addState("apps", {
+                   from = "*",
                    init = function(self, fsm)
                      self.hotkeyModal = hs.hotkey.modal.new()
                      modal.displayModalText "e\t emacs\ng \t chrome\n f\t Firefox\n i\t iTerm\n s\t slack\n b\t brave"
