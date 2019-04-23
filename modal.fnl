@@ -84,4 +84,5 @@
 {:createMachine create-machine
  :addState add-state
  :displayModalText display-modal-text
+ :bind bind
  :states states}
