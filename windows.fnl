@@ -6,11 +6,18 @@
         (: :focus))
     (: fsm :toIdle)))
 
+(fn highlight-active-window []
+  (let [rect (hs.drawing.rectangle (: (hs.window.focusedWindow) :frame))]
+    (: rect :setStrokeColor {["red"] 1 ["blue"] 0 ["green"] 1 ["alpha"] 1})
+    (: rect :setStrokeWidth 5)
+    (: rect :setFill false)
+    (: rect :show)
+    (hs.timer.doAfter .3 (fn [] (: rect :delete)))))
+
 (fn maximize-window-frame []
   ;; (: undo :push)
   (: (hs.window.focusedWindow) :maximize 0)
-  ;; windows.highlighActiveWin()
-  )
+  (highlight-active-window))
 
 (local
  arrow-map
@@ -36,7 +43,7 @@
                         (.. :focusWindow)
                         (. slf))]
            (fun slf nil true true)
-           ;; TODO: (highlighActiveWin)
+           (highlight-active-window)
            )))))
 
 (fn resize-window [modal arrow]
@@ -119,12 +126,13 @@
        ;; todo: undo: push
        (: (hs.window.focusedWindow) :moveOneScreenEast nil true))))
 
+
 (fn activate-app [app-name]
   (hs.application.launchOrFocus app-name)
   (let [app (hs.application.find app-name)]
     (when app
       (: app :activate)
-      ;; (hs.time.doAfter .05, highligh-active-window)
+      (hs.time.doAfter .05 highlight-active-window)
       (: app :unhide))))
 
 (fn add-state [modal]
