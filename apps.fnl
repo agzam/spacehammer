@@ -28,7 +28,7 @@
                (modal.bind
                 self nil key
                 (fn []
-                  (windows.activateApp app)
-                  (: fsm :toIdle))))
+                  (: fsm :toIdle)
+                  (windows.activateApp app))))
 
              (: self.hotkeyModal :enter))}))}

@@ -1,4 +1,5 @@
 (local utils (require :utils))
+(local emacs (require :emacs))
 
 (local arrows {:h :left, :j :down,:k :up,:l :right})
 
@@ -58,11 +59,11 @@
  {"*"
   {:activated (fn []
                 (enable-simple-vi-mode)
-                (alert "enable edit with emacs"))}
+                (emacs.enableEditWithEmacs))}
   "Emacs"
   {:activated (fn []
                 (disable-simple-vi-mode)
-                (alert "disable edit with emacs"))}
+                (emacs.disableEditWithEmacs))}
 
   "Google Chrome"
   {:activated (fn []
