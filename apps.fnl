@@ -16,8 +16,7 @@
               [:cmd] :space
               (fn [] (: fsm :toMain)))
 
-             (slack.bind
-              self.hotkeyModal fsm)
+             (slack.bind self.hotkeyModal fsm)
 
              (each [key app (pairs
                              {:i "iTerm2",

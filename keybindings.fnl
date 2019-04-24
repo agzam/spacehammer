@@ -53,7 +53,7 @@
       (each [_ hk (pairs keys)]
         (: hk :disable)))))
 
-(local
+(global
  app-specific
  {"*"
   {:activated (fn []
@@ -105,3 +105,7 @@
 
 
 (: watcher :start)
+
+{:appSpecific app-specific
+ :activateAppKey activate-app-key
+ :deactivateAppKeys deactivate-app-keys}

@@ -38,7 +38,7 @@
 ;;;;;;;;;;;;
 ;; modals ;;
 ;;;;;;;;;;;;
-(local modal (require "modal"))
+(local modal (require :modal))
 
 (each [_ n (pairs [:windows :apps :multimedia :emacs])]
   (let [module (require n)]
@@ -48,3 +48,5 @@
 
 (let [state-machine (modal.createMachine)]
   (: state-machine :toMain))
+
+(require :keybindings)

@@ -164,6 +164,14 @@
       (hs.time.doAfter .05 highlight-active-window)
       (: app :unhide))))
 
+(fn set-mouse-cursor-at [app-title]
+  (let [sf (: (: (hs.application.find app-title) :focusedWindow) :frame)
+        desired-point (hs.geometry.point (- (+ sf._x sf._w)
+                                            (/ sf._w  2))
+                                         (- (+ sf._y sf._h)
+                                            (/ sf._h 2)))]
+    (hs.mouse.setAbsolutePosition desired-point)))
+
 (fn add-state [modal]
   (modal.addState
    :windows
@@ -182,4 +190,6 @@
             (: self.hotkeyModal :enter))}))
 
 {:addState add-state
- :activateApp activate-app}
+ :activateApp activate-app
+ :setMouseCursorAt set-mouse-cursor-at
+ :highlightActiveWindow highlight-active-window}
