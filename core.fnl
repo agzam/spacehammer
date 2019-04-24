@@ -45,8 +45,17 @@
     (when module.addState
       (module.addState modal))))
 
-
 (let [state-machine (modal.createMachine)]
   (: state-machine :toMain))
 
 (require :keybindings)
+
+;; toggle hs.console with Ctrl+Cmd+~
+(hs.hotkey.bind
+ [:ctrl :cmd] "`" nil
+ (fn []
+   (let [console (hs.console.hswindow)]
+     (when console
+       (if (= console (hs.window.focusedWindow))
+           (-> console (: :application) (: :hide))
+           (-> console (: :raise) (: :focus)))))))
