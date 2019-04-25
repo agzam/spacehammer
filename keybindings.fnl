@@ -31,6 +31,20 @@
     (each [_ km (pairs ks)]
       (: km :disable))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; App switcher with Cmd++n/p ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(let [switcher (hs.window.switcher.new
+                (utils.globalFilter)
+                {:textSize 12
+                 :showTitles false
+                 :showThumbnails false
+                 :showSelectedTitle false
+                 :selectedThumbnailSize 1024
+                 :backgroundColor [0 0 0 0]})]
+  (hs.hotkey.bind [:cmd] :n (fn [] (: switcher :next)))
+  (hs.hotkey.bind [:cmd] :p (fn [] (: switcher :previous))))
+
 (global app-specific-keys (or app-specific-keys {}))
 
 ;; Given an app name and hs.hotkey, binds that hotkey when app activates
@@ -46,7 +60,6 @@
       (when (= idx hotkey.idx)
         (: hk :enable)))))
 
-
 ;; disables app-specific hotkeys for a given app name
 (fn deactivate-app-keys [app]
   (each [a keys (pairs app-specific-keys)]
@@ -54,12 +67,48 @@
       (each [_ hk (pairs keys)]
         (: hk :disable)))))
 
+;; every app is allowed to have a single localized modal that gets dispatched via
+(global localized-app-modal-hotkey nil)
+
+(fn current-app-name []
+  (-> (hs.window.focusedWindow) (: :application) (: :name)))
+
+(global app-specific nil)
+
+(fn enable-local-modals []
+  ;; if current app has app-specific config with :app-local-modal key, it allows
+  ;; a localized-app-modal, hotkey to invoke the modal should be enabled
+  (let [cur-app (current-app-name)
+        fsm (: (require :modal) :machine)]
+    (each [app-key v (pairs app-specific)]
+      (when (and v.app-local-modal (= app-key cur-app))
+        (when (not localized-app-modal-hotkey)
+          (global
+           localized-app-modal-hotkey
+           (hs.hotkey.new [:ctrl] :c (fn [] (: fsm :toApplocal)))))
+        (: localized-app-modal-hotkey :enable)))))
+
+(fn disable-local-modals []
+  ;; if current app doesn't have :app-local-modal key in in app-specific config
+  ;; map, localized-app-modal-hotkey should be disabled for that app.
+  ;; Example:
+  ;; (if localized-app-modal-hotkey set to Ctrl+C) it will conflict with Emacs's
+  ;; default keybinding.
+  (let [cur-app (current-app-name)
+        fsm (: (require :modal) :machine)]
+    (when (not (and (. app-specific cur-app)
+                    (. (. app-specific cur-app) :app-local-modal)))
+      (when localized-app-modal-hotkey
+        (: localized-app-modal-hotkey :disable)))))
+
 (global
  app-specific
  {"*"
   {:activated (fn []
                 (enable-simple-vi-mode)
-                (emacs.enableEditWithEmacs))}
+                (emacs.enableEditWithEmacs)
+                (enable-local-modals))
+   :deactivated (fn [] (disable-local-modals))}
   "Emacs"
   {:activated (fn []
                 (disable-simple-vi-mode)
@@ -78,32 +127,63 @@
 
                 (each [h hk (pairs (simple-tab-switching))]
                   (activate-app-key "Google Chrome" hk)))
-   :deactivated (fn [] (deactivate-app-keys "Google Chrome"))}
+   :deactivated (fn [] (deactivate-app-keys "Google Chrome"))
+   :app-local-modal
+   (fn [self fsm]
+     (let [modal  (require :modal)]
+       (: self :bind [:ctrl] :c
+          (fn []
+            (alert "do something crazy in chrome")))
+       (fn self.entered []
+         (modal.displayModalText "Chrome local modal"))))}
 
   "iTerm2"
   {:activated (fn []
                 (each [h hk (pairs (simple-tab-switching))]
                   (activate-app-key :iTerm2 hk)))
-   :deactivated (fn [] (deactivate-app-keys :iTerm2))}})
+   :deactivated (fn [] (deactivate-app-keys :iTerm2))}
 
-(global watcher
-        (or watcher
-            (hs.application.watcher.new
-             (fn [app-name event app-obj]
-               (each [k v (pairs hs.application.watcher)]
-                 (when (and (= v event )
-                            (. (. app-specific :*) k))
-                   ((. (. app-specific :*) k))))
+  "Grammarly"
+  {:app-local-modal
+   (fn [self fsm]
+     (let [modal  (require :modal)]
+       (: self :bind [:ctrl] :c
+          (fn []
+            (alert "take text back to Emacs")))
+       (: self :bind nil :escape (fn [] (: fsm :toIdle)))
+       (fn self.entered []
+         (modal.displayModalText "C-c \t- return to Emacs"))))}})
 
-               (each [app modes (pairs app-specific)]
-                 (when (= app app-name)
-                   (when (and (= event (. hs.application.watcher :terminated))
-                              (. modes :deactivated))
-                     ((. modes :deactivated)))
-                   (each [mode fun (pairs modes)]
-                     (when (= event (. hs.application.watcher mode))
-                       (fun)))))))))
+;; watches applications events and if `app-specific` keys exist for the app,
+;; enables them for the app, or when the app loses focus - disables them. Also
+;; checks for applocal modals and exits modals upon app deactivation
+(global
+ watcher
+ (or
+  watcher
+  (hs.application.watcher.new
+   (fn [app-name event _]
+     (let [modal (require :modal)]
+      (each [k ev (pairs hs.application.watcher)]
+        (when (and (= ev event)
+                   (. (. app-specific :*) k))
+          ((. (. app-specific :*) k))))
 
+      (each [app modes (pairs app-specific)]
+        (when (= app app-name)
+          ;; terminated is the same as deactivated, right?
+          (when (or
+                 (= event hs.application.watcher.deactivated)
+                 (= event hs.application.watcher.terminated))
+            (when (. modes :deactivated)
+              ((. modes :deactivated)))
+            (when modal.states.applocal.toIdle
+                (modal.states.applocal.toIdle)))
+
+          (each [mode fun (pairs modes)]
+            (when (and (= event hs.application.watcher.activated)
+                       (= mode :activated))
+              (fun))))))))))
 
 (: watcher :start)
 

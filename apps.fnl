@@ -2,33 +2,35 @@
 (local multimedia (require :multimedia))
 (local slack (require :slack))
 
-{:addState
- (fn [modal]
-   (modal.addState :apps
-    {:from :*
-     :init (fn [self, fsm]
-             (set self.hotkeyModal (hs.hotkey.modal.new))
-             (modal.displayModalText
-              "e\t emacs\ng \t chrome\n f\t Firefox\n i\t iTerm\n s\t slack\n b\t brave")
+(fn add-state [modal]
+  (modal.addState
+   :apps
+   {:from :*
+    :init (fn [self, fsm]
+            (set self.hotkeyModal (hs.hotkey.modal.new))
+            (modal.displayModalText
+             "e\t emacs\ng \t chrome\n f\t Firefox\n i\t iTerm\n s\t slack\n b\t brave")
 
-             (modal.bind
-              self
-              [:cmd] :space
-              (fn [] (: fsm :toMain)))
+            (modal.bind
+             self
+             [:cmd] :space
+             (fn [] (: fsm :toMain)))
 
-             (slack.bind self.hotkeyModal fsm)
+            (slack.bind self.hotkeyModal fsm)
 
-             (each [key app (pairs
-                             {:i "iTerm2",
-                              :g "Google Chrome",
-                              :b "Brave",
-                              :e "Emacs",
-                              :f "Firefox",
-                              :m multimedia.musicApp})]
-               (modal.bind
-                self nil key
-                (fn []
-                  (: fsm :toIdle)
-                  (windows.activateApp app))))
+            (each [key app (pairs
+                            {:i "iTerm2",
+                             :g "Google Chrome",
+                             :b "Brave",
+                             :e "Emacs",
+                             :f "Firefox",
+                             :m multimedia.musicApp})]
+              (modal.bind
+               self nil key
+               (fn []
+                 (: fsm :toIdle)
+                 (windows.activateApp app))))
 
-             (: self.hotkeyModal :enter))}))}
+            (: self.hotkeyModal :enter))}))
+
+{:addState add-state}

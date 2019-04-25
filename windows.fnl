@@ -36,7 +36,7 @@
 
 (fn highlight-active-window []
   (let [rect (hs.drawing.rectangle (: (hs.window.focusedWindow) :frame))]
-    (: rect :setStrokeColor {["red"] 1 ["blue"] 0 ["green"] 1 ["alpha"] 1})
+    (: rect :setStrokeColor {:red 1 :blue 0 :green 1 :alpha 1})
     (: rect :setStrokeWidth 5)
     (: rect :setFill false)
     (: rect :show)
@@ -161,7 +161,7 @@
   (let [app (hs.application.find app-name)]
     (when app
       (: app :activate)
-      (hs.time.doAfter .05 highlight-active-window)
+      (hs.timer.doAfter .05 highlight-active-window)
       (: app :unhide))))
 
 (fn set-mouse-cursor-at [app-title]
