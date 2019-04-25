@@ -59,3 +59,6 @@
        (if (= console (hs.window.focusedWindow))
            (-> console (: :application) (: :hide))
            (-> console (: :raise) (: :focus)))))))
+
+;; disable annoying Cmd+M for minimizing windows
+(hs.hotkey.bind [:cmd] :m nil (fn [] nil))
