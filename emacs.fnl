@@ -8,9 +8,9 @@
                   "/usr/local/bin/emacsclient"
                   " -c -F '(quote (name . \"capture\"))'"
                   " -e '(activate-capture-frame "
-                  pid title key " )'")]
-
-    (hs.timer.delayed.new .1 (fn [] (io.popen run-str)))))
+                  pid title key " )'")
+        timer (hs.timer.delayed.new .1 (fn [] (io.popen run-str)))]
+    (: timer :start)))
 
 (fn edit-with-emacs []
   (let [current-app (: (hs.window.focusedWindow) :application)
@@ -24,6 +24,7 @@
     ;; select all + copy
     (hs.eventtap.keyStroke [:cmd] :a)
     (hs.eventtap.keyStroke [:cmd] :c)
+    (print run-str)
     (io.popen run-str)))
 
 (local edit-with-emacs-key (hs.hotkey.new [:cmd :ctrl] :o nil edit-with-emacs))
