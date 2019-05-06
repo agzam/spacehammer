@@ -42,10 +42,21 @@
     (: rect :show)
     (hs.timer.doAfter .3 (fn [] (: rect :delete)))))
 
-(fn maximize-window-frame []
+(fn maximize-window-frame [fsm]
   (: undo :push)
   (: (hs.window.focusedWindow) :maximize 0)
-  (highlight-active-window))
+  (highlight-active-window)
+  (: fsm :toIdle))
+
+(fn center-window-frame [fsm]
+  (: undo :push)
+  (let [win (hs.window.focusedWindow)]
+    (: win :maximize 0)
+    (hs.grid.resizeWindowThinner win)
+    (hs.grid.resizeWindowShorter win)
+    (: win :centerOnScreen))
+  (highlight-active-window)
+  (: fsm :toIdle))
 
 (local
  arrow-map
@@ -115,7 +126,10 @@
 
 (fn bind [hotkeyMmodal fsm]
   ;; maximize window
-  (: hotkeyMmodal :bind nil :m maximize-window-frame)
+  (: hotkeyMmodal :bind nil :m (partial maximize-window-frame fsm))
+
+  ;; center window
+  (: hotkeyMmodal :bind nil :c (partial center-window-frame fsm))
 
   ;; undo last thing
   (: hotkeyMmodal :bind nil :u (fn [] (: undo :pop)))
