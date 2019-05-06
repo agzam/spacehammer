@@ -16,16 +16,25 @@
   (let [current-app (: (hs.window.focusedWindow) :application)
         pid (.. "\"" (: current-app :pid) "\"")
         title (.. "\"" (: current-app :title) "\"")
+        screen (.. "\"" (: (hs.screen.mainScreen) :id) "\"")
         run-str (..
                  "/usr/local/bin/emacsclient"
-                 " -c -F '(quote (name . \"edit\"))'"
-                 " -e '(ag/edit-with-emacs"
-                 pid title " )'")]
+                 " -c -F '(quote (name . \"edit\"))' "
+                 " -e '(ag/edit-with-emacs "
+                 pid " " title " " screen " )'")]
     ;; select all + copy
     (hs.eventtap.keyStroke [:cmd] :a)
     (hs.eventtap.keyStroke [:cmd] :c)
-    (print run-str)
     (io.popen run-str)))
+
+(fn edit-with-emacs-callback [pid title screen]
+  (let [emacs-app (hs.application.get :Emacs)
+        edit-window (: emacs-app :findWindow :edit)
+        scr (hs.screen.find (tonumber screen))
+        windows (require :windows)]
+    (when (and edit-window scr)
+      (: edit-window :moveToScreen scr)
+      (: windows :centerWindowFrame))))
 
 (local edit-with-emacs-key (hs.hotkey.new [:cmd :ctrl] :o nil edit-with-emacs))
 
@@ -66,4 +75,5 @@
  :disableEditWithEmacs (fn [] (: edit-with-emacs-key :disable))
  :addState add-state
  :switchToApp switch-to-app
- :switchToAppAndPasteFromClipboard switch-to-app-and-paste-from-clipboard}
+ :switchToAppAndPasteFromClipboard switch-to-app-and-paste-from-clipboard
+ :editWithEmacsCallback edit-with-emacs-callback}

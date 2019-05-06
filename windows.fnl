@@ -56,7 +56,8 @@
     (hs.grid.resizeWindowShorter win)
     (: win :centerOnScreen))
   (highlight-active-window)
-  (: fsm :toIdle))
+  (when fsm
+    (: fsm :toIdle)))
 
 (local
  arrow-map
@@ -206,4 +207,6 @@
 {:addState add-state
  :activateApp activate-app
  :setMouseCursorAt set-mouse-cursor-at
+ :maximizeWindowFrame maximize-window-frame
+ :centerWindowFrame center-window-frame
  :highlightActiveWindow highlight-active-window}
