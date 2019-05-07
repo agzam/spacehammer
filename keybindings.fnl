@@ -40,7 +40,7 @@
                  :showTitles false
                  :showThumbnails false
                  :showSelectedTitle false
-                 :selectedThumbnailSize 1024
+                 :selectedThumbnailSize 800
                  :backgroundColor [0 0 0 0]})]
   (hs.hotkey.bind [:cmd] :n (fn [] (: switcher :next)))
   (hs.hotkey.bind [:cmd] :p (fn [] (: switcher :previous))))
@@ -71,7 +71,7 @@
 (global localized-app-modal-hotkey nil)
 
 (fn current-app-name []
-  (-> (hs.window.focusedWindow) (: :application) (: :name)))
+  (-?> (hs.window.frontmostWindow) (: :application) (: :name)))
 
 (global app-specific nil)
 

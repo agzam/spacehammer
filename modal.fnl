@@ -53,6 +53,7 @@
                  (bind self nil :m (fn [] (: fsm :toMedia)))
                  (bind self nil :x (fn [] (: fsm :toEmacs)))
 
+                 ;; jump to any app with :j
                  (bind self nil :j (fn []
                                      (let [wns (hs.fnutils.filter (hs.window.allWindows) filter-allowed-apps)]
                                        (hs.hints.windowHints wns nil true)
@@ -71,15 +72,14 @@
                      ;; - read `keybindings.appSpecific`
                      ;; - find a key matching with current app-name
                      ;; - if has `:app-local-modal' key, activate the modal
-                     (let [cur-app (-> (hs.window.focusedWindow) (: :application) (: :name))
-                           fnd (. keybindings.appSpecific cur-app)]
-                       (when (and fnd (. fnd :app-local-modal))
-                           (each [app-key v (pairs keybindings.appSpecific)]
-                             (when (and v.app-local-modal (= app-key cur-app))
-                               (when (not (. self.modals app-key))
-                                 (tset self.modals app-key (hs.hotkey.modal.new)))
-                               (v.app-local-modal (. self.modals app-key) fsm)
-                               (: (. self.modals app-key) :enter))))))}})
+                     (let [cur-app (-?> (hs.window.focusedWindow) (: :application) (: :name))
+                           fnd (-?> keybindings.appSpecific (. cur-app) (. :app-local-modal))
+                           mdl (fn [] (. self.modals cur-app))]
+                       (when fnd
+                         (when (not (mdl))
+                           (tset self.modals cur-app (hs.hotkey.modal.new)))
+                         (fnd (mdl) fsm)
+                         (: (mdl) :enter))))}})
 
 ;; stores instance of finite-state-machine.
 ;; Externally accessible via `modal.machine()'
