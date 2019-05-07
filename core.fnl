@@ -40,10 +40,17 @@
 ;;;;;;;;;;;;
 (local modal (require :modal))
 
-(each [_ n (pairs [:windows :apps :multimedia :emacs])]
+(each [_ n (pairs [:windows
+                   :apps
+                   :multimedia
+                   :emacs
+                   :chrome
+                   :grammarly])]
   (let [module (require n)]
     (when module.add-state
-      (module.add-state modal))))
+      (module.add-state modal))
+    (when module.add-app-specific
+      (module.add-app-specific))))
 
 (let [state-machine (modal.create-machine)]
   (: state-machine :toMain))

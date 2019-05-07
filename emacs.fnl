@@ -32,7 +32,6 @@
 
 ;; don't remove! - this is callable from Emacs
 (fn edit-with-emacs-callback [pid title screen]
-  (alert "edit-with-emacs-callback")
   (let [emacs-app (hs.application.get :Emacs)
         edit-window (: emacs-app :findWindow :edit)
         scr (hs.screen.find (tonumber screen))
@@ -101,11 +100,12 @@
                               (when app
                                 (: app :activate)
                                 (windows.maximize-window-frame (: modal :machine)))))))})))
-(add-app-specific)
 
 {:enable-edit-with-emacs                 enable-edit-with-emacs
  :disable-edit-with-emacs                disable-edit-with-emacs
  :add-state                              add-state
- :switch-to-app                          switch-to-app
- :switch-to-app-and-paste-from-clipboard switch-to-app-and-paste-from-clipboard
- :editWithEmacsCallback                  edit-with-emacs-callback}
+ :edit-with-emacs                        edit-with-emacs
+ :switchToApp                            switch-to-app
+ :switchToAppAndPasteFromClipboard       switch-to-app-and-paste-from-clipboard
+ :editWithEmacsCallback                  edit-with-emacs-callback
+ :add-app-specific                       add-app-specific}
