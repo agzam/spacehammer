@@ -16,7 +16,7 @@
 ;; adding C-e, C-y bindings for scrolling up and down
 (each [k dir (pairs {:e -3 :y 3})]
   (let [scroll-fn (fn []
-                    (windows.setMouseCursorAt :Slack)
+                    (windows.set-mouse-cursor-at :Slack)
                     (hs.eventtap.scrollWheel [0 dir] {}))]
     (table.insert slack-local-hotkeys (hs.hotkey.new [:ctrl] k scroll-fn nil scroll-fn))))
 
@@ -33,11 +33,11 @@
     (table.insert slack-local-hotkeys (hs.hotkey.new [:ctrl] k up-n-down nil up-n-down))))
 
 (tset
- keybindings.appSpecific :Slack
+ keybindings.app-specific :Slack
  {:activated (fn []
                (hs.fnutils.each slack-local-hotkeys
-                                (partial keybindings.activateAppKey :Slack)))
-  :deactivated (fn [] (keybindings.deactivateAppKeys :Slack))})
+                                (partial keybindings.activate-app-key :Slack)))
+  :deactivated (fn [] (keybindings.deactivate-app-keys :Slack))})
 
 (fn bind [modal fsm]
 
@@ -48,7 +48,7 @@
        (let [app (hs.application.find :Slack)]
          (when app
            (: app :activate)
-           (hs.timer.doAfter .2 windows.highlightActiveWindow)
+           (hs.timer.doAfter .2 windows.highlight-active-window)
            (hs.eventtap.keyStroke [:cmd] :t)
            (: app :unhide))
          (: fsm :toIdle)))))

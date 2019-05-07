@@ -23,12 +23,12 @@
     (: hotkeyMmodal :bind nil :s pl)))
 
 (fn add-state [modal]
-  (modal.addState
+  (modal.add-state
    :media
    {:from :*
     :init (fn [self, fsm]
             (set self.hotkeyModal (hs.hotkey.modal.new))
-            (modal.displayModalText "h \t previous track\nl \t next track\nk \t volume up\nj \t volume down\ns \t play/pause\na \t launch player")
+            (modal.display-modal-text "h \t previous track\nl \t next track\nk \t volume up\nj \t volume down\ns \t play/pause\na \t launch player")
 
             (modal.bind
              self
@@ -38,5 +38,5 @@
             (bind self.hotkeyModal fsm)
             (: self.hotkeyModal :enter))}))
 
-{:addState add-state
- :musicApp music-app}
+{:add-state add-state
+ :music-app music-app}

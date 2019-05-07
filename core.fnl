@@ -42,10 +42,10 @@
 
 (each [_ n (pairs [:windows :apps :multimedia :emacs])]
   (let [module (require n)]
-    (when module.addState
-      (module.addState modal))))
+    (when module.add-state
+      (module.add-state modal))))
 
-(let [state-machine (modal.createMachine)]
+(let [state-machine (modal.create-machine)]
   (: state-machine :toMain))
 
 (require :keybindings)

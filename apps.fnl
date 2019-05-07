@@ -3,12 +3,12 @@
 (local slack (require :slack))
 
 (fn add-state [modal]
-  (modal.addState
+  (modal.add-state
    :apps
    {:from :*
     :init (fn [self, fsm]
             (set self.hotkeyModal (hs.hotkey.modal.new))
-            (modal.displayModalText
+            (modal.display-modal-text
              "e\t emacs\ng \t chrome\n f\t Firefox\n i\t iTerm\n s\t slack\n b\t brave")
 
             (modal.bind
@@ -24,13 +24,13 @@
                              :b "Brave",
                              :e "Emacs",
                              :f "Firefox",
-                             :m multimedia.musicApp})]
+                             :m multimedia.music-app})]
               (modal.bind
                self nil key
                (fn []
                  (: fsm :toIdle)
-                 (windows.activateApp app))))
+                 (windows.activate-app app))))
 
             (: self.hotkeyModal :enter))}))
 
-{:addState add-state}
+{:add-state add-state}

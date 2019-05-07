@@ -49,7 +49,7 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 
        b) I'd like to keep fingers on the home row
 
-    it's configured to work with Google Play Music Desktop App. If you want it to be Spotify or anything else - change the value of  =musicApp= in =multimedia.lua= module
+    it's configured to work with Google Play Music Desktop App. If you want it to be Spotify or anything else - change the value of  =music-app= in =multimedia.lua= module
 
 ** Other features
 **** Alternative App Switcher =Cmd n/p=

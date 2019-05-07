@@ -188,12 +188,12 @@
     (hs.mouse.setAbsolutePosition desired-point)))
 
 (fn add-state [modal]
-  (modal.addState
+  (modal.add-state
    :windows
    {:from :*
     :init (fn [self fsm]
             (set self.hotkeyModal (hs.hotkey.modal.new))
-            (modal.displayModalText "cmd + hjkl \t jumping\nhjkl \t\t\t\t halves\nalt + hjkl \t\t increments\nshift + hjkl \t resize\nn, p \t next, prev screen\ng \t\t\t\t\t grid\nm \t\t\t\t maximize\nu \t\t\t\t\t undo")
+            (modal.display-modal-text "cmd + hjkl \t jumping\nhjkl \t\t\t\t halves\nalt + hjkl \t\t increments\nshift + hjkl \t resize\nn, p \t next, prev screen\ng \t\t\t\t\t grid\nm \t\t\t\t maximize\nu \t\t\t\t\t undo")
 
             (modal.bind
              self
@@ -204,9 +204,9 @@
 
             (: self.hotkeyModal :enter))}))
 
-{:addState add-state
- :activateApp activate-app
- :setMouseCursorAt set-mouse-cursor-at
- :maximizeWindowFrame maximize-window-frame
- :centerWindowFrame center-window-frame
- :highlightActiveWindow highlight-active-window}
+{:add-state               add-state
+ :activate-app            activate-app
+ :set-mouse-cursor-at     set-mouse-cursor-at
+ :maximize-window-frame   maximize-window-frame
+ :center-window-frame     center-window-frame
+ :highlight-active-window highlight-active-window}

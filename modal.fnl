@@ -42,7 +42,7 @@
                   self nil :space
                   (fn []
                     (: fsm :toIdle)
-                    (windows.activateApp "Alfred 3")))
+                    (windows.activate-app "Alfred 3")))
 
                  (bind self nil :escape (fn [] (: fsm :toIdle)))
                  (bind self nil :q (fn [] (: fsm :toIdle)))
@@ -64,16 +64,16 @@
 
   ;; `:applocal` is a state that gets activated whenever user would switch to an
   ;; app that allows localized modals. Localized modals are enabled by adding
-  ;; `:app-local-modal' key in `keybindings.appSpecific'
+  ;; `:app-local-modal' key in `keybindings.app-specific'
   :applocal {:from :*
              :modals []
              :init (fn [self fsm]
                      (set self.toIdle (fn [] (: fsm :toIdle)))
-                     ;; - read `keybindings.appSpecific`
+                     ;; - read `keybindings.app-specific`
                      ;; - find a key matching with current app-name
                      ;; - if has `:app-local-modal' key, activate the modal
                      (let [cur-app (-?> (hs.window.focusedWindow) (: :application) (: :name))
-                           fnd (-?> keybindings.appSpecific (. cur-app) (. :app-local-modal))
+                           fnd (-?> keybindings.app-specific (. cur-app) (. :app-local-modal))
                            mdl (fn [] (. self.modals cur-app))]
                        (when fnd
                          (when (not (mdl))
@@ -86,7 +86,7 @@
 (global machine nil)
 
 ;; creates instance of finite-state-machine based on `modal.states`. Other
-;; modules can add more states using `modal.addState`, but then `create-machine'
+;; modules can add more states using `modal.add-state`, but then `create-machine'
 ;; has to run after it again
 (fn create-machine []
   (let [events {}
@@ -113,9 +113,9 @@
 (fn add-state [name state]
   (tset states name state))
 
-{:createMachine create-machine
- :addState add-state
- :displayModalText display-modal-text
- :bind bind
- :states states
- :machine (fn [] machine)}
+{:create-machine     create-machine
+ :add-state          add-state
+ :display-modal-text display-modal-text
+ :bind               bind
+ :states             states
+ :machine            (fn [] machine)}
