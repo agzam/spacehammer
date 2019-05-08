@@ -13,3 +13,6 @@
     currently invokes Emacs to enable system-wide org-capture. Accompanying emacs-lisp code can be found [[https://github.com/agzam/dot-spacemacs/blob/master/layers/ag-org/funcs.el#L144][here]]
 - [2019-05-06 Mon]
   - Rewrote everything in Fennel
+- [2019-05-07 Tue]
+  - Added local modals
+  - Grammarly + Emacs interaction
