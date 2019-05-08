@@ -162,9 +162,10 @@
 (fn add-app-specific [app-name tbl]
   (tset app-specific app-name tbl))
 
-{:disable-simple-vi-mode disable-simple-vi-mode
- :app-specific           app-specific
- :add-app-specific       add-app-specific
- :activate-app-key       activate-app-key
- :deactivate-app-keys    deactivate-app-keys
- :simple-tab-switching   simple-tab-switching}
+{:disable-simple-vi-mode  disable-simple-vi-mode
+ :app-specific            app-specific
+ :add-app-specific        add-app-specific
+ :activate-app-key        activate-app-key
+ :deactivate-app-keys     deactivate-app-keys
+ :simple-tab-switching    simple-tab-switching
+ :initialize-local-modals initialize-local-modals}
