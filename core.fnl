@@ -27,9 +27,10 @@
           fnl-file-change? (u.some
                             files,
                             (fn [p]
-                              (let [ext (u.split p "%p")]
-                                (or (u.contains ext "fnl")
-                                    (u.contains ext "lua")))))]
+                              (when (not (string.match p ".#")) ;; ignore emacs temp files
+                                (let [ext (u.split p "%p")]
+                                  (or (u.contains ext "fnl")
+                                      (u.contains ext "lua"))))))]
       (when fnl-file-change? (hs.reload))))))
 
 (: config-file-pathwatcher :start)

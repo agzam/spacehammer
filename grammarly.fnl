@@ -18,8 +18,10 @@
         run-str (.. "/usr/local/bin/emacsclient"
                     " -e "
                     "'(with-current-buffer (window-buffer (selected-window)) "
-                    " (delete-region (region-beginning) (region-end))"
-                    " (clipboard-yank))'")
+                    "   (if (region-active-p)"
+                    "      (delete-region (region-beginning) (region-end))"
+                    "      (erase-buffer))"
+                    " (clipboard-yank))" "'")
         app (-> (hs.window.focusedWindow) (: :application))]
     (click-in-window)
     (: app :selectMenuItem [:Edit "Select All"])
