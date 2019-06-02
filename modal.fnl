@@ -42,7 +42,7 @@
                   self nil :space
                   (fn []
                     (: fsm :toIdle)
-                    (windows.activate-app "Alfred 3")))
+                    (windows.activate-app "Alfred 4")))
 
                  (bind self nil :escape (fn [] (: fsm :toIdle)))
                  (bind self nil :q (fn [] (: fsm :toIdle)))
