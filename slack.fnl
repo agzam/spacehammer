@@ -21,10 +21,10 @@
     (table.insert slack-local-hotkeys (hs.hotkey.new [:ctrl] k scroll-fn nil scroll-fn))))
 
 
-;; Alt-o|Alt-i to go back and forth in history
+;; Ctrl-o|Ctrl-i to go back and forth in history
 (each [k dir (pairs {:o "[" :i "]"})]
   (let [back-fwd (fn [] (hs.eventtap.keyStroke [:cmd] dir))]
-    (table.insert slack-local-hotkeys (hs.hotkey.new [:alt] k back-fwd nil back-fwd))))
+    (table.insert slack-local-hotkeys (hs.hotkey.new [:ctrl] k back-fwd nil back-fwd))))
 
 
 ;; C-n|C-p - for up and down (instead of using arrow keys)
