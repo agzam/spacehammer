@@ -2,11 +2,15 @@
 (local windows (require :windows))
 
 (local slack-local-hotkeys
-       [;; jump to end of thread on C-g
-        (hs.hotkey.bind [:alt] :g (fn [] (alert "alt g in slack yo")))
+       [;; jump to end of thread on Cmd-g
+        (hs.hotkey.bind [:cmd] :g
+         (fn []
+           (windows.set-mouse-cursor-at :Slack)
+           ;; from my experience this number is big enough to take you to the end of thread
+           (hs.eventtap.scrollWheel [0 -5000] {})))
 
         ;; add a reaction
-        (hs.hotkey.bind [:alt] :r (fn [] (hs.eventtap.keyStroke [:cmd :shift] "\\")))
+        (hs.hotkey.bind [:cmd] :r (fn [] (hs.eventtap.keyStroke [:cmd :shift] "\\")))
 
         ;; TODO: start a thread
         ])
@@ -52,6 +56,5 @@
            (hs.eventtap.keyStroke [:cmd] :t)
            (: app :unhide))
          (: fsm :toIdle)))))
-
 
 {:bind bind}

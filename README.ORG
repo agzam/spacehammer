@@ -69,12 +69,12 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 
        b) I'd like to keep fingers on the home row
 
-    it's configured to work with Google Play Music Desktop App. If you want it to be Spotify or anything else - change the value of  =music-app= in =multimedia.lua= module
+    it's configured to work with Google Play Music Desktop App. If you want it to be Spotify or anything else - change the value of  =music-app= in =multimedia.fnl= module
 
 ** Other features
 **** Alternative App Switcher =Cmd n/p=
 **** Simple tab switcher for Chrome and iTerm =Cmd j/k=
-     =Cmd l= in Chrome re-mapped to =Cmd+Shift l=
+     =Cmd l= in Chrome is re-mapped to =Cmd+Shift l=
 **** Simple vi-mode
      - =Alt h/j/k/l= - simple left/right/up/down
      - =Alt+Shift h/j/k/l= - word wise left/right/up/down
@@ -84,18 +84,15 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 **** Slack Desktop Client enhancements
       - Switching to Slack via "Apps" modal =CMD+SPC a s= - automatically opens Slack's "Jump to" dialog
       - Scrolling current Slack thread with =C-j/C-k= or =C-e/C-y=
-      - Jumping to the end of the thread with =C-g=
-      - Adding emoji to the last message - =C-r= (sorry, but default =Cmd-Shift+\= is horribly inconvenient)
+      - Jumping to the end of the thread with =Cmd-g=
+      - Adding emoji to the last message - =Cmd-r= (sorry, but default =Cmd-Shift+\= is horribly inconvenient)
       - =C-o/C-i= - jumping back and forth in history
 ** TODO
    - [ ] =jk= or =fd= to exit modals (like =evil-escape-key-sequence= in Emacs)
    - [ ] window configuration profiles (similar to Layouts feature in Spacemacs)
-   - [X] =Cmd SPC Tab= to switch to previous window
-        This is now done, it's bound to =CMD+SPC+w= - similar to Spacemacs's =SPC w w=
-   - [X] better module organization - so modals can be added without much hassle
    - [ ] Disable non-available keys in a modal. Keys that not listed should be simply ignored see #1
    - [ ] Another thing I want is to be able to toggle ChromeDevtools panel - this is somewhat tricky, see [[https://github.com/Hammerspoon/hammerspoon/issues/1506][this issue]]
    - [ ] Better than default HUD display (something less obtrusive than ~hs.alert~ would be nice
 
 ** Customizing
-   This is quite straightforward. Both - Fennel and Lua are extremely simple languages. I shamelessly borrowed this [[https://github.com/kyleconroy/lua-state-machine][state-machine implementation]], and that makes adding new modals and extending current ones a piece of cake.
+   That is pretty straightforward. Both, Fennel and Lua are extremely simple languages. I shamelessly borrowed this [[https://github.com/kyleconroy/lua-state-machine][state-machine implementation]] (why write from scratch?). Adding new modals, or app specific keys and app specific modals is quite simple, reach out if you have any questions. Thanks!
