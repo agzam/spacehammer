@@ -1,19 +1,37 @@
 (local keybindings (require :keybindings))
 (local windows (require :windows))
 
-(local slack-local-hotkeys
-       [;; jump to end of thread on Cmd-g
-        (hs.hotkey.bind [:cmd] :g
-         (fn []
-           (windows.set-mouse-cursor-at :Slack)
-           ;; from my experience this number is big enough to take you to the end of thread
-           (hs.eventtap.scrollWheel [0 -5000] {})))
+(local
+ slack-local-hotkeys
+ [;; jump to end of thread on Cmd-g
+  (hs.hotkey.bind
+   [:cmd] :g
+   (fn []
+     (windows.set-mouse-cursor-at :Slack)
+     ;; this number should be big enough to take you
+     ;; to the bottom of the chat window
+     (hs.eventtap.scrollWheel [0 -20000] {})))
 
-        ;; add a reaction
-        (hs.hotkey.bind [:cmd] :r (fn [] (hs.eventtap.keyStroke [:cmd :shift] "\\")))
+  ;; add a reaction
+  (hs.hotkey.bind [:ctrl] :r (fn [] (hs.eventtap.keyStroke [:cmd :shift] "\\")))
 
-        ;; TODO: start a thread
-        ])
+  ;; F6 mode
+  (hs.hotkey.bind [:ctrl] :h (fn [] (hs.eventtap.keyStroke [:shift] :f6)))
+  (hs.hotkey.bind [:ctrl] :l (fn [] (hs.eventtap.keyStroke [] :f6)))
+
+  ;; Start a thread on the last message. It doesn't always work, because of
+  ;; stupid Slack App inconsistency with TabIndexes
+  (hs.hotkey.bind
+   [:ctrl] :t
+   (fn []
+     (hs.eventtap.keyStroke [:shift] :f6)
+     (hs.eventtap.keyStroke [] :right)
+     (hs.eventtap.keyStroke [] :space)))
+
+  ;; scroll to prev/next day
+  (hs.hotkey.bind [:ctrl] :p (fn [] (hs.eventtap.keyStroke [:shift] :pageup)))
+  (hs.hotkey.bind [:ctrl] :n (fn [] (hs.eventtap.keyStroke [:shift] :pagedown)))])
+
 
 
 ;; Slack client doesn't allow convenient method to scrolling in thread with keyboard
