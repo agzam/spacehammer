@@ -18,3 +18,4 @@
   - Grammarly + Emacs interaction
 - [2019-06-23 Sun]
   - Auxiliary Emacs package, spacehammer.el
+  - Fixes Local app-keys are leaking #15

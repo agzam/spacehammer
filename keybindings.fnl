@@ -120,42 +120,51 @@
 ;;                                       2 :terminated
 ;;                                       4 :unhidden})
 
-;; watches applications events and if `app-specific` keys exist for the app,
-;; enables them for the app, or when the app loses focus - disables them. Also
-;; checks for applocal modals and exits modals upon app deactivation
-(fn app-blur? [event]
-  (alert (hs.fnutils.contains
-          [hs.application.watcher.deactivated
-           hs.application.watcher.terminated
-           hs.application.watcher.hidden]
-          event))
-  (alert (or (= event hs.application.watcher.deactivated)
-             (= event hs.application.watcher.terminated)
-             (= event hs.application.watcher.hidden)))
-  (hs.fnutils.contains
-   [hs.application.watcher.deactivated
-    hs.application.watcher.terminated
-    hs.application.watcher.hidden]
-   event))
+(fn deactivating? [event]
+  (or (= event hs.application.watcher.deactivated)
+      (= event hs.application.watcher.terminated)
+      (= event hs.application.watcher.hidden)))
+
+(fn activating? [event]
+  (= event hs.application.watcher.activated))
+
+(fn deactivate-local-modals [event]
+  (let [modal (require :modal)]
+    (when (deactivating? event)
+      (when modal.states.applocal.toIdle
+        (modal.states.applocal.toIdle)))))
+
+(fn deactivate-local-keys [app-name event]
+  (each [app-k m (pairs app-specific)]
+    (when (and (activating? event)
+           (not= app-k app-name))
+      (let [fun (. m :deactivated)]
+        (when fun (fun))))))
+
+(fn activate-local-keys [app-name event]
+  (when (activating? event)
+    (let [fun (-?> app-specific (. app-name)
+                   (. :activated))]
+      (when fun (fun app-name)))))
+
+(fn activate-local-modal [app-name event]
+  (when (activating? event)
+    (let [fun (-?> app-specific (. :*) (. :activated))]
+      (when fun (fun app-name)))))
 
 (global
+ ;; watches applications events and if `app-specific` keys exist for the app,
+ ;; enables them for the app, or when the app loses focus - disables them. Also
+ ;; checks for applocal modals and exits modals upon app deactivation
  watcher
  (or
   watcher
   (hs.application.watcher.new
    (fn [app-name event _]
-     (let [modal (require :modal)]
-       (when (or (= event hs.application.watcher.deactivated)
-                 (= event hs.application.watcher.terminated)
-                 (= event hs.application.watcher.hidden))
-         (when modal.states.applocal.toIdle
-           (modal.states.applocal.toIdle)))
-       (each [k ev (pairs hs.application.watcher)]
-         (when (= ev event)
-           (let [fun (-?> app-specific (. :*) (. k))]
-             (when fun (fun app-name)))
-           (let [fun (-?> app-specific (. app-name) (. k))]
-             (when fun (fun app-name))))))))))
+     (deactivate-local-modals event)
+     (deactivate-local-keys app-name event)
+     (activate-local-modal app-name event)
+     (activate-local-keys app-name event)))))
 
 (: watcher :start)
 
