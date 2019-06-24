@@ -23,14 +23,15 @@
         run-str (..
                  "/usr/local/bin/emacsclient"
                  " -c -F '(quote (name . \"edit\"))' "
-                 " -e '(ag/edit-with-emacs "
+                 " -e '(spacehammer/edit-with-emacs "
                  pid " " title " " screen " )'")]
     ;; select all + copy
     (hs.eventtap.keyStroke [:cmd] :a)
     (hs.eventtap.keyStroke [:cmd] :c)
     (io.popen run-str)))
 
-;; don't remove! - this is callable from Emacs
+;; Don't remove! - this is callable from Emacs
+;; See: `spacehammer/edit-with-emacs` in spacehammer.el
 (fn edit-with-emacs-callback [pid title screen]
   (let [emacs-app (hs.application.get :Emacs)
         edit-window (: emacs-app :findWindow :edit)
@@ -64,12 +65,14 @@
             (bind self.hotkeyModal fsm)
             (: self.hotkeyModal :enter))}))
 
-;; don't remove! - this is callable from Emacs
+;; Don't remove! - this is callable from Emacs
+;; See: `spacehammer/switch-to-app` in spacehammer.el
 (fn switch-to-app [pid]
   (let [app (hs.application.applicationForPID pid)]
     (when app (: app :activate))))
 
-;; don't remove! - this is callable from Emacs
+;; Don't remove! - this is callable from Emacs
+;; See: `spacehammer/finish-edit-with-emacs` in spacehammer.el
 (fn switch-to-app-and-paste-from-clipboard [pid]
   (let [app (hs.application.applicationForPID pid)]
     (when app

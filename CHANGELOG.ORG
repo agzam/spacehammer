@@ -16,3 +16,5 @@
 - [2019-05-07 Tue]
   - Added local modals
   - Grammarly + Emacs interaction
+- [2019-06-23 Sun]
+  - Auxiliary Emacs package, spacehammer.el
