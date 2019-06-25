@@ -44,6 +44,49 @@
 ;; global keybinging to invoke edit-with-emacs feature
 (local edit-with-emacs-key (hs.hotkey.new [:cmd :ctrl] :o nil edit-with-emacs))
 
+(fn run-emacs-fn
+  ;; executes given elisp function via emacsclient, if args table present passes
+  ;; them to the function
+  [elisp-fn args]
+  (let [args-lst (when args (.. " '" (table.concat args " '")))
+        run-str  (.. "/usr/local/bin/emacsclient"
+                     " -e \"(funcall '" elisp-fn
+                     (if args-lst args-lst "")
+                     ")\"")]
+    (io.popen run-str)))
+
+(fn full-screen
+  ;; Switch to Emacs and expand its frame to fullscreen
+  []
+  (hs.application.launchOrFocus :Emacs)
+  (run-emacs-fn "(lambda ()) (spacemacs/toggle-fullscreen-frame-on) (spacehammer/fix-frame)"))
+
+(fn vertical-split-with-emacs
+  ;; creates a vertical split with the current app and Emacs, with Emacs on the
+  ;; left and the app window on the right
+  []
+  (let [windows    (require :windows)
+        cur-app    (-?> (hs.window.focusedWindow) (: :application) (: :name))
+        rect-left  [0  0 .5  1]
+        rect-right [.5 0 .5  1]
+        elisp (.. "(lambda ()"
+                  " (spacemacs/toggle-fullscreen-frame-off) "
+                  " (spacemacs/maximize-horizontally) "
+                  " (spacemacs/maximize-vertically))")]
+    (run-emacs-fn elisp)
+    (hs.timer.doAfter
+     .2
+     (fn []
+       (if (= cur-app :Emacs)
+           (do
+             (windows.rect rect-left)
+             (windows.jump-to-last-window)
+             (windows.rect rect-right))
+           (do
+             (windows.rect rect-right)
+             (hs.application.launchOrFocus :Emacs)
+             (windows.rect rect-left)))))))
+
 (fn bind [hotkeyModal fsm]
   (: hotkeyModal :bind nil :c (fn []
                                 (: fsm :toIdle)
@@ -51,7 +94,13 @@
   (: hotkeyModal :bind nil :z (fn []
                                 (: fsm :toIdle)
                                 ;; note on currently clocked in
-                                (capture true))))
+                                (capture true)))
+  (: hotkeyModal :bind nil :v (fn []
+                                (: fsm :toIdle)
+                                (vertical-split-with-emacs)))
+  (: hotkeyModal :bind nil :f (fn []
+                                (: fsm :toIdle)
+                                (full-screen))))
 
 ;; adds Emacs modal state to the FSM instance
 (fn add-state [modal]
@@ -60,8 +109,7 @@
    {:from :*
     :init (fn [self fsm]
             (set self.hotkeyModal (hs.hotkey.modal.new))
-            (modal.display-modal-text "c \tcapture\nz\tnote")
-
+            (modal.display-modal-text "c \tcapture\nz\tnote\nf\tfullscreen\nv\tsplit")
             (bind self.hotkeyModal fsm)
             (: self.hotkeyModal :enter))}))
 
@@ -97,9 +145,9 @@
       (fn []
         (hs.timer.doAfter 1.5
                           (fn []
-                            (let [app (hs.application.find :Emacs)
+                            (let [app     (hs.application.find :Emacs)
                                   windows (require :windows)
-                                  modal (require :modal)]
+                                  modal   (require :modal)]
                               (when app
                                 (: app :activate)
                                 (windows.maximize-window-frame (: modal :machine)))))))})))

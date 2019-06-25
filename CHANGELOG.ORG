@@ -19,3 +19,8 @@
 - [2019-06-23 Sun]
   - Auxiliary Emacs package, spacehammer.el
   - Fixes Local app-keys are leaking #15
+- [2019-06-25 Tue]
+  - Emacs improvements
+    + run-emacs-fn
+    + full-screen
+    + vertical-split-with-emacs

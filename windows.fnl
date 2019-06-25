@@ -32,7 +32,7 @@
         (: :getWindows hs.window.filter.sortByFocusedLast)
         (. 2)
         (: :focus))
-    (: fsm :toIdle)))
+    (when fsm (: fsm :toIdle))))
 
 (fn highlight-active-window []
   (let [rect (hs.drawing.rectangle (: (hs.window.focusedWindow) :frame))]
@@ -112,7 +112,7 @@
        arrow
        (fn []
          (: undo :push)
-         (let [dir (-> arrow-map (. arrow) (. :resize))
+         (let [dir    (-> arrow-map (. arrow) (. :resize))
                gridFn (->> dir (.. :resizeWindow) (. hs.grid))]
            (gridFn (hs.window.focusedWindow)))))))
 
@@ -204,9 +204,11 @@
 
             (: self.hotkeyModal :enter))}))
 
-{:add-state               add-state
+{:rect                    rect
+ :add-state               add-state
  :activate-app            activate-app
  :set-mouse-cursor-at     set-mouse-cursor-at
  :maximize-window-frame   maximize-window-frame
  :center-window-frame     center-window-frame
- :highlight-active-window highlight-active-window}
+ :highlight-active-window highlight-active-window
+ :jump-to-last-window     jump-to-last-window}
