@@ -29,8 +29,8 @@
      (hs.eventtap.keyStroke [] :space)))
 
   ;; scroll to prev/next day
-  (hs.hotkey.bind [:ctrl] :p (fn [] (hs.eventtap.keyStroke [:shift] :pageup)))
-  (hs.hotkey.bind [:ctrl] :n (fn [] (hs.eventtap.keyStroke [:shift] :pagedown)))])
+  (hs.hotkey.bind [:ctrl] "[" (fn [] (hs.eventtap.keyStroke [:shift] :pageup)))
+  (hs.hotkey.bind [:ctrl] "]" (fn [] (hs.eventtap.keyStroke [:shift] :pagedown)))])
 
 
 
