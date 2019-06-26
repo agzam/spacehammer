@@ -1,78 +1,100 @@
-(local keybindings (require :keybindings))
 (local windows (require :windows))
 
-(local
- slack-local-hotkeys
- [;; jump to end of thread on Cmd-g
-  (hs.hotkey.bind
-   [:cmd] :g
-   (fn []
-     (windows.set-mouse-cursor-at :Slack)
-     ;; this number should be big enough to take you
-     ;; to the bottom of the chat window
-     (hs.eventtap.scrollWheel [0 -20000] {})))
 
-  ;; add a reaction
-  (hs.hotkey.bind [:ctrl] :r (fn [] (hs.eventtap.keyStroke [:cmd :shift] "\\")))
+;; Utils
 
-  ;; F6 mode
-  (hs.hotkey.bind [:ctrl] :h (fn [] (hs.eventtap.keyStroke [:shift] :f6)))
-  (hs.hotkey.bind [:ctrl] :l (fn [] (hs.eventtap.keyStroke [] :f6)))
+(fn scroll-to-bottom
+  []
+  (windows.set-mouse-cursor-at :Slack)
+  (hs.eventtap.scrollWheel [0 -20000] {}))
 
+(fn add-reaction
+  []
+  (hs.eventtap.keyStroke [:cmd :shift] "\\"))
+
+(fn prev-element
+  []
+  (hs.eventtap.keyStroke [:shift] :f6))
+
+(fn next-element
+  []
+  (hs.eventtap.keyStroke nil :f6))
+
+(fn thread
+  []
   ;; Start a thread on the last message. It doesn't always work, because of
   ;; stupid Slack App inconsistency with TabIndexes
-  (hs.hotkey.bind
-   [:ctrl] :t
-   (fn []
-     (hs.eventtap.keyStroke [:shift] :f6)
-     (hs.eventtap.keyStroke [] :right)
-     (hs.eventtap.keyStroke [] :space)))
+  (hs.eventtap.keyStroke [:shift] :f6)
+  (hs.eventtap.keyStroke [] :right)
+  (hs.eventtap.keyStroke [] :space))
 
-  ;; scroll to prev/next day
-  (hs.hotkey.bind [:ctrl] :p (fn [] (hs.eventtap.keyStroke [:shift] :pageup)))
-  (hs.hotkey.bind [:ctrl] :n (fn [] (hs.eventtap.keyStroke [:shift] :pagedown)))])
-
-
-
-;; Slack client doesn't allow convenient method to scrolling in thread with keyboard
-;; adding C-e, C-y bindings for scrolling up and down
-(each [k dir (pairs {:e -3 :y 3})]
-  (let [scroll-fn (fn []
-                    (windows.set-mouse-cursor-at :Slack)
-                    (hs.eventtap.scrollWheel [0 dir] {}))]
-    (table.insert slack-local-hotkeys (hs.hotkey.new [:ctrl] k scroll-fn nil scroll-fn))))
+(fn quick-switcher
+  []
+  (windows.activate-app "/Applications/Slack.app")
+  (let [app (hs.application.find :Slack)]
+    (when app
+      (hs.eventtap.keyStroke [:cmd] :t)
+      (: app :unhide))))
 
 
-;; Ctrl-o|Ctrl-i to go back and forth in history
-(each [k dir (pairs {:o "[" :i "]"})]
-  (let [back-fwd (fn [] (hs.eventtap.keyStroke [:cmd] dir))]
-    (table.insert slack-local-hotkeys (hs.hotkey.new [:ctrl] k back-fwd nil back-fwd))))
+;; scroll to prev/next day
+
+(fn prev-day
+  []
+  (hs.eventtap.keyStroke [:shift] :pageup))
+
+(fn next-day
+  []
+  (hs.eventtap.keyStroke [:shift] :pagedown))
+
+(fn scroll-slack
+  [dir]
+  (windows.set-mouse-cursor-at :Slack)
+  (hs.eventtap.scrollWheel [0 dir] {}))
+
+(fn scroll-up
+  []
+  (scroll-slack -3))
+
+(fn scroll-down
+  []
+  (scroll-slack 3))
 
 
-;; C-n|C-p - for up and down (instead of using arrow keys)
-(each [k dir (pairs {:p :up :n :down})]
-  (let [up-n-down (fn [] (hs.eventtap.keyStroke nil dir))]
-    (table.insert slack-local-hotkeys (hs.hotkey.new [:ctrl] k up-n-down nil up-n-down))))
+;; History
 
-(tset
- keybindings.app-specific :Slack
- {:activated (fn []
-               (hs.fnutils.each slack-local-hotkeys
-                                (partial keybindings.activate-app-key :Slack)))
-  :deactivated (fn [] (keybindings.deactivate-app-keys :Slack))})
+(fn prev-history
+  []
+  (hs.eventtap.keyStroke [:cmd] "["))
 
-(fn bind [modal fsm]
+(fn next-history
+  []
+  (hs.eventtap.keyStroke [:cmd] "]"))
 
-  ;; open "Jump to dialog immediately after jumping to Slack GUI through `Apps` modal"
-  (: modal :bind nil :s
-     (fn []
-       (hs.application.launchOrFocus "/Applications/Slack.app")
-       (let [app (hs.application.find :Slack)]
-         (when app
-           (: app :activate)
-           (hs.timer.doAfter .2 windows.highlight-active-window)
-           (hs.eventtap.keyStroke [:cmd] :t)
-           (: app :unhide))
-         (: fsm :toIdle)))))
 
-{:bind bind}
+;; Arrow keys
+
+(fn up
+  []
+  (hs.eventtap.keyStroke nil :up))
+
+(fn down
+  []
+  (hs.eventtap.keyStroke nil :down))
+
+
+
+{:add-reaction     add-reaction
+ :down             down
+ :next-day         next-day
+ :next-element     next-element
+ :next-history     next-history
+ :prev-day         prev-day
+ :prev-element     prev-element
+ :prev-history     prev-history
+ :quick-switcher   quick-switcher
+ :scroll-down      scroll-down
+ :scroll-to-bottom scroll-to-bottom
+ :scroll-up        scroll-up
+ :thread           thread
+ :up               up}

@@ -1,36 +1,31 @@
-(local windows (require :windows))
-(local multimedia (require :multimedia))
-(local slack (require :slack))
+(local utils (require :lib.utils))
 
-(fn add-state [modal]
-  (modal.add-state
-   :apps
-   {:from :*
-    :init (fn [self, fsm]
-            (set self.hotkeyModal (hs.hotkey.modal.new))
-            (modal.display-modal-text
-             "e\t emacs\ng \t chrome\n f\t Firefox\n i\t iTerm\n s\t slack\n b\t brave")
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; App switcher
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-            (modal.bind
-             self
-             [:cmd] :space
-             (fn [] (: fsm :toMain)))
+(local switcher
+       (hs.window.switcher.new
+        (utils.globalFilter)
+        {:textSize 12
+         :showTitles false
+         :showThumbnails false
+         :showSelectedTitle false
+         :selectedThumbnailSize 800
+         :backgroundColor [0 0 0 0]}))
 
-            (slack.bind self.hotkeyModal fsm)
+(fn prev-app
+  []
+  (: switcher :previous))
 
-            (each [key app (pairs
-                            {:i "iTerm2",
-                             :g "Google Chrome",
-                             :b "Brave",
-                             :e "Emacs",
-                             :f "Firefox",
-                             :m multimedia.music-app})]
-              (modal.bind
-               self nil key
-               (fn []
-                 (: fsm :toIdle)
-                 (windows.activate-app app))))
+(fn next-app
+  []
+  (: switcher :next))
 
-            (: self.hotkeyModal :enter))}))
 
-{:add-state add-state}
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Exports
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+{:prev-app                prev-app
+ :next-app                next-app}

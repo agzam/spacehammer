@@ -1,5 +1,7 @@
+(local log (hs.logger.new "emacs.fnl" "debug"))
 
-(fn capture [is-note]
+(fn capture
+  [is-note]
   (let [key (if is-note "\"z\"" "")
         current-app (hs.window.focusedWindow)
         pid (.. "\"" (: current-app :pid) "\" ")
@@ -10,12 +12,14 @@
                   " -e '(activate-capture-frame "
                   pid title key " )'")
         timer (hs.timer.delayed.new .1 (fn [] (io.popen run-str)))]
+    (: log :i run-str)
     (: timer :start)))
 
 ;; executes emacsclient, evaluating special function that must be present in
 ;; Emacs config, passing pid and title of the caller app, along with display id
 ;; where the screen of the caller app is residing
-(fn edit-with-emacs []
+(fn edit-with-emacs
+  []
   (let [current-app (: (hs.window.focusedWindow) :application)
         pid (.. "\"" (: current-app :pid) "\"")
         title (.. "\"" (: current-app :title) "\"")
@@ -26,13 +30,15 @@
                  " -e '(spacehammer/edit-with-emacs "
                  pid " " title " " screen " )'")]
     ;; select all + copy
+    (: log :i run-str)
     (hs.eventtap.keyStroke [:cmd] :a)
     (hs.eventtap.keyStroke [:cmd] :c)
     (io.popen run-str)))
 
 ;; Don't remove! - this is callable from Emacs
 ;; See: `spacehammer/edit-with-emacs` in spacehammer.el
-(fn edit-with-emacs-callback [pid title screen]
+(fn edit-with-emacs-callback
+  [pid title screen]
   (let [emacs-app (hs.application.get :Emacs)
         edit-window (: emacs-app :findWindow :edit)
         scr (hs.screen.find (tonumber screen))
@@ -40,9 +46,6 @@
     (when (and edit-window scr)
       (: edit-window :moveToScreen scr)
       (: windows :center-window-frame))))
-
-;; global keybinging to invoke edit-with-emacs feature
-(local edit-with-emacs-key (hs.hotkey.new [:cmd :ctrl] :o nil edit-with-emacs))
 
 (fn run-emacs-fn
   ;; executes given elisp function via emacsclient, if args table present passes
@@ -53,6 +56,7 @@
                      " -e \"(funcall '" elisp-fn
                      (if args-lst args-lst "")
                      ")\"")]
+    (: log :i run-str)
     (io.popen run-str)))
 
 (fn full-screen
@@ -87,37 +91,13 @@
              (hs.application.launchOrFocus :Emacs)
              (windows.rect rect-left)))))))
 
-(fn bind [hotkeyModal fsm]
-  (: hotkeyModal :bind nil :c (fn []
-                                (: fsm :toIdle)
-                                (capture)))
-  (: hotkeyModal :bind nil :z (fn []
-                                (: fsm :toIdle)
-                                ;; note on currently clocked in
-                                (capture true)))
-  (: hotkeyModal :bind nil :v (fn []
-                                (: fsm :toIdle)
-                                (vertical-split-with-emacs)))
-  (: hotkeyModal :bind nil :f (fn []
-                                (: fsm :toIdle)
-                                (full-screen))))
-
-;; adds Emacs modal state to the FSM instance
-(fn add-state [modal]
-  (modal.add-state
-   :emacs
-   {:from :*
-    :init (fn [self fsm]
-            (set self.hotkeyModal (hs.hotkey.modal.new))
-            (modal.display-modal-text "c \tcapture\nz\tnote\nf\tfullscreen\nv\tsplit")
-            (bind self.hotkeyModal fsm)
-            (: self.hotkeyModal :enter))}))
 
 ;; Don't remove! - this is callable from Emacs
 ;; See: `spacehammer/switch-to-app` in spacehammer.el
 (fn switch-to-app [pid]
   (let [app (hs.application.applicationForPID pid)]
     (when app (: app :activate))))
+
 
 ;; Don't remove! - this is callable from Emacs
 ;; See: `spacehammer/finish-edit-with-emacs` in spacehammer.el
@@ -127,36 +107,32 @@
       (: app :activate)
       (: app :selectMenuItem [:Edit :Paste]))))
 
-(fn disable-edit-with-emacs []
-  (: edit-with-emacs-key :disable))
 
-(fn enable-edit-with-emacs []
-  (: edit-with-emacs-key :enable))
+;; Post refactor
 
-(fn add-app-specific []
-  (let [keybindings (require :keybindings)]
-    (keybindings.add-app-specific
-     :Emacs
-     {:activated
-      (fn []
-        (keybindings.disable-simple-vi-mode)
-        (disable-edit-with-emacs))
-      :launched
-      (fn []
-        (hs.timer.doAfter 1.5
-                          (fn []
-                            (let [app     (hs.application.find :Emacs)
-                                  windows (require :windows)
-                                  modal   (require :modal)]
-                              (when app
-                                (: app :activate)
-                                (windows.maximize-window-frame (: modal :machine)))))))})))
+(fn maximize
+  []
+  (hs.timer.doAfter
+   1.5
+   (fn []
+     (let [app     (hs.application.find :Emacs)
+           windows (require :windows)
+           modal   (require :modal)]
+       (when app
+         (: app :activate)
+         (windows.maximize-window-frame))))))
 
-{:enable-edit-with-emacs                 enable-edit-with-emacs
- :disable-edit-with-emacs                disable-edit-with-emacs
- :add-state                              add-state
- :edit-with-emacs                        edit-with-emacs
+(fn note
+  []
+  (capture true))
+
+{:edit-with-emacs                        edit-with-emacs
  :switchToApp                            switch-to-app
  :switchToAppAndPasteFromClipboard       switch-to-app-and-paste-from-clipboard
  :editWithEmacsCallback                  edit-with-emacs-callback
- :add-app-specific                       add-app-specific}
+ ;; Post refactor
+ :capture                                capture
+ :maximize                               maximize
+ :note                                   note
+ :full-screen                            full-screen
+ :vertical-split-with-emacs              vertical-split-with-emacs}

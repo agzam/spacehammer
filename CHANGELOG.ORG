@@ -24,3 +24,11 @@
     + run-emacs-fn
     + full-screen
     + vertical-split-with-emacs
+- [2019-07-19 Fri]
+  - Refactored…
+    + Modals
+    + Configuration
+    + Keybindings
+    + App specific keybindings
+    + App specific modals
+    + Vim mode

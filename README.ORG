@@ -76,9 +76,9 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 **** Simple tab switcher for Chrome and iTerm =Cmd j/k=
      =Cmd l= in Chrome is re-mapped to =Cmd+Shift l=
 **** Simple vi-mode
-     - =Alt h/j/k/l= - simple left/right/up/down
-     - =Alt+Shift h/j/k/l= - word wise left/right/up/down
-     - =Alt+Ctrl+Shift h/j/k/l= - selecting things
+     - =h/j/k/l= - simple left/right/up/down
+     - =w/b= - word wise forward back
+     - =Shift h/j/k/l= - selecting things
 
      These can be disabled in certain apps (by default they they are ignored in Emacs)
 **** Slack Desktop Client enhancements
@@ -88,11 +88,97 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
       - Adding emoji to the last message - =Cmd-r= (sorry, but default =Cmd-Shift+\= is horribly inconvenient)
       - =C-o/C-i= - jumping back and forth in history
 ** TODO
+   - [ ] Chord function to better support keys like =jk= =fd= or =gg=
    - [ ] =jk= or =fd= to exit modals (like =evil-escape-key-sequence= in Emacs)
-   - [ ] window configuration profiles (similar to Layouts feature in Spacemacs)
+   - [ ] Window configuration profiles (similar to Layouts feature in Spacemacs)
    - [ ] Disable non-available keys in a modal. Keys that not listed should be simply ignored see #1
    - [ ] Another thing I want is to be able to toggle ChromeDevtools panel - this is somewhat tricky, see [[https://github.com/Hammerspoon/hammerspoon/issues/1506][this issue]]
    - [ ] Better than default HUD display (something less obtrusive than ~hs.alert~ would be nice
 
 ** Customizing
-   That is pretty straightforward. Both, Fennel and Lua are extremely simple languages. I shamelessly borrowed this [[https://github.com/kyleconroy/lua-state-machine][state-machine implementation]] (why write from scratch?). Adding new modals, or app specific keys and app specific modals is quite simple, reach out if you have any questions. Thanks!
+*** Update menus, menu items, bindings, and app specific features
+    All menu, app, and key bindings are defined in config.fnl.
+    You may edit this file directly but may run into conflicts with upstream changes.
+    Alternatively you can create a =~/.hammerspoon/private/config.fnl= that can by symlinked and tracked in your dotfiles.
+    The =~/.hammerspoon/private= directory is not source tracked so your customizations will be safe from upstream updates.
+**** Modal Menu Items
+     Menu items are listed when you press =cmd+space= and can be nested.
+     Items map a key binding to an action, either a function or ="module:function-name"= string. 
+     
+     Menu items may either define an action or a table list of items.
+     
+
+     For menu items that should be repeated, add =repeatable: true= to the item table.
+     The repeatable flag keeps the menu option after the action has been triggered. 
+     Repeating a menu item is ideal for actions like window layouts where you may wish to move the window from the left third to the right third.
+     
+    #+BEGIN_SRC fennel
+      (local launch-alfred {:title "Alfred"
+                            :key :SPACE
+                            :action (fn [] (hs.appplication.launchOrFocus "Alfred"))})
+      (local slack-jump {:title "Slack"
+                         :key :s
+                         :action "slack:quick-switcher"})
+      (local window-inc {:title "Window Halves"
+                         :mods [:cmd]
+                         :key :l
+                         :action "windows:resize-inc-right"})
+      (local submenu {:title "Submenu"
+                      :key :t
+                      :items [{:key :m
+                               :title "Show a message"
+                               :action (fn [] (alert "I'm a submenu action"))}]})
+      (local config {:items [launch-alfred
+                             slack-jump
+                             window-inc
+                             submenu]})
+     #+END_SRC
+     
+***** Lifecycle methods
+    Menu items may also define =:enter= and =:exit= functions or action strings. The parent menu item will call the =enter= function when it is opened and =exit= when it is closed. This may be used to manage more complex, or dynamic menus.
+**** Global keys
+     Global keys are used to set up universal hot-keys for the actions you specify.
+     Unlike menu items they do not require a title attribute.
+     Additionally you may specify =repeat: true= to repeat the action while the key is held down.
+     
+     If you place =:hyper= as a mod, it will use a hyper mode that can be configured by the =hyper= config attribute.
+     This can be used to help create bindings that wont interfere with other apps.
+     For instance you may make your hyper trigger the virtual =:F18= and use a program like [[https://github.com/tekezo/Karabiner-Elements][karabiner-elements]] to map caps-lock to =F18=.
+     
+    #+BEGIN_SRC fennel
+      (local config {:hyper {:mods [:cmd :ctrl :alt :shift]}
+                     :keys [{:mods [:cmd]
+                             :key :space
+                             :action "lib.modal:activate-modal"}
+                            {:mods [:cmd]
+                             :key :h
+                             :action "chrome:prev-tab"
+                             :repeat true}
+                            {:mods [:hyper]
+                             :key :f
+                             :action (fn [] (alert "Haha you pressed f!"))}]})
+    #+END_SRC
+**** App specific customizations
+     Configure separate menu options and key bindings while specified apps are active.
+     Additionally, several lifecycle functions or action strings may be provided for each app.
+     
+     - `:activate` When an application receives keyboard focus
+     - `:deactivate` When an application loses keyboard focus
+     - `:launch` When an application is launched
+     - `:close` When an application is terminated
+     
+     #+BEGIN_SRC fennel
+       (local emacs-config
+              {:key "Emacs"
+               :activate "vim:disable"
+               :deactivate "vim:enable"
+               :launch "emacs:maximize"
+               :items []
+               :keys []})
+
+       (local config {:apps [emacs-config]})
+     #+END_SRC
+*** Replacing spacehammer behavior
+    The =~/.hammerspoon/private= directory is added to the module search paths.
+    If you wish to change the behavior of a feature, such as vim mode, you can create =~/.hammerspoon/private/vim.fnl= to override the default implementation.
+ 
