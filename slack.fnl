@@ -32,6 +32,52 @@
   (hs.hotkey.bind [:ctrl] "[" (fn [] (hs.eventtap.keyStroke [:shift] :pageup)))
   (hs.hotkey.bind [:ctrl] "]" (fn [] (hs.eventtap.keyStroke [:shift] :pagedown)))])
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; when connected to given WiFi network change Slack status ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(local
+ ssids->status
+ {:Vachach {:text :WFH :emoji ":house:"}
+  :Vachach5 {:text :WFH :emoji ":house:"}
+  :DFNet-SF {:text "" :emoji ""}})
+
+(fn send-slack-request
+  [text emoji auth-token callback]
+  (hs.http.asyncPost
+   "https://slack.com/api/users.profile.set"
+   (hs.json.encode
+    {:profile {:status_text text
+               :status_emoji emoji
+               :status_expiration 0}})
+   {"Authorization" auth-token
+    "Content-type" "application/json; charset=utf-8"}
+   (fn [_ resp]
+     (let [res (-> resp hs.json.decode (. :ok))]
+       (when res (callback))))))
+
+(fn change-slack-status [ssid]
+  (let [st (. ssids->status ssid)
+        secrets (require :secrets)]
+    (when st
+      (let [txt (. st :text)
+            emoji (. st :emoji)
+            token (. (secrets.read) :slack-auth-token)]
+        (send-slack-request
+         txt emoji token
+         (fn [] (hs.alert (.. "Setting Slack status to " txt))))))))
+
+(global
+ slack-wifi-watcher
+ (or slack-wifi-watcher
+     (->
+      (hs.wifi.watcher.new
+       (fn [_ _ interface]
+         (hs.timer.doAfter
+          5
+          (fn []
+            (change-slack-status (hs.wifi.currentNetwork interface))))))
+      (: :watchingFor [:SSIDChange])
+      (: :start))))
 
 
 ;; Slack client doesn't allow convenient method to scrolling in thread with keyboard
