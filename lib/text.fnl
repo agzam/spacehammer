@@ -24,7 +24,7 @@
   (let [max (max-length items)]
     (map
      (fn [[key action]]
-       (.. (pad-str "." (+ max 1) (.. key " ")) "..... " action))
+       (.. (pad-str " " max key) "     " action))
      items)))
 
 {:align-columns align-columns}
