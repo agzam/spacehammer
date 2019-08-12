@@ -44,6 +44,13 @@
   []
   (: history :pop))
 
+(fn jump-to-last-window [fsm]
+  (let [utils (require :utils)]
+    (-> (utils.globalFilter)
+        (: :getWindows hs.window.filter.sortByFocusedLast)
+        (. 2)
+        (: :focus))
+    (when fsm (: fsm :toIdle))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Shared Functions

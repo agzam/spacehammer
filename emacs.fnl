@@ -59,11 +59,22 @@
     (: log :i run-str)
     (io.popen run-str)))
 
+(fn run-emacs-fn
+  ;; executes given elisp function via emacsclient, if args table present passes
+  ;; them to the function
+  [elisp-fn args]
+  (let [args-lst (when args (.. " '" (table.concat args " '")))
+        run-str  (.. "/usr/local/bin/emacsclient"
+                     " -e \"(funcall '" elisp-fn
+                     (if args-lst args-lst "")
+                     ")\"")]
+    (io.popen run-str)))
+
 (fn full-screen
   ;; Switch to Emacs and expand its frame to fullscreen
   []
   (hs.application.launchOrFocus :Emacs)
-  (run-emacs-fn "spacemacs/toggle-fullscreen-frame-on"))
+  (run-emacs-fn "(lambda ()) (spacemacs/toggle-fullscreen-frame-on) (spacehammer/fix-frame)"))
 
 (fn vertical-split-with-emacs
   ;; creates a vertical split with the current app and Emacs, with Emacs on the
@@ -91,6 +102,31 @@
              (hs.application.launchOrFocus :Emacs)
              (windows.rect rect-left)))))))
 
+(fn bind [hotkeyModal fsm]
+  (: hotkeyModal :bind nil :c (fn []
+                                (: fsm :toIdle)
+                                (capture)))
+  (: hotkeyModal :bind nil :z (fn []
+                                (: fsm :toIdle)
+                                ;; note on currently clocked in
+                                (capture true)))
+  (: hotkeyModal :bind nil :v (fn []
+                                (: fsm :toIdle)
+                                (vertical-split-with-emacs)))
+  (: hotkeyModal :bind nil :f (fn []
+                                (: fsm :toIdle)
+                                (full-screen))))
+
+;; adds Emacs modal state to the FSM instance
+(fn add-state [modal]
+  (modal.add-state
+   :emacs
+   {:from :*
+    :init (fn [self fsm]
+            (set self.hotkeyModal (hs.hotkey.modal.new))
+            (modal.display-modal-text "c \tcapture\nz\tnote\nf\tfullscreen\nv\tsplit")
+            (bind self.hotkeyModal fsm)
+            (: self.hotkeyModal :enter))}))
 
 ;; Don't remove! - this is callable from Emacs
 ;; See: `spacehammer/switch-to-app` in spacehammer.el
@@ -122,9 +158,24 @@
          (: app :activate)
          (windows.maximize-window-frame))))))
 
-(fn note
-  []
-  (capture true))
+(fn add-app-specific []
+  (let [keybindings (require :keybindings)]
+    (keybindings.add-app-specific
+     :Emacs
+     {:activated
+      (fn []
+        (keybindings.disable-simple-vi-mode)
+        (disable-edit-with-emacs))
+      :launched
+      (fn []
+        (hs.timer.doAfter 1.5
+                          (fn []
+                            (let [app     (hs.application.find :Emacs)
+                                  windows (require :windows)
+                                  modal   (require :modal)]
+                              (when app
+                                (: app :activate)
+                                (windows.maximize-window-frame (: modal :machine)))))))})))
 
 {:edit-with-emacs                        edit-with-emacs
  :switchToApp                            switch-to-app
