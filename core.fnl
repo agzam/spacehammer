@@ -7,6 +7,7 @@
         :map       map
         :split     split
         :some      some} (require :lib.functional))
+(local repl (require :repl))
 (require-macros :lib.macros)
 
 ;; Make private folder override repo files
@@ -117,3 +118,5 @@
      (for-each
       (fn [module]
         (module.init config))))
+
+(repl.start)
