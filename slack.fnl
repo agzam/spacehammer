@@ -1,124 +1,100 @@
-(local keybindings (require :keybindings))
 (local windows (require :windows))
 
-(local
- slack-local-hotkeys
- [;; jump to end of thread on Cmd-g
-  (hs.hotkey.bind
-   [:cmd] :g
-   (fn []
-     (windows.set-mouse-cursor-at :Slack)
-     ;; this number should be big enough to take you
-     ;; to the bottom of the chat window
-     (hs.eventtap.scrollWheel [0 -20000] {})))
 
-  ;; add a reaction
-  (hs.hotkey.bind [:ctrl] :r (fn [] (hs.eventtap.keyStroke [:cmd :shift] "\\")))
+;; Utils
 
-  ;; F6 mode
-  (hs.hotkey.bind [:ctrl] :h (fn [] (hs.eventtap.keyStroke [:shift] :f6)))
-  (hs.hotkey.bind [:ctrl] :l (fn [] (hs.eventtap.keyStroke [] :f6)))
+(fn scroll-to-bottom
+  []
+  (windows.set-mouse-cursor-at :Slack)
+  (hs.eventtap.scrollWheel [0 -20000] {}))
 
+(fn add-reaction
+  []
+  (hs.eventtap.keyStroke [:cmd :shift] "\\"))
+
+(fn prev-element
+  []
+  (hs.eventtap.keyStroke [:shift] :f6))
+
+(fn next-element
+  []
+  (hs.eventtap.keyStroke nil :f6))
+
+(fn thread
+  []
   ;; Start a thread on the last message. It doesn't always work, because of
   ;; stupid Slack App inconsistency with TabIndexes
-  (hs.hotkey.bind
-   [:ctrl] :t
-   (fn []
-     (hs.eventtap.keyStroke [:shift] :f6)
-     (hs.eventtap.keyStroke [] :right)
-     (hs.eventtap.keyStroke [] :space)))
+  (hs.eventtap.keyStroke [:shift] :f6)
+  (hs.eventtap.keyStroke [] :right)
+  (hs.eventtap.keyStroke [] :space))
 
-  ;; scroll to prev/next day
-  (hs.hotkey.bind [:ctrl] "[" (fn [] (hs.eventtap.keyStroke [:shift] :pageup)))
-  (hs.hotkey.bind [:ctrl] "]" (fn [] (hs.eventtap.keyStroke [:shift] :pagedown)))])
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; when connected to given WiFi network change Slack status ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(local
- ssids->status
- {:Vachach {:text :WFH :emoji ":house:"}
-  :Vachach5 {:text :WFH :emoji ":house:"}
-  :DFNet-SF {:text "" :emoji ""}})
-
-(fn send-slack-request
-  [text emoji auth-token callback]
-  (hs.http.asyncPost
-   "https://slack.com/api/users.profile.set"
-   (hs.json.encode
-    {:profile {:status_text text
-               :status_emoji emoji
-               :status_expiration 0}})
-   {"Authorization" auth-token
-    "Content-type" "application/json; charset=utf-8"}
-   (fn [_ resp]
-     (let [res (-> resp hs.json.decode (. :ok))]
-       (when res (callback))))))
-
-(fn change-slack-status [ssid]
-  (let [st (. ssids->status ssid)
-        secrets (require :secrets)]
-    (when st
-      (let [txt (. st :text)
-            emoji (. st :emoji)
-            token (. (secrets.read) :slack-auth-token)]
-        (send-slack-request
-         txt emoji token
-         (fn [] (hs.alert (.. "Setting Slack status to " txt))))))))
-
-(global
- slack-wifi-watcher
- (or slack-wifi-watcher
-     (->
-      (hs.wifi.watcher.new
-       (fn [_ _ interface]
-         (hs.timer.doAfter
-          5
-          (fn []
-            (change-slack-status (hs.wifi.currentNetwork interface))))))
-      (: :watchingFor [:SSIDChange])
-      (: :start))))
+(fn quick-switcher
+  []
+  (windows.activate-app "/Applications/Slack.app")
+  (let [app (hs.application.find :Slack)]
+    (when app
+      (hs.eventtap.keyStroke [:cmd] :t)
+      (: app :unhide))))
 
 
-;; Slack client doesn't allow convenient method to scrolling in thread with keyboard
-;; adding C-e, C-y bindings for scrolling up and down
-(each [k dir (pairs {:e -3 :y 3})]
-  (let [scroll-fn (fn []
-                    (windows.set-mouse-cursor-at :Slack)
-                    (hs.eventtap.scrollWheel [0 dir] {}))]
-    (table.insert slack-local-hotkeys (hs.hotkey.new [:ctrl] k scroll-fn nil scroll-fn))))
+;; scroll to prev/next day
+
+(fn prev-day
+  []
+  (hs.eventtap.keyStroke [:shift] :pageup))
+
+(fn next-day
+  []
+  (hs.eventtap.keyStroke [:shift] :pagedown))
+
+(fn scroll-slack
+  [dir]
+  (windows.set-mouse-cursor-at :Slack)
+  (hs.eventtap.scrollWheel [0 dir] {}))
+
+(fn scroll-up
+  []
+  (scroll-slack -3))
+
+(fn scroll-down
+  []
+  (scroll-slack 3))
 
 
-;; Ctrl-o|Ctrl-i to go back and forth in history
-(each [k dir (pairs {:o "[" :i "]"})]
-  (let [back-fwd (fn [] (hs.eventtap.keyStroke [:cmd] dir))]
-    (table.insert slack-local-hotkeys (hs.hotkey.new [:ctrl] k back-fwd nil back-fwd))))
+;; History
+
+(fn prev-history
+  []
+  (hs.eventtap.keyStroke [:cmd] "["))
+
+(fn next-history
+  []
+  (hs.eventtap.keyStroke [:cmd] "]"))
 
 
-;; C-n|C-p - for up and down (instead of using arrow keys)
-(each [k dir (pairs {:p :up :n :down})]
-  (let [up-n-down (fn [] (hs.eventtap.keyStroke nil dir))]
-    (table.insert slack-local-hotkeys (hs.hotkey.new [:ctrl] k up-n-down nil up-n-down))))
+;; Arrow keys
 
-(tset
- keybindings.app-specific :Slack
- {:activated (fn []
-               (hs.fnutils.each slack-local-hotkeys
-                                (partial keybindings.activate-app-key :Slack)))
-  :deactivated (fn [] (keybindings.deactivate-app-keys :Slack))})
+(fn up
+  []
+  (hs.eventtap.keyStroke nil :up))
 
-(fn bind [modal fsm]
+(fn down
+  []
+  (hs.eventtap.keyStroke nil :down))
 
-  ;; open "Jump to dialog immediately after jumping to Slack GUI through `Apps` modal"
-  (: modal :bind nil :s
-     (fn []
-       (hs.application.launchOrFocus "/Applications/Slack.app")
-       (let [app (hs.application.find :Slack)]
-         (when app
-           (: app :activate)
-           (hs.timer.doAfter .2 windows.highlight-active-window)
-           (hs.eventtap.keyStroke [:cmd] :t)
-           (: app :unhide))
-         (: fsm :toIdle)))))
 
-{:bind bind}
+
+{:add-reaction     add-reaction
+ :down             down
+ :next-day         next-day
+ :next-element     next-element
+ :next-history     next-history
+ :prev-day         prev-day
+ :prev-element     prev-element
+ :prev-history     prev-history
+ :quick-switcher   quick-switcher
+ :scroll-down      scroll-down
+ :scroll-to-bottom scroll-to-bottom
+ :scroll-up        scroll-up
+ :thread           thread
+ :up               up}

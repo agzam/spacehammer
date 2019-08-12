@@ -1,9 +1,21 @@
 (hs.console.clearConsole)
 (hs.ipc.cliInstall) ; ensure CLI installed
 
-;;;;;;;;;;;;;;
-;; defaults ;;
-;;;;;;;;;;;;;;
+(local fennel (require :fennel))
+(local {:contains? contains?
+        :for-each  for-each
+        :map       map
+        :split     split
+        :some      some} (require :lib.functional))
+(require-macros :lib.macros)
+
+;; Make private folder override repo files
+(local private (.. hs.configdir "/private"))
+(tset fennel :path (.. private "/?.fnl;" fennel.path))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; defaults
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (set hs.hints.style :vimperator)
 (set hs.hints.showTitleThresh 4)
@@ -11,62 +23,99 @@
 (set hs.hints.fontSize 30)
 (set hs.window.animationDuration 0.2)
 
-(global alert hs.alert.show)
-(global log (fn [s] (hs.alert.show (hs.inspect s) 5)))
+(global alert (fn
+                [str style seconds]
+                (hs.alert.show str
+                               style
+                               (hs.screen.primaryScreen)
+                               seconds)))
 (global fw hs.window.focusedWindow)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;  auto reload config   ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(global
- config-file-pathwatcher
- (hs.pathwatcher.new
-  hs.configdir
-  (fn [files]
-    (let [u hs.fnutils
-          fnl-file-change? (u.some
-                            files,
-                            (fn [p]
-                              (when (not (string.match p ".#")) ;; ignore emacs temp files
-                                (let [ext (u.split p "%p")]
-                                  (or (u.contains ext "fnl")
-                                      (u.contains ext "lua"))))))]
-      (when fnl-file-change? (hs.reload))))))
-
-(: config-file-pathwatcher :start)
+(fn file-exists?
+  [filepath]
+  (let [file (io.open filepath "r")]
+    (when file
+      (io.close file))
+    (~= file nil)))
 
 
-;;;;;;;;;;;;
-;; modals ;;
-;;;;;;;;;;;;
-(local modal (require :modal))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; auto reload config
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(each [_ n (pairs [:windows
-                   :apps
-                   :multimedia
-                   :emacs
-                   :chrome
-                   :grammarly])]
-  (let [module (require n)]
-    (when module.add-state
-      (module.add-state modal))
-    (when module.add-app-specific
-      (module.add-app-specific))))
+(fn source-filename?
+  [file]
+  (not (string.match file ".#")))
 
-(let [state-machine (modal.create-machine)]
-  (: state-machine :toMain))
+(fn source-extension?
+  [file]
+  (let [ext (split "%p" file)]
+    (or (contains? "fnl" ext)
+        (contains? "lua" ext))))
 
-(require :keybindings)
+(fn source-updated?
+  [file]
+  (and (source-filename? file)
+       (source-extension? file)))
+
+(fn config-reloader
+  [files]
+  (when (some source-updated? files)
+    (hs.reload)))
+
+(fn watch-files
+  [dir]
+  (let [watcher (hs.pathwatcher.new dir config-reloader)]
+    (: watcher :start)
+    (fn []
+      (: watcher :stop))))
+
+(global config-files-watcher (watch-files hs.configdir))
+
+(when (file-exists? (.. private "/config.fnl"))
+  (global custom-files-watcher (watch-files private)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Set utility keybindings
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 ;; toggle hs.console with Ctrl+Cmd+~
 (hs.hotkey.bind
  [:ctrl :cmd] "`" nil
  (fn []
-   (let [console (hs.console.hswindow)]
-     (when console
-       (if (= console (hs.window.focusedWindow))
-           (-> console (: :application) (: :hide))
-           (-> console (: :raise) (: :focus)))))))
+   (when-let [console (hs.console.hswindow)]
+     (if (= console (hs.window.focusedWindow))
+         (-> console (: :application) (: :hide))
+         (-> console (: :raise) (: :focus))))))
 
 ;; disable annoying Cmd+M for minimizing windows
-(hs.hotkey.bind [:cmd] :m nil (fn [] nil))
+;; (hs.hotkey.bind [:cmd] :m nil (fn [] nil))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Load private init.fnl file (if it exists)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(when (file-exists? (.. private "/init.fnl"))
+  (require :private))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Initialize Modals & Apps
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(local config (require :config))
+
+(local modules [:lib.hyper
+                :vim
+                :lib.bind
+                :lib.modal
+                :lib.apps])
+
+(->> modules
+     (map require)
+     (for-each
+      (fn [module]
+        (module.init config))))

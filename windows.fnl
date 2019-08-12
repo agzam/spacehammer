@@ -1,6 +1,19 @@
-(global undo {})
+(local {:filter filter} (require :lib.functional))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Config
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(fn undo.push [self]
+(hs.grid.setMargins [0 0])
+(hs.grid.setGrid "3x2")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; History
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(global history {})
+
+(fn history.push
+  [self]
   (let [win (hs.window.focusedWindow)
         id (: win :id)
         tbl (. self id)]
@@ -12,7 +25,8 @@
           (when (~= last-el (: win :frame))
             (table.insert tbl (: win :frame))))))))
 
-(fn undo.pop [self]
+(fn history.pop
+  [self]
   (let [win (hs.window.focusedWindow)
         id (: win :id)
         tbl (. self id)]
@@ -26,6 +40,10 @@
                 (alert (.. num-of-undos " undo steps available"))))
             (alert "nothing to undo"))))))
 
+(fn undo
+  []
+  (: history :pop))
+
 (fn jump-to-last-window [fsm]
   (let [utils (require :utils)]
     (-> (utils.globalFilter)
@@ -34,7 +52,12 @@
         (: :focus))
     (when fsm (: fsm :toIdle))))
 
-(fn highlight-active-window []
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Shared Functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(fn highlight-active-window
+  []
   (let [rect (hs.drawing.rectangle (: (hs.window.focusedWindow) :frame))]
     (: rect :setStrokeColor {:red 1 :blue 0 :green 1 :alpha 1})
     (: rect :setStrokeWidth 5)
@@ -42,22 +65,98 @@
     (: rect :show)
     (hs.timer.doAfter .3 (fn [] (: rect :delete)))))
 
-(fn maximize-window-frame [fsm]
-  (: undo :push)
+(fn maximize-window-frame
+  []
+  (: history :push)
   (: (hs.window.focusedWindow) :maximize 0)
-  (highlight-active-window)
-  (: fsm :toIdle))
+  (highlight-active-window))
 
-(fn center-window-frame [fsm]
-  (: undo :push)
+(fn center-window-frame
+  []
+  (: history :push)
   (let [win (hs.window.focusedWindow)]
     (: win :maximize 0)
     (hs.grid.resizeWindowThinner win)
     (hs.grid.resizeWindowShorter win)
     (: win :centerOnScreen))
-  (highlight-active-window)
-  (when fsm
-    (: fsm :toIdle)))
+  (highlight-active-window))
+
+
+(fn activate-app
+  [app-name]
+  (hs.application.launchOrFocus app-name)
+  (let [app (hs.application.find app-name)]
+    (when app
+      (: app :activate)
+      (hs.timer.doAfter .05 highlight-active-window)
+      (: app :unhide))))
+
+(fn set-mouse-cursor-at
+  [app-title]
+  (let [sf (: (: (hs.application.find app-title) :focusedWindow) :frame)
+        desired-point (hs.geometry.point (- (+ sf._x sf._w)
+                                            (/ sf._w  2))
+                                         (- (+ sf._y sf._h)
+                                            (/ sf._h 2)))]
+    (hs.mouse.setAbsolutePosition desired-point)))
+
+(fn show-grid
+  []
+  (: history :push)
+  (hs.grid.show))
+
+(fn jump-to-last-window
+  []
+  (let [utils (require :lib.utils)]
+    (-> (utils.globalFilter)
+        (: :getWindows hs.window.filter.sortByFocusedLast)
+        (. 2)
+        (: :focus))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Jumping Windows
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(fn jump-window
+  [arrow]
+  (let [dir {:h "West" :j "South" :k "North" :l "East"}
+        space (. (hs.window.focusedWindow) :filter :defaultCurrentSpace)
+        fn-name (.. :focusWindow (. dir arrow))]
+    (: space fn-name nil true true)
+    (highlight-active-window)))
+
+(fn jump-window-left
+  []
+  (jump-window :h))
+
+(fn jump-window-above
+  []
+  (jump-window :j))
+
+(fn jump-window-below
+  []
+  (jump-window :k))
+
+(fn jump-window-right
+  []
+  (jump-window :l))
+
+(fn allowed-app?
+  [window]
+  (if (: window :isStandard)
+      true
+      false))
+
+(fn jump []
+  (let [wns (->> (hs.window.allWindows)
+                 (filter allowed-app?))]
+    (hs.hints.windowHints wns nil true)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Movement\Resizing Constants
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (local
  arrow-map
@@ -66,149 +165,162 @@
   :h {:half [0  0 .5  1] :movement [-20   0] :complement :j :resize "Thinner"}
   :l {:half [.5 0 .5  1] :movement [ 20   0] :complement :k :resize "Wider"}})
 
+(fn grid
+  [method direction]
+  (let [fn-name (.. method direction)
+        f (. hs.grid fn-name)]
+    (f (hs.window.focusedWindow))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Resize window by half
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (fn rect [rct]
-  (: undo :push)
+  (: history :push)
   (let [win (hs.window.focusedWindow)]
     (when win (: win :move rct))))
 
-(fn window-jump [modal fsm arrow]
-  (let [dir {:h "West" :j "South" :k "North" :l "East"}]
-    (: modal :bind [:ctrl]
-       arrow
-       (fn []
-         (let [slf (-> (hs.window.focusedWindow)
-                       (. :filter)
-                       (. :defaultCurrentSpace))
-               fun (->> (. dir arrow)
-                        (.. :focusWindow)
-                        (. slf))]
-           (fun slf nil true true)
-           (highlight-active-window))))))
+(fn resize-window-halve
+  [arrow]
+  (: history :push)
+  (rect (. arrow-map arrow :half)))
 
-(fn resize-window [modal arrow]
-  (let [dir {:h "Left" :j "Down" :k "Up" :l "Right"}]
-    ;; screen halves
-    (: modal :bind nil arrow
-       (fn []
-         (: undo :push)
-         (rect (. (. arrow-map arrow) :half))))
+(fn resize-half-left
+  []
+  (resize-window-halve :h))
 
-    ;; hs.grid.pushWindowUp/Down/Left/Right
-    (: modal :bind [:alt] arrow
-       (fn []
-         (: undo :push)
-         (when (or (= arrow :h) (= arrow :l))
-           (hs.grid.resizeWindowThinner (hs.window.focusedWindow)))
-         (when (or (= arrow :j) (= arrow :k))
-           (hs.grid.resizeWindowShorter (hs.window.focusedWindow)))
-         (let [gridFn (->> (. dir arrow)
-                           (.. :pushWindow)
-                           (. hs.grid))]
-           (gridFn (hs.window.focusedWindow)))))
+(fn resize-half-right
+  []
+  (resize-window-halve :l))
 
-    ;; hs.grid.resizeWindowShorter/Taller/Thinner/Wider
-    (: modal :bind
-       [:shift]
-       arrow
-       (fn []
-         (: undo :push)
-         (let [dir    (-> arrow-map (. arrow) (. :resize))
-               gridFn (->> dir (.. :resizeWindow) (. hs.grid))]
-           (gridFn (hs.window.focusedWindow)))))))
+(fn resize-half-top
+  []
+  (resize-window-halve :k))
 
-(hs.grid.setMargins [0 0])
-(hs.grid.setGrid "3x2")
-
-(fn show-grid [fsm]
-  ;; todo: undo
-  (: undo :push)
-  (hs.grid.show)
-  (: fsm :toIdle))
-
-(fn bind [hotkeyMmodal fsm]
-  ;; maximize window
-  (: hotkeyMmodal :bind nil :m (partial maximize-window-frame fsm))
-
-  ;; center window
-  (: hotkeyMmodal :bind nil :c (partial center-window-frame fsm))
-
-  ;; undo last thing
-  (: hotkeyMmodal :bind nil :u (fn [] (: undo :pop)))
-
-  ;; moving/re-sizing windows
-  (hs.fnutils.each
-   [:h :l :k :j]
-   (hs.fnutils.partial resize-window hotkeyMmodal))
-
-  ;; window grid
-  (: hotkeyMmodal :bind nil :g (hs.fnutils.partial show-grid fsm))
-
-  ;; jumping between windows
-  (hs.fnutils.each
-   [:h :l :k :j]
-   (hs.fnutils.partial window-jump hotkeyMmodal fsm))
-
-  ;; quick jump to the last window
-  (: hotkeyMmodal :bind nil :w
-     (hs.fnutils.partial jump-to-last-window fsm))
-
-  ;; moving windows between monitors
-  (: hotkeyMmodal :bind nil :p
-     (fn []
-       ;; todo: undo:push
-       (: (hs.window.focusedWindow) :moveOneScreenNorth nil true)))
-  (: hotkeyMmodal :bind nil :n
-     (fn []
-       ;; todo: undo: push
-       (: (hs.window.focusedWindow) :moveOneScreenSouth nil true)))
-  (: hotkeyMmodal :bind [:shift] :n
-     (fn []
-       ;; todo: undo: push
-       (: (hs.window.focusedWindow) :moveOneScreenWest nil true)))
-  (: hotkeyMmodal :bind [:shift] :p
-     (fn []
-       ;; todo: undo: push
-       (: (hs.window.focusedWindow) :moveOneScreenEast nil true))))
+(fn resize-half-bottom
+  []
+  (resize-window-halve :j))
 
 
-(fn activate-app [app-name]
-  (hs.application.launchOrFocus app-name)
-  (let [app (hs.application.find app-name)]
-    (when app
-      (: app :activate)
-      (hs.timer.doAfter .05 highlight-active-window)
-      (: app :unhide))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Resize window by increments
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(fn set-mouse-cursor-at [app-title]
-  (let [sf (: (: (hs.application.find app-title) :focusedWindow) :frame)
-        desired-point (hs.geometry.point (- (+ sf._x sf._w)
-                                            (/ sf._w  2))
-                                         (- (+ sf._y sf._h)
-                                            (/ sf._h 2)))]
-    (hs.mouse.setAbsolutePosition desired-point)))
+(fn resize-by-increment
+  [arrow]
+  (let [directions {:h "Left"
+                    :j "Down"
+                    :k "Up"
+                    :l "Right"}]
+    (: history :push)
+    (when (or (= arrow :h) (= arrow :l))
+      (hs.grid.resizeWindowThinner (hs.window.focusedWindow)))
+    (when (or (= arrow :j) (= arrow :k))
+      (hs.grid.resizeWindowShorter (hs.window.focusedWindow)))
+    (grid :pushWindow (. directions arrow))))
 
-(fn add-state [modal]
-  (modal.add-state
-   :windows
-   {:from :*
-    :init (fn [self fsm]
-            (set self.hotkeyModal (hs.hotkey.modal.new))
-            (modal.display-modal-text "cmd + hjkl \t jumping\nhjkl \t\t\t\t halves\nalt + hjkl \t\t increments\nshift + hjkl \t resize\nn, p \t next, prev screen\ng \t\t\t\t\t grid\nm \t\t\t\t maximize\nu \t\t\t\t\t undo")
+(fn resize-inc-left
+  []
+  (resize-by-increment :h))
 
-            (modal.bind
-             self
-             [:cmd] :space
-             (fn [] (: fsm :toMain)))
+(fn resize-inc-bottom
+  []
+  (resize-by-increment :j))
 
-            (bind self.hotkeyModal fsm)
+(fn resize-inc-top
+  []
+  (resize-by-increment :k))
 
-            (: self.hotkeyModal :enter))}))
+(fn resize-inc-right
+  []
+  (resize-by-increment :l))
 
-{:rect                    rect
- :add-state               add-state
- :activate-app            activate-app
- :set-mouse-cursor-at     set-mouse-cursor-at
- :maximize-window-frame   maximize-window-frame
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Resize windows
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(fn resize-window
+  [arrow]
+  (: history :push)
+  ;; hs.grid.resizeWindowShorter/Taller/Thinner/Wider
+  (grid :resizeWindow (. arrow-map arrow :resize)))
+
+(fn resize-left
+  []
+  (resize-window :h))
+
+(fn resize-up
+  []
+  (resize-window :j))
+
+(fn resize-down
+  []
+  (resize-window :k))
+
+(fn resize-right
+  []
+  (resize-window :l))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Move to screen
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(fn move-screen
+  [method]
+  (let [window (hs.window.focusedWindow)]
+    (: window method nil true)))
+
+(fn move-north
+  []
+  (move-screen :moveOneScreenNorth))
+
+(fn move-south
+  []
+  (move-screen :moveOneScreenSouth))
+
+(fn move-east
+  []
+  (move-screen :moveOneScreenEast))
+
+(fn move-west
+  []
+  (move-screen :moveOneScreenWest))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Exports
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+{:activate-app            activate-app
  :center-window-frame     center-window-frame
  :highlight-active-window highlight-active-window
- :jump-to-last-window     jump-to-last-window}
+ :jump                    jump
+ :jump-to-last-window     jump-to-last-window
+ :jump-window-left        jump-window-left
+ :jump-window-above       jump-window-above
+ :jump-window-below       jump-window-below
+ :jump-window-right       jump-window-right
+ :maximize-window-frame   maximize-window-frame
+ :move-east               move-east
+ :move-north              move-north
+ :move-south              move-south
+ :move-west               move-west
+ :rect                    rect
+ :resize-half-bottom      resize-half-bottom
+ :resize-half-left        resize-half-left
+ :resize-half-right       resize-half-right
+ :resize-half-top         resize-half-top
+ :resize-inc-left         resize-inc-left
+ :resize-inc-bottom       resize-inc-bottom
+ :resize-inc-top          resize-inc-top
+ :resize-inc-right        resize-inc-right
+ :resize-left             resize-left
+ :resize-up               resize-up
+ :resize-down             resize-down
+ :resize-right            resize-right
+ :set-mouse-cursor-at     set-mouse-cursor-at
+ :show-grid               show-grid
+ :undo                    undo}

@@ -13,7 +13,8 @@
         hs.eventtap.event.types.leftMouseUp
         coords) :post)))
 
-(fn back-to-emacs [fsm]
+(fn back-to-emacs
+  []
   (let [windows (require :windows)
         run-str (.. "/usr/local/bin/emacsclient"
                     " -e "
@@ -28,25 +29,6 @@
     (: app :selectMenuItem [:Edit :Cut])
     (hs.timer.usleep 200000)
     (io.popen run-str)
-    (hs.application.launchOrFocus :Emacs)
-    (: fsm :toIdle)))
+    (hs.application.launchOrFocus :Emacs)))
 
-(fn add-app-specific []
-  (let [keybindings (require :keybindings)]
-    (keybindings.add-app-specific
-     :Grammarly
-     {:launched (fn []
-                  ;; there's a bug, when new instance of Grammarly, doesn't
-                  ;; activate local modal key, unless rejiggered - de-focused
-                  ;; and activated again. Here I'm simply enforcing it
-                  (let [keybindings (require :keybindings)]
-                    (hs.timer.doAfter 2 keybindings.initialize-local-modals)))
-      :app-local-modal
-      (fn [self fsm]
-        (let [modal  (require :modal)]
-          (: self :bind [:ctrl] :c (partial back-to-emacs fsm))
-          (: self :bind nil :escape (fn [] (: fsm :toIdle)))
-          (fn self.entered []
-            (modal.display-modal-text "C-c \t- return to Emacs"))))})))
-
-{:add-app-specific add-app-specific}
+{:back-to-emacs back-to-emacs}
