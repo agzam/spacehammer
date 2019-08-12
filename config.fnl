@@ -330,17 +330,19 @@
          :action "chrome:open-location"}
         {:mods [:cmd]
          :key :k
-         :action "chrome:prev-tab"
+         :action "chrome:next-tab"
          :repeat true}
         {:mods [:cmd]
          :key :j
-         :action "chrome:next-tab"
+         :action "chrome:prev-tab"
          :repeat true}])
 
 (local browser-items
-       [{:key "'"
-         :title "Edit with Emacs"
-         :action "emacs:edit-with-emacs"}])
+       (concat
+        menu-items
+        [{:key "'"
+          :title "Edit with Emacs"
+          :action "emacs:edit-with-emacs"}]))
 
 (local brave-config
        {:key "Brave Browser"
@@ -362,21 +364,24 @@
 
 (local grammarly-config
        {:key "Grammarly"
-        :launch (fn [])
-        :items [{:mods [:ctrl]
-                 :key :c
-                 :title "Return to Emacs"
-                 :action "grammarly:back-to-emacs"}]
+        :items (concat
+                menu-items
+                [{:mods [:ctrl]
+                  :key :c
+                  :title "Return to Emacs"
+                  :action "grammarly:back-to-emacs"}])
         :keys ""})
 
 (local hammerspoon-config
        {:key "Hammerspoon"
-        :items [{:key :r
-                 :title "Reload Console"
-                 :action hs.reload}
-                {:key :c
-                 :title "Clear Console"
-                 :action hs.console.clearConsole}]
+        :items (concat
+                menu-items
+                [{:key :r
+                  :title "Reload Console"
+                  :action hs.reload}
+                 {:key :c
+                  :title "Clear Console"
+                  :action hs.console.clearConsole}])
         :keys []})
 
 (local slack-config
