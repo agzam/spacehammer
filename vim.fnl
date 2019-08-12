@@ -84,9 +84,7 @@
   (fn [] (keystroke target-mods target-key)))
 
 (local bindings
-       {:normal [{:key :ESCAPE
-                  :action disable}
-                 {:key :h
+       {:normal [{:key :h
                   :action (key-fn [] :left)
                   :repeat true}
                  {:key :j
