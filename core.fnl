@@ -110,6 +110,7 @@
 
 (local modules [:lib.hyper
                 :vim
+                :windows
                 :lib.bind
                 :lib.modal
                 :lib.apps])

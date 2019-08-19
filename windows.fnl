@@ -1,10 +1,6 @@
-(local {:filter filter} (require :lib.functional))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Config
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(local {:filter filter
+        :get-in get-in} (require :lib.functional))
 
-(hs.grid.setMargins [0 0])
-(hs.grid.setGrid "3x2")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; History
@@ -43,14 +39,6 @@
 (fn undo
   []
   (: history :pop))
-
-(fn jump-to-last-window [fsm]
-  (let [utils (require :utils)]
-    (-> (utils.globalFilter)
-        (: :getWindows hs.window.filter.sortByFocusedLast)
-        (. 2)
-        (: :focus))
-    (when fsm (: fsm :toIdle))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Shared Functions
@@ -291,10 +279,21 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Initialization
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(fn init
+  [config]
+  (hs.grid.setMargins (or (get-in [:grid :margins] config) [0 0]))
+  (hs.grid.setGrid (or (get-in [:grid :size] config) "3x2")))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Exports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-{:activate-app            activate-app
+{:init                    init
+ :activate-app            activate-app
  :center-window-frame     center-window-frame
  :highlight-active-window highlight-active-window
  :jump                    jump
