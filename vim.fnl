@@ -13,11 +13,25 @@
 (local {:bind-keys bind-keys} (require :lib.bind))
 (local log (hs.logger.new "vim.fnl" "debug"))
 
+"
+Create a vim mode for any text editor!
+- Modal editing like NORMAL, VISUAL, and INSERT mode.
+- vim key navigation like hjkl
+- Displays a box to display which mode you are in
+- Largely experimental
+
+TODO: Create another state machine system to support key chords for bindings
+      like gg -> scroll to top of document.
+      - Should work a lot like the menu modal state machine where you can
+        endlessly enter recursive submenus
+"
+
 ;; Debug
 (local hyper (require :lib.hyper))
 
 (var fsm nil)
 
+;; Box shapes for displaying current mode
 (local shape {:x 900
               :y 900
               :h 40
@@ -383,6 +397,16 @@
 
 (fn init
   [config]
+  "
+  Initialize vim mode only enables it if {:vim {:enabled true}} is in config.fnl
+  Takes config.fnl table
+  Performs side-effects:
+  - Creates a state machine to track which mode we are in and switch bindings
+    accordingly
+  - Creates a screen watcher so it can move the mode UI to the currently active
+    screen.
+  Returns function to cleanup watcher resources
+  "
   (let [initial {:config      config
                  :mode        :disabled
                  :unbind-keys nil}

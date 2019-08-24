@@ -1,5 +1,6 @@
 (local {:filter filter
         :get-in get-in} (require :lib.functional))
+(local {:global-filter global-filter} (require :lib.utils))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -10,6 +11,10 @@
 
 (fn history.push
   [self]
+  "
+  Append current window frame geometry to history.
+  self refers to history table instance
+  "
   (let [win (hs.window.focusedWindow)
         id (: win :id)
         tbl (. self id)]
@@ -23,6 +28,10 @@
 
 (fn history.pop
   [self]
+  "
+  Go back to previous window frame geometry in history.
+  self refers to history table instance
+  "
   (let [win (hs.window.focusedWindow)
         id (: win :id)
         tbl (. self id)]
@@ -95,11 +104,10 @@
 
 (fn jump-to-last-window
   []
-  (let [utils (require :lib.utils)]
-    (-> (utils.globalFilter)
-        (: :getWindows hs.window.filter.sortByFocusedLast)
-        (. 2)
-        (: :focus))))
+  (-> (global-filter)
+      (: :getWindows hs.window.filter.sortByFocusedLast)
+      (. 2)
+      (: :focus)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -108,6 +116,15 @@
 
 (fn jump-window
   [arrow]
+  "
+  Navigate to the window nearest the current active window
+  For instance if you open up emacs to the left of a web browser, activate
+  emacs, then run (jump-window :l) hammerspoon will move active focus
+  to the browser.
+  Takes an arrow like :h :j :k :l to support vim key bindings.
+  Performs side effects
+  Returns nil
+  "
   (let [dir {:h "West" :j "South" :k "North" :l "East"}
         space (. (hs.window.focusedWindow) :filter :defaultCurrentSpace)
         fn-name (.. :focusWindow (. dir arrow))]
@@ -137,6 +154,9 @@
       false))
 
 (fn jump []
+  "
+  Displays hammerspoon's window jump UI
+  "
   (let [wns (->> (hs.window.allWindows)
                  (filter allowed-app?))]
     (hs.hints.windowHints wns nil true)))
@@ -155,6 +175,10 @@
 
 (fn grid
   [method direction]
+  "
+  Moves, expands, or shrinks a the active window by the next grid dimension
+  Grid settings are specified in config.fnl.
+  "
   (let [fn-name (.. method direction)
         f (. hs.grid fn-name)]
     (f (hs.window.focusedWindow))))
@@ -164,13 +188,26 @@
 ;; Resize window by half
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(fn rect [rct]
+(fn rect
+  [rct]
+  "
+  Change a window's rect geometry which includes x, y, width, and height
+  Takes a rectangle table
+  Performs side-effects to move\resize the active window and update history.
+  Returns nil
+  "
   (: history :push)
   (let [win (hs.window.focusedWindow)]
     (when win (: win :move rct))))
 
 (fn resize-window-halve
   [arrow]
+  "
+  Resize a window by half the grid dimensions specified in config.fnl.
+  Takes an :h :j :k or :l arrow
+  Performs a side effect to resize the active window's frame rect
+  Returns nil
+  "
   (: history :push)
   (rect (. arrow-map arrow :half)))
 
@@ -197,6 +234,16 @@
 
 (fn resize-by-increment
   [arrow]
+  "
+  Resize the active window by the next window increment
+  Let's say we make the grid dimensions 4x4 and we place a window in the 1x1
+  meaning first column in the first row.
+  We then resize an increment right. The dimensions would now be 2x1
+
+  Takes an arrow like :h :j :k :l
+  Performs a side-effect to resize the current window to the next grid increment
+  Returns nil
+  "
   (let [directions {:h "Left"
                     :j "Down"
                     :k "Up"
@@ -231,6 +278,12 @@
 
 (fn resize-window
   [arrow]
+  "
+  Resizes a window against the grid specifed in config.fnl
+  Takes an arrow string like :h :k :j :l
+  Performs a side effect to resize the current window.
+  Returns nil
+  "
   (: history :push)
   ;; hs.grid.resizeWindowShorter/Taller/Thinner/Wider
   (grid :resizeWindow (. arrow-map arrow :resize)))
@@ -258,6 +311,15 @@
 
 (fn move-screen
   [method]
+  "
+  Moves a window to the display in the specified direction
+  :north ^  :south v :east -> :west <-
+  Takes a method name of the hammer spoon window instance.
+  You probably will not be using this function directly.
+  Performs a side effect that will move a window the next screen in specified
+  direction.
+  Returns nil
+  "
   (let [window (hs.window.focusedWindow)]
     (: window method nil true)))
 
@@ -284,6 +346,12 @@
 
 (fn init
   [config]
+  "
+  Initializes the windows module
+  Performs side effects:
+  - Set grid margins from config.fnl like {:grid {:margins [10 10]}}
+  - Set the grid dimensions from config.fnl like {:grid {:size \"3x2\"}}
+  "
   (hs.grid.setMargins (or (get-in [:grid :margins] config) [0 0]))
   (hs.grid.setGrid (or (get-in [:grid :size] config) "3x2")))
 

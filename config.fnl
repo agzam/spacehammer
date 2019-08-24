@@ -1,3 +1,4 @@
+(require-macros :lib.macros)
 (local windows (require :windows))
 (local emacs (require :emacs))
 (local slack (require :slack))
@@ -74,16 +75,39 @@
 
 (fn activator
   [app-name]
+  "
+  A higher order function to activate a target app. It's useful for quickly
+  binding a modal menu action or hotkey action to launch or focus on an app.
+  Takes a string application name
+  Returns a function to activate that app.
+
+  Example:
+  (local launch-emacs (activator \"Emacs\"))
+  (launch-emacs)
+  "
   (fn activate []
     (windows.activate-app app-name)))
+
+(fn toggle-console
+  []
+  "
+  A simple action function to toggle the hammer spoon console.
+  Change the keybinding in the common keys section of this config file.
+  "
+  (if-let [console (hs.console.hswindow)]
+   (hs.closeConsole)
+   (hs.openConsole)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; General
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; If you would like to customize this we recommend copying this file to
+;; ~/.hammerspoon/private/config.fnl. That will be used in place of the default
+;; and will not be overwritten by upstream changes when spacehammer is updated.
 (local music-app
-       "Spotify")
+       "Google Play Music Desktop Player")
 
 (local return
        {:key :space
@@ -324,7 +348,10 @@
          :action "apps:next-app"}
         {:mods [:cmd]
          :key :p
-         :action "apps:prev-app"}])
+         :action "apps:prev-app"}]
+        {:mods [:cmd :ctrl]
+         :key "`"
+         :action toggle-console})
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

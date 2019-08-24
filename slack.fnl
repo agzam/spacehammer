@@ -1,5 +1,8 @@
 (local windows (require :windows))
 
+"
+Slack functions to make complex or less accessible features more vim like!
+"
 
 ;; Utils
 
@@ -22,8 +25,10 @@
 
 (fn thread
   []
-  ;; Start a thread on the last message. It doesn't always work, because of
-  ;; stupid Slack App inconsistency with TabIndexes
+  "
+  Start a thread on the last message. It doesn't always work, because of
+  stupid Slack App inconsistency with TabIndexes
+  "
   (hs.eventtap.keyStroke [:shift] :f6)
   (hs.eventtap.keyStroke [] :right)
   (hs.eventtap.keyStroke [] :space))
@@ -46,6 +51,8 @@
 (fn next-day
   []
   (hs.eventtap.keyStroke [:shift] :pagedown))
+
+;; Scrolling functions
 
 (fn scroll-slack
   [dir]
