@@ -1,17 +1,17 @@
 (local log (hs.logger.new "emacs.fnl" "debug"))
 
 (fn capture
-  [is-note]
-  (let [key (if is-note "\"z\"" "")
+  [note?]
+  (let [key         (if note? "\"z\"" "")
         current-app (hs.window.focusedWindow)
-        pid (.. "\"" (: current-app :pid) "\" ")
-        title (.. "\"" (: current-app :title) "\" ")
-        run-str  (..
-                  "/usr/local/bin/emacsclient"
-                  " -c -F '(quote (name . \"capture\"))'"
-                  " -e '(activate-capture-frame "
-                  pid title key " )'")
-        timer (hs.timer.delayed.new .1 (fn [] (io.popen run-str)))]
+        pid         (.. "\"" (: current-app :pid) "\" ")
+        title       (.. "\"" (: current-app :title) "\" ")
+        run-str     (..
+                     "/usr/local/bin/emacsclient"
+                     " -c -F '(quote (name . \"capture\"))'"
+                     " -e '(activate-capture-frame "
+                     pid title key " )'")
+        timer       (hs.timer.delayed.new .1 (fn [] (io.popen run-str)))]
     (: log :i run-str)
     (: timer :start)))
 

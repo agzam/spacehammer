@@ -274,10 +274,10 @@
        [return
         {:key :c
          :title "Capture"
-         :action "emacs:capture"}
+         :action (fn [] (emacs.capture))}
         {:key :z
          :title "Note"
-         :action "emacs:note"}
+         :action (fn [] (emacs.note))}
         {:key :v
          :title "Split"
          :action "emacs:vertical-split-with-emacs"}
