@@ -15,6 +15,8 @@
     (: log :i run-str)
     (: timer :start)))
 
+(fn note [] (capture true))
+
 ;; executes emacsclient, evaluating special function that must be present in
 ;; Emacs config, passing pid and title of the caller app, along with display id
 ;; where the screen of the caller app is residing
@@ -47,17 +49,8 @@
       (: edit-window :moveToScreen scr)
       (: windows :center-window-frame))))
 
-(fn run-emacs-fn
-  ;; executes given elisp function via emacsclient, if args table present passes
-  ;; them to the function
-  [elisp-fn args]
-  (let [args-lst (when args (.. " '" (table.concat args " '")))
-        run-str  (.. "/usr/local/bin/emacsclient"
-                     " -e \"(funcall '" elisp-fn
-                     (if args-lst args-lst "")
-                     ")\"")]
-    (: log :i run-str)
-    (io.popen run-str)))
+;; global keybinging to invoke edit-with-emacs feature
+(local edit-with-emacs-key (hs.hotkey.new [:cmd :ctrl] :o nil edit-with-emacs))
 
 (fn run-emacs-fn
   ;; executes given elisp function via emacsclient, if args table present passes
@@ -68,6 +61,7 @@
                      " -e \"(funcall '" elisp-fn
                      (if args-lst args-lst "")
                      ")\"")]
+    (: log :i run-str)
     (io.popen run-str)))
 
 (fn full-screen
@@ -117,17 +111,6 @@
                                 (: fsm :toIdle)
                                 (full-screen))))
 
-;; adds Emacs modal state to the FSM instance
-(fn add-state [modal]
-  (modal.add-state
-   :emacs
-   {:from :*
-    :init (fn [self fsm]
-            (set self.hotkeyModal (hs.hotkey.modal.new))
-            (modal.display-modal-text "c \tcapture\nz\tnote\nf\tfullscreen\nv\tsplit")
-            (bind self.hotkeyModal fsm)
-            (: self.hotkeyModal :enter))}))
-
 ;; Don't remove! - this is callable from Emacs
 ;; See: `spacehammer/switch-to-app` in spacehammer.el
 (fn switch-to-app [pid]
@@ -144,7 +127,11 @@
       (: app :selectMenuItem [:Edit :Paste]))))
 
 
-;; Post refactor
+(fn disable-edit-with-emacs []
+  (: edit-with-emacs-key :disable))
+
+(fn enable-edit-with-emacs []
+  (: edit-with-emacs-key :enable))
 
 (fn maximize
   []
@@ -181,7 +168,8 @@
  :switchToApp                            switch-to-app
  :switchToAppAndPasteFromClipboard       switch-to-app-and-paste-from-clipboard
  :editWithEmacsCallback                  edit-with-emacs-callback
- ;; Post refactor
+ :enable-edit-with-emacs                 enable-edit-with-emacs
+ :disable-edit-with-emacs                disable-edit-with-emacs
  :capture                                capture
  :maximize                               maximize
  :note                                   note

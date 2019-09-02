@@ -1,9 +1,10 @@
-(local {:map map
-        :merge merge
+(local {:map    map
+        :merge  merge
         :reduce reduce} (require :lib.functional))
-;; Menu Column Alignment
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Menu Column Alignment ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn max-length
   [items]
@@ -11,7 +12,6 @@
    (fn [max [key _]]  (math.max max (# key)))
    0
    items))
-
 
 (fn pad-str
   [char max str]
