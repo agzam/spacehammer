@@ -22,6 +22,7 @@
 ;; where the screen of the caller app is residing
 (fn edit-with-emacs
   []
+  (: log :i "Editing with emacs")
   (let [current-app (: (hs.window.focusedWindow) :application)
         pid (.. "\"" (: current-app :pid) "\"")
         title (.. "\"" (: current-app :title) "\"")
@@ -50,7 +51,7 @@
       (: windows :center-window-frame))))
 
 ;; global keybinging to invoke edit-with-emacs feature
-(local edit-with-emacs-key (hs.hotkey.new [:cmd :ctrl] :o nil edit-with-emacs))
+(local edit-with-emacs-key (hs.hotkey.bind [:cmd :ctrl] :o edit-with-emacs))
 
 (fn run-emacs-fn
   ;; executes given elisp function via emacsclient, if args table present passes
