@@ -1,4 +1,7 @@
 (local windows (require :windows))
+(local emacs (require :emacs))
+(local vim (require :vim))
+
 (local {:concat concat
         :logf logf} (require :lib.functional))
 
@@ -57,6 +60,12 @@
 ;; [x] cmd-n - next-app
 ;; [x] cmd-p - prev-app
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Initialize
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(emacs.enable-edit-with-emacs)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Actions
@@ -265,10 +274,10 @@
        [return
         {:key :c
          :title "Capture"
-         :action "emacs:capture"}
+         :action (fn [] (emacs.capture))}
         {:key :z
          :title "Note"
-         :action "emacs:note"}
+         :action (fn [] (emacs.note))}
         {:key :v
          :title "Split"
          :action "emacs:vertical-split-with-emacs"}
@@ -314,10 +323,7 @@
          :action "apps:next-app"}
         {:mods [:cmd]
          :key :p
-         :action "apps:prev-app"}
-        {:mods [:cmd :ctrl]
-         :key :o
-         :action "emacs:edit-with-emacs"}])
+         :action "apps:prev-app"}])
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -356,8 +362,12 @@
 
 (local emacs-config
        {:key "Emacs"
-        :activate "vim:disable"
-        :deactivate "vim:enable"
+        :activate (fn []
+                    (vim.disable)
+                    (emacs.disable-edit-with-emacs))
+        :deactivate (fn []
+                      (vim.enable)
+                      (emacs.enable-edit-with-emacs))
         :launch "emacs:maximize"
         :items []
         :keys []})
