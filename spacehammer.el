@@ -15,10 +15,18 @@
      nil 0 nil "-c" (concat "hs.alert.show(\"" message "\", 1)"))))
 
 (defun spacehammer/fix-frame ()
-  "Fix Emacs frame. Usually it's necessary when screen size changes."
-  (when (spacemacs/toggle-fullscreen-frame-status)
-    (spacemacs/toggle-fullscreen-frame-off)
-    (spacemacs/toggle-fullscreen-frame-on)))
+  "Fix Emacs frame. It may be necessary when screen size changes.
+
+Sometimes zoom-frm functions would leave visible margins around the frame."
+  (cond
+   ((eq (frame-parameter nil 'fullscreen) 'fullboth)
+    (progn
+      (set-frame-parameter (selected-frame) 'fullscreen 'fullheight)
+      (set-frame-parameter (selected-frame) 'fullscreen 'fullboth)))
+   ((eq (frame-parameter nil 'fullscreen) 'maximized)
+    (progn
+      (set-frame-parameter (selected-frame) 'fullscreen 'fullwidth)
+      (set-frame-parameter (selected-frame) 'fullscreen 'maximized)))))
 
 (defun spacehammer/move-frame-one-display (direction)
   "Moves current Emacs frame to another display at given DIRECTION
