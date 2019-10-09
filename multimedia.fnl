@@ -26,7 +26,7 @@
   (modal.add-state
    :media
    {:from :*
-    :init (fn [self, fsm]
+    :init (fn [self fsm]
             (set self.hotkeyModal (hs.hotkey.modal.new))
             (modal.display-modal-text "h \t previous track\nl \t next track\nk \t volume up\nj \t volume down\ns \t play/pause\na \t launch player")
 

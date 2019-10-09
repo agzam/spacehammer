@@ -1,6 +1,6 @@
 (local utils (require :utils))
 
-(local arrows {:h :left, :j :down,:k :up,:l :right})
+(local arrows {:h "left" :j "down" :k "up" :l "right"})
 
 (fn simple-tab-switching []
   (let [tbl []]

@@ -25,7 +25,7 @@
   (fn [files]
     (let [u hs.fnutils
           fnl-file-change? (u.some
-                            files,
+                            files
                             (fn [p]
                               (when (not (string.match p ".#")) ;; ignore emacs temp files
                                 (let [ext (u.split p "%p")]
