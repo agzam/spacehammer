@@ -21,7 +21,7 @@
 (local lifecycle (require :lib.lifecycle))
 
 
-(local log (hs.logger.new "apps.fnl", "debug"))
+(local log (hs.logger.new "apps.fnl" "debug"))
 
 (local actions (atom.new nil))
 (var fsm nil)

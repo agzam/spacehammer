@@ -279,7 +279,7 @@
   (let [{:config config
          :history history} state
         history (slice 1 -1 history)
-        main-menu (= 0 (# history))
+        main-menu (= 0 (length history))
         navigate (if main-menu
                      idle->active
                      active->submenu)]

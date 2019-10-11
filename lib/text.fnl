@@ -9,7 +9,7 @@
 (fn max-length
   [items]
   (reduce
-   (fn [max [key _]]  (math.max max (# key)))
+   (fn [max [key _]]  (math.max max (length key)))
    0
    items))
 

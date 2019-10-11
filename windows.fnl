@@ -17,7 +17,7 @@
       (when (= (type tbl) :nil)
         (tset self id []))
       (when tbl
-        (let [last-el (. tbl (# tbl))]
+        (let [last-el (. tbl (length tbl))]
           (when (~= last-el (: win :frame))
             (table.insert tbl (: win :frame))))))))
 
@@ -28,7 +28,7 @@
         tbl (. self id)]
     (when (and win tbl)
       (let [el (table.remove tbl)
-            num-of-undos (# tbl)]
+            num-of-undos (length tbl)]
         (if el
             (do
               (: win :setFrame el)
