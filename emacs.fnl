@@ -7,7 +7,7 @@
         run-str  (..
                   "/usr/local/bin/emacsclient"
                   " -c -F '(quote (name . \"capture\"))'"
-                  " -e '(activate-capture-frame "
+                  " -e '(spacehammer/activate-capture-frame "
                   pid title key " )'")
         timer (hs.timer.delayed.new .1 (fn [] (io.popen run-str)))]
     (: timer :start)))

@@ -110,6 +110,48 @@ TITLE is a title of the window (the caller is responsible to set that right)"
   (spacehammer/switch-to-app systemwide-edit-previous-app-pid)
   (setq systemwide-edit-previous-app-pid nil))
 
+;;;; System-wide org capture
+(defvar systemwide-capture-previous-app-pid nil
+  "Last app that invokes `spacehammer/activate-capture-frame'.")
+
+(defun spacehammer/activate-capture-frame (&optional pid title keys)
+  "Run ‘org-capture’ in capture frame.
+
+PID is a pid of the app (the caller is responsible to set that right)
+TITLE is a title of the window (the caller is responsible to set that right)
+KEYS is a string associated with a template (will be passed to `org-capture')"
+  (setq systemwide-capture-previous-app-pid pid)
+  (select-frame-by-name "capture")
+  (set-frame-position nil 400 400)
+  (set-frame-size nil 1000 400 t)
+  (switch-to-buffer (get-buffer-create "*scratch*"))
+  (org-capture nil keys))
+
+(defadvice org-switch-to-buffer-other-window
+    (after supress-window-splitting activate)
+  "Delete the extra window if we're in a capture frame."
+  (if (equal "capture" (frame-parameter nil 'name))
+      (delete-other-windows)))
+
+(defadvice org-capture-finalize
+    (after delete-capture-frame activate)
+  "Advise capture-finalize to close the frame."
+  (when (and (equal "capture" (frame-parameter nil 'name))
+             (not (eq this-command 'org-capture-refile)))
+    (spacehammer/switch-to-app systemwide-capture-previous-app-pid)
+    (delete-frame)))
+
+(defadvice org-capture-refile
+    (after delete-capture-frame activate)
+  "Advise ‘org-refile’ to close the frame."
+  (delete-frame))
+
+(defadvice user-error
+    (before before-user-error activate)
+  "Advice"
+  (when (eq (buffer-name) "*Org Select*")
+    (spacehammer/switch-to-app systemwide-capture-previous-app-pid)))
+
 (provide 'spacehammer)
 
 ;;; spacehammer.el ends here
