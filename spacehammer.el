@@ -112,9 +112,9 @@ TITLE is a title of the window (the caller is responsible to set that right)"
 
 ;;;; System-wide org capture
 (defvar systemwide-capture-previous-app-pid nil
-  "Last app that invokes `activate-capture-frame'.")
+  "Last app that invokes `spacehammer/activate-capture-frame'.")
 
-(defun activate-capture-frame (&optional pid title keys)
+(defun spacehammer/activate-capture-frame (&optional pid title keys)
   "Run ‘org-capture’ in capture frame.
 
 PID is a pid of the app (the caller is responsible to set that right)
