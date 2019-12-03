@@ -26,7 +26,7 @@
 
 (fn has-some?
   [list]
-  (and list (> (# list) 0)))
+  (and list (> (length list) 0)))
 
 (fn identity
   [x] x)
@@ -37,7 +37,7 @@
 
 (fn last
   [list]
-  (. list (# list)))
+  (. list (length list)))
 
 (fn logf
   [...]
@@ -49,19 +49,25 @@
   []
   nil)
 
+(fn slice-end-idx
+  [end-pos list]
+  (if (< end-pos 0)
+    (+ (length list) end-pos)
+    end-pos))
+
 (fn slice-start-end
   [start end list]
-  (let [end (if (< end 0)
-                (+ (# list) end)
-                end)]
+  (let [end+ (if (< end 0)
+              (+ (length list) end)
+              end)]
     (var sliced [])
-    (for [i start end]
+    (for [i start end+]
       (table.insert sliced (. list i)))
     sliced))
 
 (fn slice-start
   [start list]
-  (slice-start-end start (# list) list))
+  (slice-start-end start (length list) list))
 
 (fn slice
   [start end list]
@@ -69,6 +75,7 @@
            (not list))
       (slice-start start end)
       (slice-start-end start end list)))
+
 
 (fn split
   [search str]
@@ -161,7 +168,7 @@
 (fn some
   [f tbl]
   (let [filtered (filter f tbl)]
-    (>= (# filtered) 1)))
+    (>= (length filtered) 1)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -171,7 +178,7 @@
 (fn eq?
   [l1 l2]
   (if (and (= (type l1) (type l2) "table")
-           (= (# l1) (# l2)))
+           (= (length l1) (length l2)))
       (fu.every l1
                 (fn [v] (contains? v l2)))
       (= (type l1) (type l2))

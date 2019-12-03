@@ -38,10 +38,15 @@
     (notify-watchers atom next-value prev-value)
     atom))
 
-{:atom atom
- :new atom
- :deref deref
+(fn reset!
+  [atom v]
+  (swap! atom (fn [] v)))
+
+{:atom            atom
+ :new             atom
+ :deref           deref
  :notify-watchers notify-watchers
- :add-watch add-watch
- :remove-watch remove-watch
- :swap! swap!}
+ :add-watch       add-watch
+ :remove-watch    remove-watch
+ :reset!          reset!
+ :swap!           swap!}
