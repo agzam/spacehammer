@@ -19,7 +19,7 @@
 
 Sometimes zoom-frm functions would leave visible margins around the frame."
   (let* ((geom (frame-monitor-attribute 'geometry))
-         (height (first (last geom)))
+         (height (- (first (last geom)) 2))
          (width (nth 2 geom))
          (fs-p (frame-parameter nil 'fullscreen))
          (frame (selected-frame))
