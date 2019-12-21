@@ -5,7 +5,7 @@ git clone https://github.com/agzam/spacehammer -b develop ~/.hammerspoon
 #+END_SRC
 
 ** Attention!
-Fennel 0.3.1 [2019-12-17] came up with some breaking changes that made ~master~ branch no longer functional. Until the new version with lots of improvements and major redesign of the modal system is released, I suggest you use `develop` branch of this project. Sorry for the inconvenience. 
+Fennel 0.3.1 [2019-12-17] came up with some breaking changes that made ~master~ branch no longer functional. Until the new version with lots of improvements and major redesign of the modal system is released, I suggest you use ~develop~ branch of this project. Sorry for the inconvenience. 
 
 ** Rationale
    I love Vim and I love Vim keybindings, I use them wherever I can, and I needed to find a better, more efficient way to do my work in OSX.
