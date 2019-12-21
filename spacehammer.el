@@ -18,15 +18,23 @@
   "Fix Emacs frame. It may be necessary when screen size changes.
 
 Sometimes zoom-frm functions would leave visible margins around the frame."
-  (cond
-   ((eq (frame-parameter nil 'fullscreen) 'fullboth)
-    (progn
-      (set-frame-parameter (selected-frame) 'fullscreen 'fullheight)
-      (set-frame-parameter (selected-frame) 'fullscreen 'fullboth)))
-   ((eq (frame-parameter nil 'fullscreen) 'maximized)
-    (progn
-      (set-frame-parameter (selected-frame) 'fullscreen 'fullwidth)
-      (set-frame-parameter (selected-frame) 'fullscreen 'maximized)))))
+  (let* ((geom (frame-monitor-attribute 'geometry))
+         (height (- (first (last geom)) 2))
+         (width (nth 2 geom))
+         (fs-p (frame-parameter nil 'fullscreen))
+         (frame (selected-frame))
+         (x (first geom))
+         (y (second geom)))
+    (when (member fs-p '(fullboth maximized))
+      (set-frame-position frame x y)
+      (set-frame-height frame height nil t)
+      (set-frame-width frame width nil t))
+    (when (frame-parameter nil 'full-width)
+      (set-frame-width frame width nil t)
+      (set-frame-parameter nil 'full-width nil))
+    (when (frame-parameter nil 'full-height)
+      (set-frame-height frame height nil t)
+      (set-frame-parameter nil 'full-height nil))))
 
 (defun spacehammer/move-frame-one-display (direction)
   "Moves current Emacs frame to another display at given DIRECTION
