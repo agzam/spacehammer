@@ -6,15 +6,18 @@
 
 (fn call-when
   [f]
+  "Execute function if it is not nil."
   (when (and f (= (type f) :function))
     (f)))
 
 (fn contains?
   [x xs]
+  "Returns true if key is present in the given collection, otherwise returns false."
   (and xs (fu.contains xs x)))
 
 (fn find
   [f tbl]
+  "Execute a function across a table and return the first element where that function returns true."
   (fu.find tbl f))
 
 (fn get
@@ -26,7 +29,7 @@
 
 (fn has-some?
   [list]
-  (and list (> (length list) 0)))
+  (and list (< 0 (length list))))
 
 (fn identity
   [x] x)
@@ -76,10 +79,10 @@
       (slice-start start end)
       (slice-start-end start end list)))
 
-
 (fn split
-  [search str]
-  (fu.split str search))
+  [separator str]
+  "Using specified separator, convert string to an array of strings."
+  (fu.split str separator))
 
 (fn tap
   [f x ...]
@@ -168,7 +171,7 @@
 (fn some
   [f tbl]
   (let [filtered (filter f tbl)]
-    (>= (length filtered) 1)))
+    (<= 1 (length filtered))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
