@@ -152,11 +152,15 @@
                                 (: app :activate)
                                 (windows.maximize-window-frame (: modal :machine)))))))})))
 
-{:enable-edit-with-emacs                 enable-edit-with-emacs
- :disable-edit-with-emacs                disable-edit-with-emacs
- :add-state                              add-state
- :edit-with-emacs                        edit-with-emacs
- :switchToApp                            switch-to-app
- :switchToAppAndPasteFromClipboard       switch-to-app-and-paste-from-clipboard
- :editWithEmacsCallback                  edit-with-emacs-callback
- :add-app-specific                       add-app-specific}
+{:add-app-specific                 add-app-specific
+ :add-state                        add-state
+ :capture                          capture
+ :disable-edit-with-emacs          disable-edit-with-emacs
+ :edit-with-emacs                  edit-with-emacs
+ :editWithEmacsCallback            edit-with-emacs-callback
+ :enable-edit-with-emacs           enable-edit-with-emacs
+ :full-screen                      full-screen
+ :note                             (fn [] (capture true))
+ :switchToApp                      switch-to-app
+ :switchToAppAndPasteFromClipboard switch-to-app-and-paste-from-clipboard
+ :vertical-split-with-emacs        vertical-split-with-emacs}

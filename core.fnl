@@ -85,14 +85,11 @@
 (hs.hotkey.bind
  [:ctrl :cmd] "`" nil
  (fn []
-   (when-let [console (hs.console.hswindow)]
-     (if (= console (hs.window.focusedWindow))
-         (-> console (: :application) (: :hide))
-         (-> console (: :raise) (: :focus))))))
-
-;; disable annoying Cmd+M for minimizing windows
-;; (hs.hotkey.bind [:cmd] :m nil (fn [] nil))
-
+   (if-let
+    [console (hs.console.hswindow)]
+    (when (= console (hs.console.hswindow))
+      (hs.closeConsole))
+    (hs.openConsole))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load private init.fnl file (if it exists)
