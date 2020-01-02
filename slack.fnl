@@ -82,8 +82,6 @@
   []
   (hs.eventtap.keyStroke nil :down))
 
-
-
 {:add-reaction     add-reaction
  :down             down
  :next-day         next-day

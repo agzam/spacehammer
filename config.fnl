@@ -1,5 +1,6 @@
 (local windows (require :windows))
 (local emacs (require :emacs))
+(local slack (require :slack))
 (local vim (require :vim))
 
 (local {:concat concat
