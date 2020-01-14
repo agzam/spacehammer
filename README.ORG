@@ -97,21 +97,19 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 
 ** Customizing
 *** Update menus, menu items, bindings, and app specific features
-    All menu, app, and key bindings are defined in config.fnl.
-    You may edit this file directly but may run into conflicts with upstream changes.
-    Alternatively you can create a =~/.hammerspoon/private/config.fnl= that can by symlinked and tracked in your dotfiles.
-    The =~/.hammerspoon/private= directory is not source tracked so your customizations will be safe from upstream updates.
+    All menu, app, and key bindings are defined in =~/.spacehammer/config.fnl=.
+    That is your custom config and will be safe from any upstream changes to the default config.fnl.
 **** Modal Menu Items
      Menu items are listed when you press =cmd+space= and can be nested.
-     Items map a key binding to an action, either a function or ="module:function-name"= string. 
-     
+     Items map a key binding to an action, either a function or ="module:function-name"= string.
+
      Menu items may either define an action or a table list of items.
-     
+
 
      For menu items that should be repeated, add =repeatable: true= to the item table.
-     The repeatable flag keeps the menu option after the action has been triggered. 
+     The repeatable flag keeps the menu option after the action has been triggered.
      Repeating a menu item is ideal for actions like window layouts where you may wish to move the window from the left third to the right third.
-     
+
     #+BEGIN_SRC fennel
       (local launch-alfred {:title "Alfred"
                             :key :SPACE
@@ -133,18 +131,18 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
                              window-inc
                              submenu]})
      #+END_SRC
-     
+
 ***** Lifecycle methods
     Menu items may also define =:enter= and =:exit= functions or action strings. The parent menu item will call the =enter= function when it is opened and =exit= when it is closed. This may be used to manage more complex, or dynamic menus.
 **** Global keys
      Global keys are used to set up universal hot-keys for the actions you specify.
      Unlike menu items they do not require a title attribute.
      Additionally you may specify =repeat: true= to repeat the action while the key is held down.
-     
+
      If you place =:hyper= as a mod, it will use a hyper mode that can be configured by the =hyper= config attribute.
      This can be used to help create bindings that wont interfere with other apps.
      For instance you may make your hyper trigger the virtual =:F18= and use a program like [[https://github.com/tekezo/Karabiner-Elements][karabiner-elements]] to map caps-lock to =F18=.
-     
+
     #+BEGIN_SRC fennel
       (local config {:hyper {:mods [:cmd :ctrl :alt :shift]}
                      :keys [{:mods [:cmd]
@@ -161,12 +159,12 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 **** App specific customizations
      Configure separate menu options and key bindings while specified apps are active.
      Additionally, several lifecycle functions or action strings may be provided for each app.
-     
+
      - `:activate` When an application receives keyboard focus
      - `:deactivate` When an application loses keyboard focus
      - `:launch` When an application is launched
      - `:close` When an application is terminated
-     
+
      #+BEGIN_SRC fennel
        (local emacs-config
               {:key "Emacs"
@@ -179,6 +177,5 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
        (local config {:apps [emacs-config]})
      #+END_SRC
 *** Replacing spacehammer behavior
-    The =~/.hammerspoon/private= directory is added to the module search paths.
-    If you wish to change the behavior of a feature, such as vim mode, you can create =~/.hammerspoon/private/vim.fnl= to override the default implementation.
- 
+    The =~/.spacehammer= directory is added to the module search paths.
+    If you wish to change the behavior of a feature, such as vim mode, you can create =~/.spacehammer/vim.fnl= to override the default implementation.
