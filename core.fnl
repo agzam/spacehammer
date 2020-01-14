@@ -5,6 +5,8 @@
 (local {:contains? contains?
         :for-each  for-each
         :map       map
+        :merge     merge
+        :reduce    reduce
         :split     split
         :some      some} (require :lib.functional))
 (require-macros :lib.macros)
@@ -112,8 +114,11 @@
                 :lib.modal
                 :lib.apps])
 
-(->> modules
-     (map require)
-     (for-each
-      (fn [module]
-        (module.init config))))
+;; Create a global reference so services like hs.application.watcher
+;; do not get garbage collected.
+(global resources
+        (->> modules
+             (map (fn [path]
+                    (let [module (require path)]
+                      {path (module.init config)})))
+             (reduce #(merge $1 $2) {})))
