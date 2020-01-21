@@ -1,4 +1,3 @@
-(hs.console.clearConsole)
 (hs.ipc.cliInstall) ; ensure CLI installed
 
 (local fennel (require :fennel))
@@ -11,9 +10,12 @@
         :some      some} (require :lib.functional))
 (require-macros :lib.macros)
 
-;; Make private folder override repo files
-(local private (.. hs.configdir "/private"))
-(tset fennel :path (.. private "/?.fnl;" fennel.path))
+;; Make ~/.spacehammer folder override repo files
+(local homedir (os.getenv "HOME"))
+(local customdir (.. homedir "/.spacehammer"))
+(tset fennel :path (.. customdir "/?.fnl;" fennel.path))
+
+(local log (hs.logger.new "\tcore.fnl\t" "debug"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; defaults
@@ -40,6 +42,33 @@
       (io.close file))
     (~= file nil)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; create custom config file if it doesn't exist
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(fn copy-file
+  [source dest]
+  "
+  Copies the contents of a source file to a destination file.
+  Takes a source file path and a destination file path.
+  Returns nil
+  "
+  (let [default-config (io.open source "r")
+        custom-config (io.open dest "a")]
+    (each [line _ (: default-config :lines)]
+      (: custom-config :write (.. line "\n")))
+    (: custom-config :close)
+    (: default-config :close)))
+
+;; If ~/.spacehammer/config.fnl does not exist
+;; - Create ~/.spacehammer dir
+;; - Copy default ~/.hammerspoon/config.fnl to ~/.spacehammer/config.fnl
+(when (not (file-exists? (.. customdir "/config.fnl")))
+  (log.d "Copying ~/.hammerspoon/config.fnl to ~/.spacehammer/config.fnl")
+  (hs.fs.mkdir customdir)
+  (copy-file (.. homedir "/.hammerspoon/config.fnl")
+             (.. customdir "/config.fnl")))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; auto reload config
@@ -63,6 +92,7 @@
 (fn config-reloader
   [files]
   (when (some source-updated? files)
+    (hs.console.clearConsole)
     (hs.reload)))
 
 (fn watch-files
@@ -74,8 +104,8 @@
 
 (global config-files-watcher (watch-files hs.configdir))
 
-(when (file-exists? (.. private "/config.fnl"))
-  (global custom-files-watcher (watch-files private)))
+(when (file-exists? (.. customdir "/config.fnl"))
+  (global custom-files-watcher (watch-files customdir)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -94,11 +124,12 @@
     (hs.openConsole))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Load private init.fnl file (if it exists)
+;; Load custom init.fnl file (if it exists)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(when (file-exists? (.. private "/init.fnl"))
-  (require :private))
+(let [custom-init-file (.. customdir "/init.fnl")]
+  (when (file-exists? custom-init-file)
+    (fennel.dofile custom-init-file)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

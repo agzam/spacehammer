@@ -7,13 +7,11 @@
         :logf logf} (require :lib.functional))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Default Config
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; - It is not recommended to edit this file.
-;; - Changes may conflict with upstream updates.
-;; - Create a ~/.hammerspoon/private/config.fnl file instead.
-;;
+;; WARNING
+;; Make sure you are customizing ~/.spacehammer/config.fnl and not
+;; ~/.hammerspoon/config.fnl
+;; Otherwise you will lose your customizations on upstream changes.
+;; A copy of this file should already exist in your ~/.spacehammer directory.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
