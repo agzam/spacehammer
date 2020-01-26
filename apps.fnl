@@ -1,4 +1,4 @@
-(local utils (require :lib.utils))
+(local {:global-filter global-filter} (require :lib.utils))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; App switcher
@@ -6,7 +6,7 @@
 
 (local switcher
        (hs.window.switcher.new
-        (utils.globalFilter)
+        (global-filter)
         {:textSize 12
          :showTitles false
          :showThumbnails false
@@ -16,10 +16,21 @@
 
 (fn prev-app
   []
+  "
+  Open the fancy hammerspoon window switcher and move the cursor to the previous
+  app.
+  Runs side-effects
+  Returns nil
+  "
   (: switcher :previous))
 
 (fn next-app
   []
+  "
+  Open the fancy hammerspoon window switcher and move the cursor to next app.
+  Runs side-effects
+  Returns nil
+  "
   (: switcher :next))
 
 
