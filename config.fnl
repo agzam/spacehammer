@@ -334,13 +334,13 @@
          :items emacs-bindings}])
 
 (local common-keys
-       [{:mods [:cmd]
+       [{:mods [:alt]
          :key :space
          :action "lib.modal:activate-modal"}
-        {:mods [:cmd]
+        {:mods [:alt]
          :key :n
          :action "apps:next-app"}
-        {:mods [:cmd]
+        {:mods [:alt]
          :key :p
          :action "apps:prev-app"}
         {:mods [:cmd :ctrl]
