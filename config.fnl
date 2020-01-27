@@ -328,10 +328,6 @@
          :action "windows:jump"}
         {:key :m
          :title "Media"
-         ;; :enter (fn [menu]
-         ;;          (print "Entering menu: " (hs.inspect menu)))
-         ;; :exit (fn [menu]
-         ;;         (print "Exiting menu: " (hs.inspect menu)))
          :items media-bindings}
         {:key :x
          :title "Emacs"
@@ -346,10 +342,10 @@
          :action "apps:next-app"}
         {:mods [:cmd]
          :key :p
-         :action "apps:prev-app"}]
+         :action "apps:prev-app"}
         {:mods [:cmd :ctrl]
          :key "`"
-         :action toggle-console})
+         :action toggle-console}])
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
