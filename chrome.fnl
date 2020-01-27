@@ -5,7 +5,7 @@
   []
   "
   Activate the Chrome > File > Open Location... action which moves focus to the
-  address\search bar.
+  address\\search bar.
   Returns nil
   "
   (when-let [app (: (hs.window.focusedWindow) :application)]
