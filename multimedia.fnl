@@ -12,7 +12,7 @@
 (fn play-or-pause
  []
  "
- Simulate pressing the play\pause keyboard key
+ Simulate pressing the play\\pause keyboard key
  "
  (m-key :play))
 
