@@ -356,11 +356,11 @@
        [{:mods [:cmd :shift]
          :key :l
          :action "chrome:open-location"}
-        {:mods [:cmd]
+        {:mods [:alt]
          :key :k
          :action "chrome:next-tab"
          :repeat true}
-        {:mods [:cmd]
+        {:mods [:alt]
          :key :j
          :action "chrome:prev-tab"
          :repeat true}])
