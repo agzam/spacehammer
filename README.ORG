@@ -5,16 +5,21 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 #+END_SRC
 
 ** Rationale
-   I love Vim and I love Vim keybindings, I use them wherever I can, and I needed to find a better, more efficient way to do my work in OSX.
+   Keyboard-oriented workflows are often far more efficient and less frustrating than similar mouse-driven techniques. However, the most popular strategy in that space is to use a multitude of keyboard shortcuts. And obviously, that approach is not very scalable. You start adding keyboard shortcuts for various actions, and soon you run out of ideas.
 
-   Ideally, I wanted to stay in the home row and control as much as I could with only =h/j/k/l= keys. Adding tens (possibly hundreds) of key-combo shortcuts for every single desirable action is not a right solution.
+   Ideas of command composability (first explored in ~Vi~ and later expanded in its successor ~Vim~), although do require some initial learning and getting used to, allow you to expand your keyboard-oriented workflow with a minimal effort to memorize keys. There's so much you can do with using ~h/j/k/l~ keys alone.
 
-   Also, unlike vanilla Vim - a single modal (to switch from Normal to Edit to Select mode) is often not enough. So I've taken an approach done in [[http://spacemacs.org/][Spacemacs]]. In Spacemacs - there is a single primary modifier key - SPACE. Of course, I couldn't just use SPACE - because none of the modern operating systems can infer the current mode of the operation - /either you are typing or navigating, is cursor focused on an input field, etc./. So I had to use a key-combo. /Default key-combo in Spacehammer is Cmd+SPC./
+   However, the "one-dimensional" approach utilized in vanilla Vim, where a single modal (to switch from Normal to Edit to Select mode) is used, also has limitations. But basic ideas of modality can be expanded further. [[http://spacemacs.org/][Spacemacs]] project is an excellent example of where that was done. In Spacemacs - there is a single primary "modifier" key - ~SPACE~. To trigger an action user is required to press a mnemonically recognizable combination of keys (that usually starts with ~space~ key), e.g., ~SPC w m~ is used to maximize current window/buffer.
 
-   Hammerspoon is an incredibly powerful tool, and it allowed me to take my workflow to a completely different level. Jumping between apps, controlling windows, searching things, etc. have become so much easier - everything follows simple semantics of keeping your fingers on the home row. And no need to memorize myriad of keystrokes. Or to drag your hand to reach for mouse/touchpad/arrow keys - that inevitably slows you down.
+   This project explores these ideas to allow you to take your keyboard-driven workflow to the next level. Jumping between applications, controlling the size and position of their windows, searching for things, etc. - everything follows simple, mnemonic semantics. It allows you to keep your fingers on the home row. And no need to memorize a myriad of keystrokes. Or to drag your hand to reach for mouse/touchpad/arrow keys - that inevitably slows you down.   to reach for mouse/touchpad/arrow keys - that inevitably slows you down.
+
 *** Fennel
-    Spacehammer initially was written in Lua (as the majority of Hammerspoon configs), but later I have discovered [[https://fennel-lang.org/][Fennel]] - tiny Lisp that compiles into Lua. I decided to re-write it in Fennel. There is nothing wrong with Lua - I simply prefer Lisp - it is compact, has zero overhead and makes me more productive.
-    Lua and Fennel can live together in the same config, I still have non-critical parts that I have not yet re-written in Fennel. Also - if you are interested (now outdated) version of Spacehammer lives in [[https://github.com/agzam/spacehammer/tree/lua][lua]] branch
+    Spacehammer initially was written in Lua (as the majority of Hammerspoon
+    configs), but later was completely re-written in
+    [[https://fennel-lang.org/][Fennel]] - tiny Lisp that compiles into Lua.
+    There is nothing wrong with Lua, but Lisp has many benefits (sadly often
+    overlooked and ignored by majority of programmers today). Switching to
+    Fennel allowed us to keep the code more structured and concise.
 
 ** Prerequisites
 *** Install Hammerspoon
@@ -29,15 +34,13 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
       luarocks install fennel
     #+end_src
 
-** Important note!
-   Main key combo is set to =Cmd+SPC=. By default, in OS X it's used for something else (usually for Spotlight).
+** Important note about the Lead key
+   Lead key combo is by default set to =Option+SPC=, but it can be re-configured in ~~/.spacehammer/config.fnl~ and to be set for example to =Cmd+SPC=. Be warned though, in OS X =Cmd+SPC= is usually used for Spotlight.
 
-   *In order for it to work - you either will have to rebind it in your system or choose a different key-combo and change it in the config*
+   *In order for it to work - you will have to rebind it in your system*
 
 *** For changing it in the system preferences
-    Go to your Preferences/Keyboard, find associated keybinding and change it. Unfortunately, simply disabling it isn't enough. You'd have to set it to be something else e.g. =Ctrl+Cmd+Shift+\= or whatever (I dunno - use your imagination), it doesn't really matter, since you can then uncheck the checkbox.
-*** For changing it in Spacehammer config
-    If you find =Cmd+SPC= to be inconvenient - modify relevant code in =~/.hammerspoon/core.fnl= and set it to whatever keybinding you like.
+    Go to your Preferences/Keyboard, find =Cmd+SPC= keybinding and change it. Unfortunately, simply disabling it sometimes is not enough. You'd have to set it to be something else e.g. =Ctrl+Cmd+Shift+\= or anything else , it doesn't really matter, since you can then un-check the checkbox and disable it.
 ** Features
 **** =Cmd+SPC w= - Window management
      - =hjkl= - moving windows around halves of the screen
