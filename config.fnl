@@ -382,6 +382,11 @@
         :keys browser-keys
         :items browser-items})
 
+(local firefox-config
+       {:key "Firefox"
+        :keys browser-keys
+        :items browser-items})
+
 (local emacs-config
        {:key "Emacs"
         :activate (fn []
@@ -467,6 +472,7 @@
 (local apps
        [brave-config
         chrome-config
+        firefox-config
         emacs-config
         grammarly-config
         hammerspoon-config
