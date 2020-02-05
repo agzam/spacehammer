@@ -390,4 +390,4 @@
  :resize-right            resize-right
  :set-mouse-cursor-at     set-mouse-cursor-at
  :show-grid               show-grid
- :undo                    undo}
+ :undo-action             undo}

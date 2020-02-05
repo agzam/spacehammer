@@ -104,8 +104,7 @@
 ;; If you would like to customize this we recommend copying this file to
 ;; ~/.hammerspoon/private/config.fnl. That will be used in place of the default
 ;; and will not be overwritten by upstream changes when spacehammer is updated.
-(local music-app
-       "Google Play Music Desktop Player")
+(local music-app "Spotify")
 
 (local return
        {:key :space
@@ -334,13 +333,13 @@
          :items emacs-bindings}])
 
 (local common-keys
-       [{:mods [:cmd]
+       [{:mods [:alt]
          :key :space
          :action "lib.modal:activate-modal"}
-        {:mods [:cmd]
+        {:mods [:alt]
          :key :n
          :action "apps:next-app"}
-        {:mods [:cmd]
+        {:mods [:alt]
          :key :p
          :action "apps:prev-app"}
         {:mods [:cmd :ctrl]
@@ -356,11 +355,11 @@
        [{:mods [:cmd :shift]
          :key :l
          :action "chrome:open-location"}
-        {:mods [:cmd]
+        {:mods [:alt]
          :key :k
          :action "chrome:next-tab"
          :repeat true}
-        {:mods [:cmd]
+        {:mods [:alt]
          :key :j
          :action "chrome:prev-tab"
          :repeat true}])
@@ -379,6 +378,11 @@
 
 (local chrome-config
        {:key "Google Chrome"
+        :keys browser-keys
+        :items browser-items})
+
+(local firefox-config
+       {:key "Firefox"
         :keys browser-keys
         :items browser-items})
 
@@ -467,6 +471,7 @@
 (local apps
        [brave-config
         chrome-config
+        firefox-config
         emacs-config
         grammarly-config
         hammerspoon-config

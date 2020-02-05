@@ -1,24 +1,25 @@
 [[http://www.hammerspoon.org/][Hammerspoon]] config inspired by [[http://spacemacs.org/][Spacemacs]]
 
-#+BEGIN_SRC bash
-git clone https://github.com/agzam/spacehammer ~/.hammerspoon
-#+END_SRC
-
 ** Rationale
-   I love Vim and I love Vim keybindings, I use them wherever I can, and I needed to find a better, more efficient way to do my work in OSX.
+   Keyboard-oriented workflows are often far more efficient and less frustrating than similar mouse-driven techniques. However, the most popular strategy in that space is to use a multitude of keyboard shortcuts. And obviously, that approach is not very scalable. You start adding keyboard shortcuts for various actions, and soon you run out of ideas. You inevitably will be blocked by conflicting shortcuts.
 
-   Ideally, I wanted to stay in the home row and control as much as I could with only =h/j/k/l= keys. Adding tens (possibly hundreds) of key-combo shortcuts for every single desirable action is not a right solution.
+   Ideas of command composability (first explored in ~Vi~ and later expanded in its successor ~Vim~), although do require some initial learning and getting used to, allow you to expand your keyboard-oriented workflow with a minimal effort to memorize keys. There's so much you can do with using ~h/j/k/l~ keys alone.
 
-   Also, unlike vanilla Vim - a single modal (to switch from Normal to Edit to Select mode) is often not enough. So I've taken an approach done in [[http://spacemacs.org/][Spacemacs]]. In Spacemacs - there is a single primary modifier key - SPACE. Of course, I couldn't just use SPACE - because none of the modern operating systems can infer the current mode of the operation - /either you are typing or navigating, is cursor focused on an input field, etc./. So I had to use a key-combo. /Default key-combo in Spacehammer is Cmd+SPC./
+   However, the "one-dimensional" approach utilized in vanilla Vim, where a single modal (to switch from Normal to Edit to Select mode) is used, also has limitations. Fortunately, basic ideas of modality can be expanded further. [[http://spacemacs.org/][Spacemacs]] project is an excellent example of where that was done. In Spacemacs - there is a single primary "modifier" key - ~SPACE~. To trigger an action, user is required to press a mnemonically recognizable combination of keys (that usually starts with ~space~ key), e.g., ~SPC w m~ is used to maximize current window/buffer.
 
-   Hammerspoon is an incredibly powerful tool, and it allowed me to take my workflow to a completely different level. Jumping between apps, controlling windows, searching things, etc. have become so much easier - everything follows simple semantics of keeping your fingers on the home row. And no need to memorize myriad of keystrokes. Or to drag your hand to reach for mouse/touchpad/arrow keys - that inevitably slows you down.
+   Spacehammer project explores these ideas to allow you to take your keyboard-driven workflow to the next level. Jumping between applications, controlling the size and position of their windows, searching for things, etc. - everything follows simple, mnemonic semantics. It lets you keep your fingers on the home row and liberates you from having to memorize a myriad of keystrokes. Or to drag your hand to reach for mouse/touchpad/arrow keys - that inevitably slows you down.
+
 *** Fennel
-    Spacehammer initially was written in Lua (as the majority of Hammerspoon configs), but later I have discovered [[https://fennel-lang.org/][Fennel]] - tiny Lisp that compiles into Lua. I decided to re-write it in Fennel. There is nothing wrong with Lua - I simply prefer Lisp - it is compact, has zero overhead and makes me more productive.
-    Lua and Fennel can live together in the same config, I still have non-critical parts that I have not yet re-written in Fennel. Also - if you are interested (now outdated) version of Spacehammer lives in [[https://github.com/agzam/spacehammer/tree/lua][lua]] branch
+    Spacehammer initially was written in Lua (as the majority of Hammerspoon
+    configs), but later was completely re-written in
+    [[https://fennel-lang.org/][Fennel]] - tiny Lisp that compiles into Lua.
+    There is nothing wrong with Lua, but Lisp has many benefits (sadly often
+    overlooked and ignored by majority of programmers today). Switching to
+    Fennel allowed us to keep the code more structured and concise.
 
-** Prerequisites
+** Installation
 *** Install Hammerspoon
-    You can use brew:
+    You can use [[https://brew.sh/][brew]]:
     #+begin_src bash
       brew cask install hammerspoon
     #+end_src
@@ -28,103 +29,90 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 
       luarocks install fennel
     #+end_src
+*** Clone Spacehammer
+    #+begin_src bash
+      git clone https://github.com/agzam/spacehammer ~/.hammerspoon
+    #+end_src
+** LEAD keybinding
+   =LEAD= is the main and major keybinding that invokes main Spacehammer modal. By default set to =Option+SPC=, but it can be re-configured in =~/.spacehammer/config.fnl=, and to be set for example to =Cmd+SPC=. Be warned though, in OS X =Cmd+SPC= is usually used for Spotlight.
 
-** Important note!
-   Main key combo is set to =Cmd+SPC=. By default, in OS X it's used for something else (usually for Spotlight).
+   In order for Cmd+SPC to work as =LEAD= - you will have to rebind it in your system
 
-   *In order for it to work - you either will have to rebind it in your system or choose a different key-combo and change it in the config*
-
-*** For changing it in the system preferences
-    Go to your Preferences/Keyboard, find associated keybinding and change it. Unfortunately, simply disabling it isn't enough. You'd have to set it to be something else e.g. =Ctrl+Cmd+Shift+\= or whatever (I dunno - use your imagination), it doesn't really matter, since you can then uncheck the checkbox.
-*** For changing it in Spacehammer config
-    If you find =Cmd+SPC= to be inconvenient - modify relevant code in =~/.hammerspoon/core.fnl= and set it to whatever keybinding you like.
+***** For changing it in the system preferences
+      Go to your Preferences/Keyboard, find =Cmd+SPC= keybinding and change it. Unfortunately, simply disabling it sometimes is not enough. You'd have to set it to be something else e.g. =Ctrl+Cmd+Shift+\= or anything else , it doesn't really matter, since you can then un-check the checkbox and disable it.
 ** Features
-**** =Cmd+SPC w= - Window management
+**** =LEAD w= - Window management
      - =hjkl= - moving windows around halves of the screen
      - =Ctrl + hjkl= - for jumping between application windows (handy for side by side windows)
      - =w= - jump to previous window
      - =n/p= - moving current window to prev/next monitor
-     - =Alt + hjkl= - moving in increments (works across monitors)
+     - =Option + hjkl= - moving in increments (works across monitors)
      - =Shift + hjkl= - re-sizing active window
      - =g= - re-sizing with [[http://www.hammerspoon.org/docs/hs.grid.html][hs.grid]]
      - =m= - maximize active window
      - =c= - center active window
      - =u= - undo last window operation (similar to Spacemacs's =SPC w u=)
 
-**** =Cmd+SPC a= - Apps (quick jump)
+**** =LEAD a= - Apps (quick jump)
      - =e= - Emacs
      - =g= - Chrome
      - =i= - iTerm
      - =s= - Slack
 
-     you can add more, also try =Cmd SPC j j=
+     you can add more, also try =LEAD j j=
 
-**** =Cmd+SPC SPC= - open Alfred search bar
-     basically pressing =SPC= anytime in any modal takes you to Alfred search popup
+**** =LEAD SPC= - open Alfred search bar
+     pressing =SPC= in the main modal takes you to Alfred search popup, pressing =SPC= in other modals returns to previous modal.
 
-**** =Cmd+SPC m= - multimedia controls
-     Why just not use media-keys?
+**** =LEAD m= - multimedia controls
+     Why not use media-keys?
 
        a) because different external keyboards impose their own ways to control media.
 
-       b) I'd like to keep fingers on the home row
+       b) Spacehammer allows you to keep fingers on the home row.
 
-    it's configured to work with Google Play Music Desktop App. If you want it to be Spotify or anything else - change the value of  =music-app= in =multimedia.fnl= module
+    By default =LEAD m a= - =jump to music ap= is configured to work with Spotify, but you can change that in =~./spacehammer/config.fnl=
 
 ** Other features
-**** Alternative App Switcher =Cmd n/p=
-**** Simple tab switcher for Chrome and iTerm =Cmd j/k=
-     =Cmd l= in Chrome is re-mapped to =Cmd+Shift l=
-**** Simple vi-mode
-     - =h/j/k/l= - simple left/right/up/down
-     - =w/b= - word wise forward back
-     - =Shift h/j/k/l= - selecting things
-
-     These can be disabled in certain apps (by default they they are ignored in Emacs)
-**** Slack Desktop Client enhancements
-      - Switching to Slack via "Apps" modal =CMD+SPC a s= - automatically opens Slack's "Jump to" dialog
-      - Scrolling current Slack thread with =C-j/C-k= or =C-e/C-y=
-      - Jumping to the end of the thread with =Cmd-g=
-      - Adding emoji to the last message - =Cmd-r= (sorry, but default =Cmd-Shift+\= is horribly inconvenient)
-      - =C-o/C-i= - jumping back and forth in history
-** TODO
-   - [ ] Chord function to better support keys like =jk= =fd= or =gg=
-   - [ ] =jk= or =fd= to exit modals (like =evil-escape-key-sequence= in Emacs)
-   - [ ] Window configuration profiles (similar to Layouts feature in Spacemacs)
-   - [ ] Disable non-available keys in a modal. Keys that not listed should be simply ignored see #1
-   - [ ] Another thing I want is to be able to toggle ChromeDevtools panel - this is somewhat tricky, see [[https://github.com/Hammerspoon/hammerspoon/issues/1506][this issue]]
-   - [ ] Better than default HUD display (something less obtrusive than ~hs.alert~ would be nice
+**** Alternative App Switcher =Option n/p=
+**** Simple tab switcher for Chrome and iTerm =Option j/k=
+**** Slack Desktop App enhancements
+      - Scroll trough current Slack thread =Ctrl-j/Ctrl-k= (slow) or =Ctrl-e/Ctrl-y= (fast)
+      - Jump to the end of the thread with =Cmd-g=
+      - Adding emoji to the last message - =Cmd-r= (Slack's default =Cmd-Shift+\= is quite inconvenient)
+      - =Ctrl-o/Ctrl-i= - jumping back and forth in history
 
 ** Customizing
 *** Update menus, menu items, bindings, and app specific features
     All menu, app, and key bindings are defined in =~/.spacehammer/config.fnl=.
     That is your custom config and will be safe from any upstream changes to the default config.fnl.
+    /The reason for to keep it in its own directory, so it can be maintained in version-control/.
 **** Modal Menu Items
-     Menu items are listed when you press =cmd+space= and can be nested.
+     Menu items are listed when you press =LEAD= and they can be nested.
+
      Items map a key binding to an action, either a function or ="module:function-name"= string.
 
      Menu items may either define an action or a table list of items.
-
 
      For menu items that should be repeated, add =repeatable: true= to the item table.
      The repeatable flag keeps the menu option after the action has been triggered.
      Repeating a menu item is ideal for actions like window layouts where you may wish to move the window from the left third to the right third.
 
     #+BEGIN_SRC fennel
-      (local launch-alfred {:title "Alfred"
-                            :key :SPACE
+      (local launch-alfred {:title  "Alfred"
+                            :key    :SPACE
                             :action (fn [] (hs.appplication.launchOrFocus "Alfred"))})
-      (local slack-jump {:title "Slack"
-                         :key :s
+      (local slack-jump {:title  "Slack"
+                         :key    :s
                          :action "slack:quick-switcher"})
-      (local window-inc {:title "Window Halves"
-                         :mods [:cmd]
-                         :key :l
+      (local window-inc {:title  "Window Halves"
+                         :mods   [:cmd]
+                         :key    :l
                          :action "windows:resize-inc-right"})
       (local submenu {:title "Submenu"
-                      :key :t
-                      :items [{:key :m
-                               :title "Show a message"
+                      :key   :t
+                      :items [{:key    :m
+                               :title  "Show a message"
                                :action (fn [] (alert "I'm a submenu action"))}]})
       (local config {:items [launch-alfred
                              slack-jump
@@ -145,25 +133,25 @@ git clone https://github.com/agzam/spacehammer ~/.hammerspoon
 
     #+BEGIN_SRC fennel
       (local config {:hyper {:mods [:cmd :ctrl :alt :shift]}
-                     :keys [{:mods [:cmd]
-                             :key :space
-                             :action "lib.modal:activate-modal"}
-                            {:mods [:cmd]
-                             :key :h
-                             :action "chrome:prev-tab"
-                             :repeat true}
-                            {:mods [:hyper]
-                             :key :f
-                             :action (fn [] (alert "Haha you pressed f!"))}]})
+                     :keys  [{:mods   [:cmd]
+                              :key    :space
+                              :action "lib.modal:activate-modal"}
+                             {:mods   [:cmd]
+                              :key    :h
+                              :action "chrome:prev-tab"
+                              :repeat true}
+                             {:mods   [:hyper]
+                              :key    :f
+                              :action (fn [] (alert "Haha you pressed f!"))}]})
     #+END_SRC
 **** App specific customizations
      Configure separate menu options and key bindings while specified apps are active.
      Additionally, several lifecycle functions or action strings may be provided for each app.
 
-     - `:activate` When an application receives keyboard focus
-     - `:deactivate` When an application loses keyboard focus
-     - `:launch` When an application is launched
-     - `:close` When an application is terminated
+     - ~:activate~ When an application receives keyboard focus
+     - ~:deactivate~ When an application loses keyboard focus
+     - ~:launch~ When an application is launched
+     - ~:close~ When an application is terminated
 
      #+BEGIN_SRC fennel
        (local emacs-config
