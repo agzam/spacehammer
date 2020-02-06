@@ -1,42 +1,51 @@
-(local music-app "Google Play Music Desktop Player")
-
 (fn m-key [key]
+  "
+  Simulates pressing a multimedia key on a keyboard
+  Takes the key string and simulates pressing it for 5 ms then relesing it.
+  Side effectful.
+  Returns nil
+  "
   (: (hs.eventtap.event.newSystemKeyEvent (string.upper key) true) :post)
   (hs.timer.usleep 5)
   (: (hs.eventtap.event.newSystemKeyEvent (string.upper key) false) :post))
 
-(fn bind [hotkeyMmodal fsm]
-  (: hotkeyMmodal :bind nil :a
-     (fn []
-       (hs.application.launchOrFocus music-app)
-       (: fsm :toIdle)))
+(fn play-or-pause
+ []
+ "
+ Simulate pressing the play\\pause keyboard key
+ "
+ (m-key :play))
 
-  (: hotkeyMmodal :bind nil :h (fn [] (m-key :previous) (: fsm :toIdle)))
-  (: hotkeyMmodal :bind nil :l (fn [] (m-key :next) (: fsm :toIdle)))
-  (let [sup (fn [] (m-key :sound_up))]
-    (: hotkeyMmodal :bind nil :k sup nil sup))
-  (let [sdn (fn [] (m-key :sound_down))]
-    (: hotkeyMmodal :bind nil :j sdn nil sdn))
-  (let [pl (fn []
-             (m-key :play)
-             (: fsm :toIdle))]
-    (: hotkeyMmodal :bind nil :s pl)))
+(fn prev-track
+ []
+ "
+ Simulate pressing the previous track keyboard key
+ "
+ (m-key :previous))
 
-(fn add-state [modal]
-  (modal.add-state
-   :media
-   {:from :*
-    :init (fn [self fsm]
-            (set self.hotkeyModal (hs.hotkey.modal.new))
-            (modal.display-modal-text "h \t previous track\nl \t next track\nk \t volume up\nj \t volume down\ns \t play/pause\na \t launch player")
+(fn next-track
+ []
+ "
+ Simulate pressing the next track keyboard key
+ "
+ (m-key :next))
 
-            (modal.bind
-             self
-             [:cmd] :space
-             (fn [] (: fsm :toMain)))
+(fn volume-up
+ []
+ "
+ Simulate pressing the volume up key
+ "
+ (m-key :sound_up))
 
-            (bind self.hotkeyModal fsm)
-            (: self.hotkeyModal :enter))}))
+(fn volume-down
+ []
+ "
+ Simulate pressing the volume down key
+ "
+ (m-key :sound_down))
 
-{:add-state add-state
- :music-app music-app}
+{:play-or-pause play-or-pause
+ :prev-track prev-track
+ :next-track next-track
+ :volume-up volume-up
+ :volume-down volume-down}

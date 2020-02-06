@@ -1,9 +1,25 @@
-(hs.console.clearConsole)
 (hs.ipc.cliInstall) ; ensure CLI installed
 
-;;;;;;;;;;;;;;
-;; defaults ;;
-;;;;;;;;;;;;;;
+(local fennel (require :fennel))
+(local {:contains? contains?
+        :for-each  for-each
+        :map       map
+        :merge     merge
+        :reduce    reduce
+        :split     split
+        :some      some} (require :lib.functional))
+(require-macros :lib.macros)
+
+;; Make ~/.spacehammer folder override repo files
+(local homedir (os.getenv "HOME"))
+(local customdir (.. homedir "/.spacehammer"))
+(tset fennel :path (.. customdir "/?.fnl;" fennel.path))
+
+(local log (hs.logger.new "\tcore.fnl\t" "debug"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; defaults
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (set hs.hints.style :vimperator)
 (set hs.hints.showTitleThresh 4)
@@ -11,62 +27,174 @@
 (set hs.hints.fontSize 30)
 (set hs.window.animationDuration 0.2)
 
-(global alert hs.alert.show)
-(global log (fn [s] (hs.alert.show (hs.inspect s) 5)))
+"
+alert :: str, { style }, seconds -> nil
+Shortcut for showing an alert on the primary screen for a specified duration
+Takes a message string, a style table, and the number of seconds to show alert
+Returns nil. This function causes side-effects.
+"
+(global alert (fn
+                [str style seconds]
+                (hs.alert.show str
+                               style
+                               (hs.screen.primaryScreen)
+                               seconds)))
 (global fw hs.window.focusedWindow)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;  auto reload config   ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(global
- config-file-pathwatcher
- (hs.pathwatcher.new
-  hs.configdir
-  (fn [files]
-    (let [u hs.fnutils
-          fnl-file-change? (u.some
-                            files
-                            (fn [p]
-                              (when (not (string.match p ".#")) ;; ignore emacs temp files
-                                (let [ext (u.split p "%p")]
-                                  (or (u.contains ext "fnl")
-                                      (u.contains ext "lua"))))))]
-      (when fnl-file-change? (hs.reload))))))
+(fn file-exists?
+  [filepath]
+  "
+  Determine if a file exists and is readable.
+  Takes a file path string
+  Returns true if file is readable
+  "
+  (let [file (io.open filepath "r")]
+    (when file
+      (io.close file))
+    (~= file nil)))
 
-(: config-file-pathwatcher :start)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; create custom config file if it doesn't exist
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(fn copy-file
+  [source dest]
+  "
+  Copies the contents of a source file to a destination file.
+  Takes a source file path and a destination file path.
+  Returns nil
+  "
+  (let [default-config (io.open source "r")
+        custom-config (io.open dest "a")]
+    (each [line _ (: default-config :lines)]
+      (: custom-config :write (.. line "\n")))
+    (: custom-config :close)
+    (: default-config :close)))
+
+;; If ~/.spacehammer/config.fnl does not exist
+;; - Create ~/.spacehammer dir
+;; - Copy default ~/.hammerspoon/config.fnl to ~/.spacehammer/config.fnl
+(when (not (file-exists? (.. customdir "/config.fnl")))
+  (log.d "Copying ~/.hammerspoon/config.fnl to ~/.spacehammer/config.fnl")
+  (hs.fs.mkdir customdir)
+  (copy-file (.. homedir "/.hammerspoon/config.fnl")
+             (.. customdir "/config.fnl")))
 
 
-;;;;;;;;;;;;
-;; modals ;;
-;;;;;;;;;;;;
-(local modal (require :modal))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; auto reload config
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(each [_ n (pairs [:windows
-                   :apps
-                   :multimedia
-                   :emacs
-                   :chrome
-                   :grammarly])]
-  (let [module (require n)]
-    (when module.add-state
-      (module.add-state modal))
-    (when module.add-app-specific
-      (module.add-app-specific))))
+(fn source-filename?
+  [file]
+  "
+  Determine if a file is not an emacs backup file which starts with \".#\"
+  Takes a file path string
+  Returns true if it's a source file and not an emacs backup file.
+  "
+  (not (string.match file ".#")))
 
-(let [state-machine (modal.create-machine)]
-  (: state-machine :toMain))
+(fn source-extension?
+  [file]
+  "
+  Determine if a file is a .fnl or .lua file
+  Takes a file string
+  Returns true if file extension ends in .fnl or .lua
+  "
+  (let [ext (split "%p" file)]
+    (or (contains? "fnl" ext)
+        (contains? "lua" ext))))
 
-(require :keybindings)
+(fn source-updated?
+  [file]
+  "
+  Determine if a file is a valid source file that we can load
+  Takes a file string path
+  Returns true if file is not an emacs backup and is a .fnl or .lua type.
+  "
+  (and (source-filename? file)
+       (source-extension? file)))
+
+(fn config-reloader
+  [files]
+  "
+  If the list of files contains some hammerspoon or spacehammer source files:
+  reload hammerspoon
+  Takes a list of files from our config file watcher.
+  Performs side effect of reloading hammerspoon.
+  Returns nil
+  "
+  (when (some source-updated? files)
+    (hs.console.clearConsole)
+    (hs.reload)))
+
+(fn watch-files
+  [dir]
+  "
+  Watches hammerspoon or spacehammer source files. When a file updates we reload
+  hammerspoon.
+  Takes a directory to watch.
+  Returns a function to stop the watcher.
+  "
+  (let [watcher (hs.pathwatcher.new dir config-reloader)]
+    (: watcher :start)
+    (fn []
+      (: watcher :stop))))
+
+;; Create a global config-files-watcher. Calling it stops the default watcher
+(global config-files-watcher (watch-files hs.configdir))
+
+(when (file-exists? (.. customdir "/config.fnl"))
+  (global custom-files-watcher (watch-files customdir)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Set utility keybindings
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 ;; toggle hs.console with Ctrl+Cmd+~
 (hs.hotkey.bind
  [:ctrl :cmd] "`" nil
  (fn []
-   (let [console (hs.console.hswindow)]
-     (when console
-       (if (= console (hs.window.focusedWindow))
-           (-> console (: :application) (: :hide))
-           (-> console (: :raise) (: :focus)))))))
+   (if-let
+    [console (hs.console.hswindow)]
+    (when (= console (hs.console.hswindow))
+      (hs.closeConsole))
+    (hs.openConsole))))
 
-;; disable annoying Cmd+M for minimizing windows
-(hs.hotkey.bind [:cmd] :m nil (fn [] nil))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Load custom init.fnl file (if it exists)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(let [custom-init-file (.. customdir "/init.fnl")]
+  (when (file-exists? custom-init-file)
+    (fennel.dofile custom-init-file)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Initialize core modules
+;; - Requires each module
+;; - Calls module.init and provides config.fnl table
+;; - Stores global reference to all initialized resources to prevent garbage
+;;   collection.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(local config (require :config))
+
+;; Initialize our modules that depend on config
+(local modules [:lib.hyper
+                :vim
+                :windows
+                :lib.bind
+                :lib.modal
+                :lib.apps])
+
+;; Create a global reference so services like hs.application.watcher
+;; do not get garbage collected.
+(global resources
+        (->> modules
+             (map (fn [path]
+                    (let [module (require path)]
+                      {path (module.init config)})))
+             (reduce #(merge $1 $2) {})))
