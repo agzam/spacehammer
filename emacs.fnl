@@ -1,4 +1,3 @@
-
 (fn capture [is-note]
   (let [key (if is-note "\"z\"" "")
         current-app (hs.window.focusedWindow)
@@ -87,32 +86,6 @@
              (hs.application.launchOrFocus :Emacs)
              (windows.rect rect-left)))))))
 
-(fn bind [hotkeyModal fsm]
-  (: hotkeyModal :bind nil :c (fn []
-                                (: fsm :toIdle)
-                                (capture)))
-  (: hotkeyModal :bind nil :z (fn []
-                                (: fsm :toIdle)
-                                ;; note on currently clocked in
-                                (capture true)))
-  (: hotkeyModal :bind nil :v (fn []
-                                (: fsm :toIdle)
-                                (vertical-split-with-emacs)))
-  (: hotkeyModal :bind nil :f (fn []
-                                (: fsm :toIdle)
-                                (full-screen))))
-
-;; adds Emacs modal state to the FSM instance
-(fn add-state [modal]
-  (modal.add-state
-   :emacs
-   {:from :*
-    :init (fn [self fsm]
-            (set self.hotkeyModal (hs.hotkey.modal.new))
-            (modal.display-modal-text "c \tcapture\nz\tnote\nf\tfullscreen\nv\tsplit")
-            (bind self.hotkeyModal fsm)
-            (: self.hotkeyModal :enter))}))
-
 ;; Don't remove! - this is callable from Emacs
 ;; See: `spacehammer/switch-to-app` in spacehammer.el
 (fn switch-to-app [pid]
@@ -133,30 +106,30 @@
 (fn enable-edit-with-emacs []
   (: edit-with-emacs-key :enable))
 
-(fn add-app-specific []
-  (let [keybindings (require :keybindings)]
-    (keybindings.add-app-specific
-     :Emacs
-     {:activated
-      (fn []
-        (keybindings.disable-simple-vi-mode)
-        (disable-edit-with-emacs))
-      :launched
-      (fn []
-        (hs.timer.doAfter 1.5
-                          (fn []
-                            (let [app     (hs.application.find :Emacs)
-                                  windows (require :windows)
-                                  modal   (require :modal)]
-                              (when app
-                                (: app :activate)
-                                (windows.maximize-window-frame (: modal :machine)))))))})))
+(fn maximize
+  []
+  "
+  Maximizes emacs window after 1.5 seconds
+  Example in config.fnl to call this function after emacs has been launched.
+  "
+  (hs.timer.doAfter
+   1.5
+   (fn []
+     (let [app     (hs.application.find :Emacs)
+           windows (require :windows)
+           modal   (require :modal)]
+       (when app
+         (: app :activate)
+         (windows.maximize-window-frame))))))
 
-{:enable-edit-with-emacs                 enable-edit-with-emacs
- :disable-edit-with-emacs                disable-edit-with-emacs
- :add-state                              add-state
- :edit-with-emacs                        edit-with-emacs
- :switchToApp                            switch-to-app
- :switchToAppAndPasteFromClipboard       switch-to-app-and-paste-from-clipboard
- :editWithEmacsCallback                  edit-with-emacs-callback
- :add-app-specific                       add-app-specific}
+{:capture                          capture
+ :disable-edit-with-emacs          disable-edit-with-emacs
+ :edit-with-emacs                  edit-with-emacs
+ :editWithEmacsCallback            edit-with-emacs-callback
+ :enable-edit-with-emacs           enable-edit-with-emacs
+ :full-screen                      full-screen
+ :maximize                         maximize
+ :note                             (fn [] (capture true))
+ :switchToApp                      switch-to-app
+ :switchToAppAndPasteFromClipboard switch-to-app-and-paste-from-clipboard
+ :vertical-split-with-emacs        vertical-split-with-emacs}

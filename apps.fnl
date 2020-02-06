@@ -1,36 +1,42 @@
-(local windows (require :windows))
-(local multimedia (require :multimedia))
-(local slack (require :slack))
+(local {:global-filter global-filter} (require :lib.utils))
 
-(fn add-state [modal]
-  (modal.add-state
-   :apps
-   {:from :*
-    :init (fn [self fsm]
-            (set self.hotkeyModal (hs.hotkey.modal.new))
-            (modal.display-modal-text
-             "e\t emacs\ng \t chrome\n f\t Firefox\n i\t iTerm\n s\t slack\n b\t brave")
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; App switcher
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-            (modal.bind
-             self
-             [:cmd] :space
-             (fn [] (: fsm :toMain)))
+(local switcher
+       (hs.window.switcher.new
+        (global-filter)
+        {:textSize 12
+         :showTitles false
+         :showThumbnails false
+         :showSelectedTitle false
+         :selectedThumbnailSize 800
+         :backgroundColor [0 0 0 0]}))
 
-            (slack.bind self.hotkeyModal fsm)
+(fn prev-app
+  []
+  "
+  Open the fancy hammerspoon window switcher and move the cursor to the previous
+  app.
+  Runs side-effects
+  Returns nil
+  "
+  (: switcher :previous))
 
-            (each [key app (pairs
-                            {:i "iTerm2"
-                             :g "Google Chrome"
-                             :b "Brave"
-                             :e "Emacs"
-                             :f "Firefox"
-                             :m multimedia.music-app})]
-              (modal.bind
-               self nil key
-               (fn []
-                 (: fsm :toIdle)
-                 (windows.activate-app app))))
+(fn next-app
+  []
+  "
+  Open the fancy hammerspoon window switcher and move the cursor to next app.
+  Runs side-effects
+  Returns nil
+  "
+  (: switcher :next))
 
-            (: self.hotkeyModal :enter))}))
 
-{:add-state add-state}
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Exports
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+{:prev-app                prev-app
+ :next-app                next-app}
