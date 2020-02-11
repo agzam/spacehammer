@@ -11,23 +11,24 @@
         timer (hs.timer.delayed.new .1 (fn [] (io.popen run-str)))]
     (: timer :start)))
 
-;; executes emacsclient, evaluating special function that must be present in
-;; Emacs config, passing pid and title of the caller app, along with display id
-;; where the screen of the caller app is residing
 (fn edit-with-emacs []
+  "Executes emacsclient, evaluating a special elisp function in spacehammer.el
+   (it must be pre-loaded), passing PID, title and display-id of the caller."
   (let [current-app (: (hs.window.focusedWindow) :application)
-        pid (.. "\"" (: current-app :pid) "\"")
-        title (.. "\"" (: current-app :title) "\"")
-        screen (.. "\"" (: (hs.screen.mainScreen) :id) "\"")
-        run-str (..
-                 "/usr/local/bin/emacsclient"
-                 " -c -F '(quote (name . \"edit\"))' "
-                 " -e '(spacehammer/edit-with-emacs "
-                 pid " " title " " screen " )'")]
+        pid         (.. "\"" (: current-app :pid) "\"")
+        title       (.. "\"" (: current-app :title) "\"")
+        screen      (.. "\"" (: (hs.screen.mainScreen) :id) "\"")
+        run-str     (..
+                     "/usr/local/bin/emacsclient"
+                     " -c -F '(quote (name . \"edit\"))' "
+                     " -e '(spacehammer/edit-with-emacs "
+                     pid " " title " " screen " )'")
+        co          (coroutine.create (fn [run-str]
+                                        (io.popen run-str)))]
     ;; select all + copy
     (hs.eventtap.keyStroke [:cmd] :a)
     (hs.eventtap.keyStroke [:cmd] :c)
-    (io.popen run-str)))
+    (coroutine.resume co run-str)))
 
 ;; Don't remove! - this is callable from Emacs
 ;; See: `spacehammer/edit-with-emacs` in spacehammer.el
