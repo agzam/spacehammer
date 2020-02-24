@@ -1,3 +1,15 @@
+;; Copyright (c) 2017-2020 Ag Ibragimov & Contributors
+;;
+;;; Author: Ag Ibragimov <agzam.ibragimov@gmail.com>
+;;
+;;; Contributors:
+;;   Jay Zawrotny <jayzawrotny@gmail.com>
+;;
+;;; URL: https://github.com/agzam/spacehammer
+;;
+;;; License: MIT
+;;
+
 (local atom (require :lib.atom))
 (local hyper (require :lib.hyper))
 (local {:call-when call-when

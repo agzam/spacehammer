@@ -1,3 +1,16 @@
+;; Copyright (c) 2017-2020 Ag Ibragimov & Contributors
+;;
+;;; Author: Ag Ibragimov <agzam.ibragimov@gmail.com>
+;;
+;;; Contributors:
+;;   Jay Zawrotny <jayzawrotny@gmail.com>
+;;
+;;; URL: https://github.com/agzam/spacehammer
+;;
+;;; License: MIT
+;;
+
+
 ;; somehow Grammarly doesn't let you easily copy or cut the text out of its
 ;; window. so I need to emulate a click event first.
 (fn click-in-window []
