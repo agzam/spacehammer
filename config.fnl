@@ -106,8 +106,8 @@
   Change the keybinding in the common keys section of this config file.
   "
   (if-let [console (hs.console.hswindow)]
-   (hs.closeConsole)
-   (hs.openConsole)))
+          (hs.closeConsole)
+          (hs.openConsole)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -229,6 +229,24 @@
          :action "windows:move-east"
          :repeatable true}])
 
+(local
+ multimonitor-items
+ ;; let's add keys from 0 to 9, for multi-monitor configurations. Up to 9
+ ;; displays can be supported.
+ ;; Done this way, so we don't have to dynamically add and remove keys when
+ ;; display[s] get [dis]connected
+ (let [t []]
+   (for [i 1 9]
+     (table.insert
+      t
+      {:key (tostring i)
+       :action (fn []
+                 (let [screens (hs.screen.allScreens)
+                       current (. screens i)]
+                   (when current
+                     (windows.move-to-screen current))))}))
+   t))
+
 (local window-bindings
        (concat
         [return
@@ -251,7 +269,8 @@
           :action "windows:show-grid"}
          {:key :u
           :title "Undo"
-          :action "windows:undo-action"}]))
+          :action "windows:undo-action"}]
+        multimonitor-items))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -326,22 +345,24 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (local menu-items
-       [{:key :space
-         :title "Alfred"
+       [{:key    :space
+         :title  "Alfred"
          :action (activator "Alfred 4")}
-        {:key :w
+        {:key   :w
          :title "Window"
+         :enter (fn [] (windows.show-display-numbers))
+         :exit  (fn [] (windows.hide-display-numbers))
          :items window-bindings}
-        {:key :a
+        {:key   :a
          :title "Apps"
          :items app-bindings}
-        {:key :j
-         :title "Jump"
+        {:key    :j
+         :title  "Jump"
          :action "windows:jump"}
-        {:key :m
+        {:key   :m
          :title "Media"
          :items media-bindings}
-        {:key :x
+        {:key   :x
          :title "Emacs"
          :items emacs-bindings}])
 
@@ -493,8 +514,10 @@
 (local config
        {:title "Main Menu"
         :items menu-items
-        :keys common-keys
-        :apps apps
+        :keys  common-keys
+        :enter (fn [] (windows.hide-display-numbers))
+        :exit  (fn [] (windows.hide-display-numbers))
+        :apps  apps
         :hyper {:key :F18}})
 
 
