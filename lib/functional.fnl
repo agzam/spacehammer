@@ -1,3 +1,12 @@
+;; Copyright (c) 2017-2020 Ag Ibragimov & Contributors
+;;
+;;; Author: Jay Zawrotny <jayzawrotny@gmail.com>
+;;
+;;; URL: https://github.com/agzam/spacehammer
+;;
+;;; License: MIT
+;;
+
 (local fu hs.fnutils)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -89,6 +98,15 @@
   (f x (table.unpack [...]))
   x)
 
+(fn count
+  [tbl]
+  "Returns number of elements in a table"
+  (var ct 0)
+  (fu.each
+   tbl
+   (fn []
+     (set ct (+ ct 1))))
+  ct)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Reduce Primitives
@@ -196,6 +214,7 @@
 {:call-when call-when
  :concat    concat
  :contains? contains?
+ :count     count
  :eq?       eq?
  :filter    filter
  :find      find
