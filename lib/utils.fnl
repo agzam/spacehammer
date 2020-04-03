@@ -16,6 +16,6 @@
   Filter that includes full-screen apps
   "
   (let [filter (hs.window.filter.new)]
-    (: filter :setAppFilter :emacs {:allowRoles [:AXUnknown :AXStandardWindow]})))
+    (: filter :setAppFilter :Emacs {:allowRoles [:AXUnknown :AXStandardWindow :AXDialog :AXSystemDialog]})))
 
 {:global-filter global-filter}
