@@ -1,5 +1,6 @@
-(local {:filter filter
-        :get-in get-in} (require :lib.functional))
+(local {:filter   filter
+        :get-in   get-in
+        :identity identity} (require :lib.functional))
 ;; Copyright (c) 2017-2020 Ag Ibragimov & Contributors
 ;;
 ;;; Author: Ag Ibragimov <agzam.ibragimov@gmail.com>
@@ -63,15 +64,22 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Shared Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(var cleanup-rect identity)
 
 (fn highlight-active-window
   []
-  (let [rect (hs.drawing.rectangle (: (hs.window.focusedWindow) :frame))]
+  (when cleanup-rect
+    (cleanup-rect))
+  (let [rect (hs.drawing.rectangle (: (hs.window.focusedWindow) :frame))
+        timer (hs.timer.doAfter .3 (fn [] (cleanup-rect)))]
     (: rect :setStrokeColor {:red 1 :blue 0 :green 1 :alpha 1})
     (: rect :setStrokeWidth 5)
     (: rect :setFill false)
     (: rect :show)
-    (hs.timer.doAfter .3 (fn [] (: rect :delete)))))
+    (set cleanup-rect (fn []
+                        (: timer :stop)
+                        (: rect :delete)
+                        (set cleanup-rect identity)))))
 
 (fn maximize-window-frame
   []
