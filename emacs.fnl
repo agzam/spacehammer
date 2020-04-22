@@ -20,7 +20,7 @@
                      "/usr/local/bin/emacsclient"
                      " -c -F '(quote (name . \"capture\"))'"
                      " -e '(spacehammer/activate-capture-frame "
-                     pid title key " )'")
+                     pid title key " )' &")
         timer       (hs.timer.delayed.new .1 (fn [] (io.popen run-str)))]
     (: timer :start)))
 
@@ -35,7 +35,7 @@
                      "/usr/local/bin/emacsclient"
                      " -c -F '(quote (name . \"edit\"))' "
                      " -e '(spacehammer/edit-with-emacs "
-                     pid " " title " " screen " )'")
+                     pid " " title " " screen " )' &")
         co          (coroutine.create (fn [run-str]
                                         (io.popen run-str)))]
     ;; select all + copy
@@ -64,8 +64,8 @@
   (let [args-lst (when args (.. " '" (table.concat args " '")))
         run-str  (.. "/usr/local/bin/emacsclient"
                      " -e \"(funcall '" elisp-fn
-                     (if args-lst args-lst "")
-                     ")\"")]
+                     (if args-lst args-lst " &")
+                     ")\" &")]
     (io.popen run-str)))
 
 (fn full-screen

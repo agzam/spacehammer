@@ -1,0 +1,32 @@
+* Edit with Emacs
+
+  Any text can be edited using Emacs. The idea is simple - you press dedicated key-combo (set to =Cmd+Ctrl+O=), Spacehammer copies existing text, then calls ~emacsclient~, then invokes a function that opens a buffer and pastes the text into it. After you're done editing the text in Emacs, you press =C-c C-c= - it grabs the text, switches back to the program, pastes the text back in there. It works surprisingly well.
+  You can for example:
+  - open Browser Dev Tools;
+  - press =Cmd+Ctrl+O=,
+  - then in Emacs, switch to js-mode, have all the bells and whistles: syntax-highlighting, autocomplete, etc.;
+  - write some javascript;
+  - finish editing, press =C-c C-c=
+    and it would paste the code back into the Dev Tools console.
+
+** Setup and customization
+
+   After Spacehammer invokes ~emacsclient~ (note that Emacs *has to be running in daemon mode*), it invokes emacs-lisp function(s). Those functions are in ~~./hammerspoon/spacehammer.el~ Emacs package. That package needs to be pre-loaded into Emacs.
+
+   You can customize mode, and other things for edit-with-emacs buffer in ~spacehammer/edit-with-emacs-hook~, here's an example that might be useful for Spacemacs users:
+
+   #+begin_src emacs-lisp
+     ;; Note that the hook function accepts arguments, refer to spacehammer.el source to learn more
+
+     (defun on-spacehammer-edit-with-emacs (buffer-name pid title)
+       (with-current-buffer (get-buffer buffer-name)
+         (spacemacs/evil-search-clear-highlight)
+         (spacemacs/toggle-visual-line-navigation-on)
+         (markdown-mode)
+         (evil-insert 1)))
+
+     (use-package spacehammer
+       :demand t
+       :config
+       (add-hook 'spacehammer/edit-with-emacs-hook 'on-spacehammer-edit-with-emacs))
+   #+end_src
