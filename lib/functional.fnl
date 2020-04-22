@@ -19,6 +19,17 @@
   (when (and f (= (type f) :function))
     (f)))
 
+(fn compose
+  [...]
+  (let [fs [...]
+        total (length fs)]
+    (fn [v]
+      (var res v)
+      (for [i 0 (- total 1)]
+        (let [f (. fs (- total i))]
+          (set res (f res))))
+      res)))
+
 (fn contains?
   [x xs]
   "Returns true if key is present in the given collection, otherwise returns false."
@@ -212,6 +223,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 {:call-when call-when
+ :compose   compose
  :concat    concat
  :contains? contains?
  :count     count
