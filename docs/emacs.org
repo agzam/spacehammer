@@ -1,5 +1,7 @@
 * Edit with Emacs
 
+  [[./edit-with-emacs-demo.gif/]]
+
   Any text, in just any app can be edited using Emacs. The idea is simple - you press dedicated key-combo (set to =Cmd+Ctrl+O=), Spacehammer copies existing text, then calls ~emacsclient~, then invokes a function that opens a buffer and pastes the text into it. After you're done editing the text in Emacs, you press =C-c C-c= - it grabs the text, switches back to the program, pastes the text back in there. It works surprisingly well.
   You can for example:
   - open Browser's Dev Tools;
