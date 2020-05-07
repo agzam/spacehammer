@@ -68,6 +68,13 @@ DIRECTION - can be North, South, West, East"
   :lighter " editwithemacs"
   :keymap spacehammer/edit-with-emacs-mode-map)
 
+(defvar spacehammer/edit-with-emacs-hook nil
+  "Hook for when edit-with-emacs buffer gets activated.
+   Hook function must accept arguments:
+    - buffer-name - the name of the edit buffer
+    - pid         - PID of the app that invoked Edit-with-Emacs
+    - title       - title of the app that invoked Edit-with-Emacs")
+
 (defun spacehammer/edit-with-emacs (&optional pid title screen)
   "Edit anything with Emacs
 
@@ -77,19 +84,18 @@ TITLE is a title of the window (the caller is responsible to set that right)"
   (select-frame-by-name "edit")
   (set-frame-position nil 400 400)
   (set-frame-size nil 800 600 t)
-  (let ((buffer (get-buffer-create (concat "*edit-with-emacs " title " *"))))
-    (set-buffer-major-mode buffer)
+  (let* ((buf-name (concat "*edit-with-emacs " title " *"))
+         (buffer (get-buffer-create buf-name)))
     (unless (bound-and-true-p global-edit-with-emacs-mode)
       (global-edit-with-emacs-mode 1))
     (with-current-buffer buffer
-      (spacemacs/copy-clipboard-to-whole-buffer)
-      (spacemacs/evil-search-clear-highlight)
+      (delete-region (point-min) (point-max))
+      (clipboard-yank)
+      (deactivate-mark)
       (delete-other-windows)
-      (spacemacs/toggle-visual-line-navigation-on)
-      (markdown-mode)
-      (spacehammer/edit-with-emacs-mode 1)
-      (evil-insert 1))
-    (switch-to-buffer buffer))
+      (spacehammer/edit-with-emacs-mode 1))
+    (switch-to-buffer buffer)
+    (run-hook-with-args 'spacehammer/edit-with-emacs-hook buf-name pid title))
   (when (and pid (eq system-type 'darwin))
     (call-process
      (executable-find "hs") nil 0 nil "-c"
