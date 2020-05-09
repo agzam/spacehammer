@@ -64,7 +64,6 @@ switching menus in one place which is then powered by config.fnl.
         (: task :stop)
         nil))))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Event Dispatchers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -281,7 +280,7 @@ switching menus in one place which is then powered by config.fnl.
    :unbind-keys (bind-menu-keys menu.items)
    :history (if history
                 (concat [] history [menu])
-                [])})
+                [menu])})
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -413,7 +412,6 @@ switching menus in one place which is then powered by config.fnl.
                                  :menu         menu
                                  :history      history})))))
 
-
 (fn active->timeout
   [state]
   "
@@ -429,7 +427,6 @@ switching menus in one place which is then powered by config.fnl.
   (call-when state.stop-timeout)
   {:stop-timeout (timeout deactivate-modal)})
 
-
 (fn submenu->previous
   [state]
   "
@@ -441,13 +438,13 @@ switching menus in one place which is then powered by config.fnl.
   "
   (let [{:config config
          :history history} state
-        history (slice 1 -1 history)
-        main-menu (= 0 (length history))
-        navigate (if main-menu
-                     idle->active
-                     active->submenu)]
-    (navigate (merge state
-                     {:history history}))))
+        prev-menu (. history (- (length history) 1))]
+    (if prev-menu
+        (merge state
+               (show-modal-menu (merge state
+                                       {:menu prev-menu}))
+               {:history (slice 1 -1 history)})
+        (idle->active state))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -495,7 +492,9 @@ switching menus in one place which is then powered by config.fnl.
    fsm.state :log-state
    (fn log-state
      [state]
-     (log.df "state is now: %s" state.status))))
+     (log.df "state is now: %s" state.status)
+     (when state.history
+       (log.df (hs.inspect (map #(. $1 :title) state.history)))))))
 
 (fn proxy-app-action
   [[action data]]
