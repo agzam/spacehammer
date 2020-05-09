@@ -10,11 +10,12 @@
 ;;; License: MIT
 ;;
 
-(local {:filter   filter
-        :get-in   get-in
-        :count    count
-        :concat   concat
-        :for-each for-each} (require :lib.functional))
+(local {:filter    filter
+        :get-in    get-in
+        :count     count
+        :concat    concat
+        :contains? contains?
+        :for-each  for-each} (require :lib.functional))
 (local {:global-filter global-filter} (require :lib.utils))
 (local {:atom   atom
         :deref  deref
@@ -390,8 +391,9 @@
   "Shows big number at the corner of each screen.
    To be used as for multi-monitor setups, to easily identify index of each screen."
   (let [ss (hs.screen.allScreens)]
-    (each [idx display (ipairs (hs.screen.allScreens))]
-      (show-display-number idx display))))
+    (when (< 1 (count ss))
+      (each [idx display (ipairs (hs.screen.allScreens))]
+        (show-display-number idx display)))))
 
 (fn hide-display-numbers []
   "Hides big numbers at the corner of each screen that are used for guidance in
@@ -400,6 +402,26 @@
    (fn [c] (: c :delete .4))
    (deref screen-number-canvases))
   (reset! screen-number-canvases []))
+
+(fn add-display-keys [menu-item]
+  "Takes menu item and updates key/action pairs for multiple monitors. i.e. per
+   each display it adds a key to easily move items onto that display."
+  (let [add-fn (fn [ls]
+                 (let [ss (hs.screen.allScreens)]
+                   (when (< 1 (count ss))
+                     (each [k v (pairs ss)]
+                       (table.insert
+                        ls
+                        {:key    (tostring k)
+                         :action (fn [] (move-to-screen v))})))
+                   ls))
+        items* (->>
+                menu-item.items
+                (filter
+                 (fn [i]
+                   (not (contains? i.key [:1 :2 :3 :4 :5 :6 :7 :8 :9]))))
+                (add-fn))]
+    (set menu-item.items items*)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initialization
@@ -424,6 +446,7 @@
 {:activate-app            activate-app
  :center-window-frame     center-window-frame
  :hide-display-numbers    hide-display-numbers
+ :add-display-keys        add-display-keys
  :highlight-active-window highlight-active-window
  :init                    init
  :jump                    jump

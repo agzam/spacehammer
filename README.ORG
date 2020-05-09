@@ -73,8 +73,8 @@
 
     By default =LEAD m a= - =jump to music ap= is configured to work with Spotify, but you can change that in =~./spacehammer/config.fnl=
 
-**** Edit anything [with Emacs]
-     You can edit any text in any app =Cmd+Ctrl+O=. Currently, it supports only Emacs. Read more [[docs/emacs.org][here]].
+*** Edit anything [with Emacs]
+    You can edit any text in any app =Cmd+Ctrl+O=. Currently, it supports only Emacs. Read more [[docs/emacs.org][here]].
 ** Other features
 **** Alternative App Switcher =Option n/p=
 **** Simple tab switcher for Chrome and iTerm =Option j/k=

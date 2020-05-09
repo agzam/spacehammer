@@ -229,24 +229,6 @@
          :action "windows:move-east"
          :repeatable true}])
 
-(local
- multimonitor-items
- ;; let's add keys from 0 to 9, for multi-monitor configurations. Up to 9
- ;; displays can be supported.
- ;; Done this way, so we don't have to dynamically add and remove keys when
- ;; display[s] get [dis]connected
- (let [t []]
-   (for [i 1 9]
-     (table.insert
-      t
-      {:key (tostring i)
-       :action (fn []
-                 (let [screens (hs.screen.allScreens)
-                       current (. screens i)]
-                   (when current
-                     (windows.move-to-screen current))))}))
-   t))
-
 (local window-bindings
        (concat
         [return
@@ -269,9 +251,7 @@
           :action "windows:show-grid"}
          {:key :u
           :title "Undo"
-          :action "windows:undo-action"}]
-        multimonitor-items))
-
+          :action "windows:undo-action"}]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Apps Menu
@@ -339,7 +319,6 @@
          :title "Full Screen"
          :action "emacs:full-screen"}])
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Main Menu & Config
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -350,7 +329,9 @@
          :action (activator "Alfred 4")}
         {:key   :w
          :title "Window"
-         :enter (fn [] (windows.show-display-numbers))
+         :enter (fn [] (fn [x]
+                         (windows.add-display-keys x)
+                         (windows.show-display-numbers)))
          :exit  (fn [] (windows.hide-display-numbers))
          :items window-bindings}
         {:key   :a
