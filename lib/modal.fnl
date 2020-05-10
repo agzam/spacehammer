@@ -204,6 +204,9 @@ switching menus in one place which is then powered by config.fnl.
                          item.items)))
            (map bind-item))
       (concat [{:key :ESCAPE
+                :action deactivate-modal}
+               {:mods [:ctrl]
+                :key "["
                 :action deactivate-modal}])
       (bind-keys)))
 
