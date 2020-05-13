@@ -72,6 +72,13 @@
   []
   nil)
 
+(fn range
+  [start end]
+  (let [t []]
+    (for [i start end]
+      (table.insert t i))
+    t))
+
 (fn slice-end-idx
   [end-pos list]
   (if (< end-pos 0)
