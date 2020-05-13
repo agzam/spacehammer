@@ -15,6 +15,7 @@
         :count     count
         :concat    concat
         :contains? contains?
+        :map       map
         :for-each  for-each} (require :lib.functional))
 (local {:global-filter global-filter} (require :lib.utils))
 (local {:atom   atom
@@ -324,7 +325,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Move to screen
+;; Move to screen directions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn move-to-screen
@@ -366,6 +367,10 @@
 (local canvas (require :hs.canvas))
 (local screen-number-canvases (atom []))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Move to screen by number
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (fn show-display-number
   [idx screen]
   "Shows a big number at the corner of hs.screen.
@@ -387,7 +392,8 @@
            :withShadow true}])
       (: :show))))
 
-(fn show-display-numbers []
+(fn show-display-numbers
+  [screens]
   "Shows big number at the corner of each screen.
    To be used as for multi-monitor setups, to easily identify index of each screen."
   (let [ss (hs.screen.allScreens)]
@@ -395,7 +401,8 @@
       (each [idx display (ipairs (hs.screen.allScreens))]
         (show-display-number idx display)))))
 
-(fn hide-display-numbers []
+(fn hide-display-numbers
+  []
   "Hides big numbers at the corner of each screen that are used for guidance in
    multi-monitor setups."
   (for-each
@@ -403,25 +410,75 @@
    (deref screen-number-canvases))
   (reset! screen-number-canvases []))
 
-(fn add-display-keys [menu-item]
-  "Takes menu item and updates key/action pairs for multiple monitors. i.e. per
-   each display it adds a key to easily move items onto that display."
-  (let [add-fn (fn [ls]
-                 (let [ss (hs.screen.allScreens)]
-                   (when (< 1 (count ss))
-                     (each [k v (pairs ss)]
-                       (table.insert
-                        ls
-                        {:key    (tostring k)
-                         :action (fn [] (move-to-screen v))})))
-                   ls))
-        items* (->>
-                menu-item.items
-                (filter
-                 (fn [i]
-                   (not (contains? i.key [:1 :2 :3 :4 :5 :6 :7 :8 :9]))))
-                (add-fn))]
-    (set menu-item.items items*)))
+(fn monitor-item
+  [screen i]
+  "
+  Creates a menu item to move the frontMost window to the specified screen index
+  Takes a hs.screen instance and an index integer
+  Returns a table-map to add to a config.fnl modal menu
+  "
+  {:title (.. "Monitor " i)
+   :key (tostring i)
+   :group :monitor
+   :action (fn []
+             (when screen
+               (move-to-screen screen)))})
+
+(fn remove-monitor-items
+  [menu]
+  "
+  Removes the monitor items from a menu
+  Takes a menu table-map
+  Mutates the menu object to remove items with :group :monitor flags
+  Returns mutated table-map
+  "
+  (->> menu.items
+       (filter #(not (= (. $ :group) :monitor)))
+       (tset menu :items))
+  menu)
+
+(fn add-monitor-items
+  [menu screens]
+  "
+  Update a menu by adding an item for each connected monitor
+  Takes a menu table-map and a table-list of hs.screens
+  Mutates the menu.items by adding items for each monitor
+  Returns mutated modal menu table-map
+  "
+  (->> screens
+       (map monitor-item)
+       (concat menu.items)
+       (tset menu :items))
+  menu)
+
+(fn enter-window-menu
+  [menu]
+  "
+  Handler that can be used when entering the windows menu
+  Takes modal menu table-map
+  - Hides any previous display numbers
+  - Shows display numbers at top right of each screen
+  - Removes previous monitor items if any were added
+  - Adds monitor items based on currently connected monitors
+  Returns mutated modal menu table-map for threading or chaining
+  "
+  (let [screens (hs.screen.allScreens)]
+    (hide-display-numbers)
+    (show-display-numbers screens)
+    (remove-monitor-items menu)
+    (add-monitor-items menu screens))
+  menu)
+
+(fn exit-window-menu
+  [menu]
+  "
+  Handler that can be used when exiting the windows menu
+  - Removes previous monitor items if any were added
+  Returns mutated modal menu table-map for threading or chaining
+  "
+  (hide-display-numbers)
+  menu)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initialization
@@ -445,8 +502,9 @@
 
 {:activate-app            activate-app
  :center-window-frame     center-window-frame
+ :enter-window-menu       enter-window-menu
+ :exit-window-menu        exit-window-menu
  :hide-display-numbers    hide-display-numbers
- :add-display-keys        add-display-keys
  :highlight-active-window highlight-active-window
  :init                    init
  :jump                    jump

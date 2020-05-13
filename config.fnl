@@ -329,10 +329,8 @@
          :action (activator "Alfred 4")}
         {:key   :w
          :title "Window"
-         :enter (fn [] (fn [x]
-                         (windows.add-display-keys x)
-                         (windows.show-display-numbers)))
-         :exit  (fn [] (windows.hide-display-numbers))
+         :enter "windows:enter-window-menu"
+         :exit "windows:exit-window-menu"
          :items window-bindings}
         {:key   :a
          :title "Apps"
