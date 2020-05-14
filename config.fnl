@@ -106,8 +106,8 @@
   Change the keybinding in the common keys section of this config file.
   "
   (if-let [console (hs.console.hswindow)]
-   (hs.closeConsole)
-   (hs.openConsole)))
+          (hs.closeConsole)
+          (hs.openConsole)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -253,7 +253,6 @@
           :title "Undo"
           :action "windows:undo-action"}]))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Apps Menu
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -320,28 +319,29 @@
          :title "Full Screen"
          :action "emacs:full-screen"}])
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Main Menu & Config
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (local menu-items
-       [{:key :space
-         :title "Alfred"
+       [{:key    :space
+         :title  "Alfred"
          :action (activator "Alfred 4")}
-        {:key :w
+        {:key   :w
          :title "Window"
+         :enter "windows:enter-window-menu"
+         :exit "windows:exit-window-menu"
          :items window-bindings}
-        {:key :a
+        {:key   :a
          :title "Apps"
          :items app-bindings}
-        {:key :j
-         :title "Jump"
+        {:key    :j
+         :title  "Jump"
          :action "windows:jump"}
-        {:key :m
+        {:key   :m
          :title "Media"
          :items media-bindings}
-        {:key :x
+        {:key   :x
          :title "Emacs"
          :items emacs-bindings}])
 
@@ -493,8 +493,10 @@
 (local config
        {:title "Main Menu"
         :items menu-items
-        :keys common-keys
-        :apps apps
+        :keys  common-keys
+        :enter (fn [] (windows.hide-display-numbers))
+        :exit  (fn [] (windows.hide-display-numbers))
+        :apps  apps
         :hyper {:key :F18}})
 
 

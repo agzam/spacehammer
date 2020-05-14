@@ -1,4 +1,12 @@
 * Note: sorted starting from the most recent changes
+  - [2020-02-23 Sun]
+    - Move to display feature. Windows modal: <LEAD w> now would display a big
+      number at the corner of each display, when a number on the keypad is
+      pressed, current active app window will be moved onto that screen. Useful
+      for multi-monitor setups.
+
+      Note: if ~/.spacehammer/config.fnl is used, it
+      needs to be updated in order for this feature to work.
   - [2020-02-04 Tue]
     - New, completely revamped modal engine - [[https://github.com/eccentric-j][@eccentric-j]]
     - Improved state-machine implementation - [[https://github.com/eccentric-j][@eccentric-j]]

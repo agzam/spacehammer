@@ -34,7 +34,7 @@ Meant for internal use only.
   (let [method (. obj method-name)]
     (match (type method)
       :function (method obj)
-      :string (do-action method)
+      :string (do-action method [obj])
       _       (do
                 (log.wf "Could not call lifecycle method %s on %s"
                         method-name

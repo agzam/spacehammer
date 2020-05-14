@@ -19,7 +19,7 @@
 (local log (hs.logger.new "bind.fnl" "debug"))
 
 (fn do-action
-  [action]
+  [action args]
   "
   Resolves an action string to a function in a module then runs that function.
   Takes an action string like \"lib.bind:do-action\"
@@ -28,9 +28,10 @@
   not be resolved.
   "
   (let [[file fn-name] (split ":" action)
-        module (require file)]
-    (if (. module fn-name)
-        (: module fn-name)
+        module (require file)
+        f (. module fn-name)]
+    (if f
+        (f (table.unpack (or args [])))
         (do
           (log.wf "Could not invoke action %s"
                   action)))))
@@ -47,8 +48,8 @@
   ; Waits 1 second
   ; Looks for a function called greeting in messages.fnl
   "
-  (fn []
-    (do-action action)))
+  (fn [...]
+    (do-action action [...])))
 
 
 (fn action->fn

@@ -440,12 +440,14 @@ switching menus in one place which is then powered by config.fnl.
   Dynamically calls another transition depending on history.
   "
   (let [{:config config
-         :history history} state
+         :history history
+         :menu menu} state
         prev-menu (. history (- (length history) 1))]
     (if prev-menu
         (merge state
                (show-modal-menu (merge state
-                                       {:menu prev-menu}))
+                                       {:menu prev-menu
+                                        :prev-menu menu}))
                {:history (slice 1 -1 history)})
         (idle->active state))))
 
