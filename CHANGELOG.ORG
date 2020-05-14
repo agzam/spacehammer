@@ -1,4 +1,6 @@
 * Note: sorted starting from the most recent changes
+  - [2020-05-14 Thu]
+    - Edit-with-emacs feature now detects if there's a pre-selected text already and edits only that chunk
   - [2020-05-13 Wed]
     - Addressed workaround for regression in fennel 0.4.0 https://github.com/bakpakin/Fennel/issues/276
   - [2020-02-23 Sun]
