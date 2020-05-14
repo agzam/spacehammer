@@ -37,10 +37,14 @@
                      " -e '(spacehammer/edit-with-emacs "
                      pid " " title " " screen " )' &")
         co          (coroutine.create (fn [run-str]
-                                        (io.popen run-str)))]
-    ;; select all + copy
-    (hs.eventtap.keyStroke [:cmd] :a)
-    (hs.eventtap.keyStroke [:cmd] :c)
+                                        (io.popen run-str)))
+        prev        (hs.pasteboard.changeCount)
+        _           (hs.eventtap.keyStroke [:cmd] :c)
+        next        (hs.pasteboard.changeCount)]
+    (when (= prev next)         ; Pasteboard was not updated so no text was selected
+      (hs.eventtap.keyStroke [:cmd] :a)  ; select all
+      (hs.eventtap.keyStroke [:cmd] :c)  ; copy
+      )
     (coroutine.resume co run-str)))
 
 (fn edit-with-emacs-callback [pid title screen]
@@ -53,9 +57,6 @@
     (when (and edit-window scr)
       (: edit-window :moveToScreen scr)
       (: windows :center-window-frame))))
-
-;; global keybinging to invoke edit-with-emacs feature
-(local edit-with-emacs-key (hs.hotkey.new [:cmd :ctrl] :o nil edit-with-emacs))
 
 (fn run-emacs-fn
   [elisp-fn args]
@@ -117,11 +118,6 @@
       (: app :activate)
       (: app :selectMenuItem [:Edit :Paste]))))
 
-(fn disable-edit-with-emacs []
-  (: edit-with-emacs-key :disable))
-
-(fn enable-edit-with-emacs []
-  (: edit-with-emacs-key :enable))
 
 (fn maximize
   []
@@ -137,10 +133,8 @@
          (windows.maximize-window-frame))))))
 
 {:capture                          capture
- :disable-edit-with-emacs          disable-edit-with-emacs
  :edit-with-emacs                  edit-with-emacs
  :editWithEmacsCallback            edit-with-emacs-callback
- :enable-edit-with-emacs           enable-edit-with-emacs
  :full-screen                      full-screen
  :maximize                         maximize
  :note                             (fn [] (capture true))
