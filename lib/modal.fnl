@@ -27,6 +27,7 @@ switching menus in one place which is then powered by config.fnl.
         :filter    filter
         :get       get
         :has-some? has-some?
+        :identity  identity
         :join      join
         :last      last
         :map       map
@@ -228,7 +229,8 @@ switching menus in one place which is then powered by config.fnl.
   "
   (let [mods (-?>> item.mods
                   (map (fn [m] (or (. mod-chars m) m)))
-                  (join " "))]
+                  (join " ")
+                  (identity))]
     (.. (or mods "")
         (if mods " + " "")
         item.key)))
