@@ -1,0 +1,130 @@
+[
+  {
+    "Command": [],
+    "Constant": [],
+    "Constructor": [],
+    "Deprecated": [],
+    "Field": [],
+    "Function": [],
+    "Method": [
+      {
+        "def": "URLDispatcher:dispatchURL(scheme, host, params, fullUrl)",
+        "desc": "Dispatch a URL to an application according to the defined `url_patterns`.",
+        "doc": "Dispatch a URL to an application according to the defined `url_patterns`.\n\nParameters (according to the [httpCallback](http://www.hammerspoon.org/docs/hs.urlevent.html#httpCallback) specification):\n * scheme - A string containing the URL scheme (i.e. \"http\")\n * host - A string containing the host requested (e.g. \"www.hammerspoon.org\")\n * params - A table containing the key/value pairs of all the URL parameters\n * fullURL - A string containing the full, original URL",
+        "name": "dispatchURL",
+        "signature": "URLDispatcher:dispatchURL(scheme, host, params, fullUrl)",
+        "stripped_doc": "Parameters (according to the [httpCallback](http://www.hammerspoon.org/docs/hs.urlevent.html#httpCallback) specification):\n * scheme - A string containing the URL scheme (i.e. \"http\")\n * host - A string containing the host requested (e.g. \"www.hammerspoon.org\")\n * params - A table containing the key/value pairs of all the URL parameters\n * fullURL - A string containing the full, original URL",
+        "type": "Method"
+      },
+      {
+        "def": "URLDispatcher:start()",
+        "desc": "Start dispatching URLs according to the rules",
+        "doc": "Start dispatching URLs according to the rules",
+        "name": "start",
+        "signature": "URLDispatcher:start()",
+        "stripped_doc": "",
+        "type": "Method"
+      }
+    ],
+    "Variable": [
+      {
+        "def": "URLDispatcher.decode_slack_redir_urls",
+        "desc": "If true, handle Slack-redir URLs to apply the rule on the destination URL. Defaults to `true`",
+        "doc": "If true, handle Slack-redir URLs to apply the rule on the destination URL. Defaults to `true`",
+        "name": "decode_slack_redir_urls",
+        "signature": "URLDispatcher.decode_slack_redir_urls",
+        "stripped_doc": "",
+        "type": "Variable"
+      },
+      {
+        "def": "URLDispatcher.default_handler",
+        "desc": "Bundle ID for default URL handler. (Defaults to `\"com.apple.Safari\"`)",
+        "doc": "Bundle ID for default URL handler. (Defaults to `\"com.apple.Safari\"`)",
+        "name": "default_handler",
+        "signature": "URLDispatcher.default_handler",
+        "stripped_doc": "",
+        "type": "Variable"
+      },
+      {
+        "def": "URLDispatcher.logger",
+        "desc": "Logger object used within the Spoon. Can be accessed to set the default log level for the messages coming from the Spoon.",
+        "doc": "Logger object used within the Spoon. Can be accessed to set the default log level for the messages coming from the Spoon.",
+        "name": "logger",
+        "signature": "URLDispatcher.logger",
+        "stripped_doc": "",
+        "type": "Variable"
+      },
+      {
+        "def": "URLDispatcher.url_patterns",
+        "desc": "URL dispatch rules.",
+        "doc": "URL dispatch rules.\nA table containing a list of dispatch rules. Each rule should be its own table in the format: `{ \"url pattern\", \"application bundle ID\", \"function\" }`, and they are evaluated in the order they are declared. Note that the patterns are [Lua patterns](https://www.lua.org/pil/20.2.html) and not regular expressions. Defaults to an empty table, which has the effect of having all URLs dispatched to the `default_handler`. If \"application bundle ID\" is specified, that application will be used to open matching URLs. If no \"application bundle ID\" is specified, but \"function\" is provided (and is a Lua function) it will be called with the URL.",
+        "name": "url_patterns",
+        "signature": "URLDispatcher.url_patterns",
+        "stripped_doc": "A table containing a list of dispatch rules. Each rule should be its own table in the format: `{ \"url pattern\", \"application bundle ID\", \"function\" }`, and they are evaluated in the order they are declared. Note that the patterns are [Lua patterns](https://www.lua.org/pil/20.2.html) and not regular expressions. Defaults to an empty table, which has the effect of having all URLs dispatched to the `default_handler`. If \"application bundle ID\" is specified, that application will be used to open matching URLs. If no \"application bundle ID\" is specified, but \"function\" is provided (and is a Lua function) it will be called with the URL.",
+        "type": "Variable"
+      }
+    ],
+    "desc": "Route URLs to different applications with pattern matching",
+    "doc": "Route URLs to different applications with pattern matching\n\nDownload: [https://github.com/Hammerspoon/Spoons/raw/master/Spoons/URLDispatcher.spoon.zip](https://github.com/Hammerspoon/Spoons/raw/master/Spoons/URLDispatcher.spoon.zip)\n\nSets Hammerspoon as the default browser for HTTP/HTTPS links, and\ndispatches them to different apps according to the patterns defined\nin the config. If no pattern matches, `default_handler` is used.",
+    "items": [
+      {
+        "def": "URLDispatcher.decode_slack_redir_urls",
+        "desc": "If true, handle Slack-redir URLs to apply the rule on the destination URL. Defaults to `true`",
+        "doc": "If true, handle Slack-redir URLs to apply the rule on the destination URL. Defaults to `true`",
+        "name": "decode_slack_redir_urls",
+        "signature": "URLDispatcher.decode_slack_redir_urls",
+        "stripped_doc": "",
+        "type": "Variable"
+      },
+      {
+        "def": "URLDispatcher.default_handler",
+        "desc": "Bundle ID for default URL handler. (Defaults to `\"com.apple.Safari\"`)",
+        "doc": "Bundle ID for default URL handler. (Defaults to `\"com.apple.Safari\"`)",
+        "name": "default_handler",
+        "signature": "URLDispatcher.default_handler",
+        "stripped_doc": "",
+        "type": "Variable"
+      },
+      {
+        "def": "URLDispatcher:dispatchURL(scheme, host, params, fullUrl)",
+        "desc": "Dispatch a URL to an application according to the defined `url_patterns`.",
+        "doc": "Dispatch a URL to an application according to the defined `url_patterns`.\n\nParameters (according to the [httpCallback](http://www.hammerspoon.org/docs/hs.urlevent.html#httpCallback) specification):\n * scheme - A string containing the URL scheme (i.e. \"http\")\n * host - A string containing the host requested (e.g. \"www.hammerspoon.org\")\n * params - A table containing the key/value pairs of all the URL parameters\n * fullURL - A string containing the full, original URL",
+        "name": "dispatchURL",
+        "signature": "URLDispatcher:dispatchURL(scheme, host, params, fullUrl)",
+        "stripped_doc": "Parameters (according to the [httpCallback](http://www.hammerspoon.org/docs/hs.urlevent.html#httpCallback) specification):\n * scheme - A string containing the URL scheme (i.e. \"http\")\n * host - A string containing the host requested (e.g. \"www.hammerspoon.org\")\n * params - A table containing the key/value pairs of all the URL parameters\n * fullURL - A string containing the full, original URL",
+        "type": "Method"
+      },
+      {
+        "def": "URLDispatcher.logger",
+        "desc": "Logger object used within the Spoon. Can be accessed to set the default log level for the messages coming from the Spoon.",
+        "doc": "Logger object used within the Spoon. Can be accessed to set the default log level for the messages coming from the Spoon.",
+        "name": "logger",
+        "signature": "URLDispatcher.logger",
+        "stripped_doc": "",
+        "type": "Variable"
+      },
+      {
+        "def": "URLDispatcher:start()",
+        "desc": "Start dispatching URLs according to the rules",
+        "doc": "Start dispatching URLs according to the rules",
+        "name": "start",
+        "signature": "URLDispatcher:start()",
+        "stripped_doc": "",
+        "type": "Method"
+      },
+      {
+        "def": "URLDispatcher.url_patterns",
+        "desc": "URL dispatch rules.",
+        "doc": "URL dispatch rules.\nA table containing a list of dispatch rules. Each rule should be its own table in the format: `{ \"url pattern\", \"application bundle ID\", \"function\" }`, and they are evaluated in the order they are declared. Note that the patterns are [Lua patterns](https://www.lua.org/pil/20.2.html) and not regular expressions. Defaults to an empty table, which has the effect of having all URLs dispatched to the `default_handler`. If \"application bundle ID\" is specified, that application will be used to open matching URLs. If no \"application bundle ID\" is specified, but \"function\" is provided (and is a Lua function) it will be called with the URL.",
+        "name": "url_patterns",
+        "signature": "URLDispatcher.url_patterns",
+        "stripped_doc": "A table containing a list of dispatch rules. Each rule should be its own table in the format: `{ \"url pattern\", \"application bundle ID\", \"function\" }`, and they are evaluated in the order they are declared. Note that the patterns are [Lua patterns](https://www.lua.org/pil/20.2.html) and not regular expressions. Defaults to an empty table, which has the effect of having all URLs dispatched to the `default_handler`. If \"application bundle ID\" is specified, that application will be used to open matching URLs. If no \"application bundle ID\" is specified, but \"function\" is provided (and is a Lua function) it will be called with the URL.",
+        "type": "Variable"
+      }
+    ],
+    "name": "URLDispatcher",
+    "stripped_doc": "\nDownload: [https://github.com/Hammerspoon/Spoons/raw/master/Spoons/URLDispatcher.spoon.zip](https://github.com/Hammerspoon/Spoons/raw/master/Spoons/URLDispatcher.spoon.zip)\n\nSets Hammerspoon as the default browser for HTTP/HTTPS links, and\ndispatches them to different apps according to the patterns defined\nin the config. If no pattern matches, `default_handler` is used.",
+    "submodules": [],
+    "type": "Module"
+  }
+]
