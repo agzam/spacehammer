@@ -1,4 +1,6 @@
 * Note: sorted starting from the most recent changes
+  - [2020-09-20 Sun]
+    - Fixed support for Hammerspoon 0.9.79 which uses Lua 5.4 see https://github.com/agzam/spacehammer/pull/70 for instructions
   - [2020-05-14 Thu]
     - Edit-with-emacs feature now detects if there's a pre-selected text already and edits only that chunk
   - [2020-05-13 Wed]
