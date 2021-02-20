@@ -84,6 +84,7 @@ TITLE is a title of the window (the caller is responsible to set that right)"
   (select-frame-by-name "edit")
   (set-frame-position nil 400 400)
   (set-frame-size nil 800 600 t)
+
   (let* ((buf-name (concat "*edit-with-emacs " title " *"))
          (buffer (get-buffer-create buf-name)))
     (unless (bound-and-true-p global-edit-with-emacs-mode)
@@ -115,7 +116,7 @@ TITLE is a title of the window (the caller is responsible to set that right)"
 
 (defun spacehammer/finish-edit-with-emacs ()
   (interactive)
-  (spacemacs/copy-whole-buffer-to-clipboard)
+  (clipboard-kill-ring-save (point-min) (point-max))
   (kill-buffer)
   (delete-frame)
   (call-process (executable-find "hs") nil 0 nil "-c"
