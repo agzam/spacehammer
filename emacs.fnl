@@ -50,7 +50,7 @@
 (fn edit-with-emacs-callback [pid title screen]
   "Don't remove! - this is callable from Emacs
    See: `spacehammer/edit-with-emacs` in spacehammer.el"
-  (let [emacs-app   (hs.application.get :Emacs)
+  (let [emacs-app   (hs.application.find :Emacs)
         edit-window (: emacs-app :findWindow :edit)
         scr         (hs.screen.find (tonumber screen))
         windows     (require :windows)]
@@ -107,17 +107,16 @@
 (fn switch-to-app [pid]
   "Don't remove! - this is callable from Emacs See: `spacehammer/switch-to-app`
    in spacehammer.el "
-  (let [app (hs.application.applicationForPID pid)]
+  (let [app (hs.application.applicationForPID (tonumber pid))]
     (when app (: app :activate))))
 
 (fn switch-to-app-and-paste-from-clipboard [pid]
   "Don't remove! - this is callable from Emacs See:
    `spacehammer/finish-edit-with-emacs` in spacehammer.el."
-  (let [app (hs.application.applicationForPID pid)]
+  (let [app (hs.application.applicationForPID (tonumber pid))]
     (when app
       (: app :activate)
       (: app :selectMenuItem [:Edit :Paste]))))
-
 
 (fn maximize
   []
