@@ -16,7 +16,7 @@
 ;; App switcher
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(local switcher
+(global switcher
        (hs.window.switcher.new
         (global-filter)
         {:textSize 12
