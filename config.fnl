@@ -98,16 +98,6 @@
   (fn activate []
     (windows.activate-app app-name)))
 
-(fn toggle-console
-  []
-  "
-  A simple action function to toggle the hammer spoon console.
-  Change the keybinding in the common keys section of this config file.
-  "
-  (if-let [console (hs.console.hswindow)]
-          (hs.closeConsole)
-          (hs.openConsole)))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; General
@@ -356,7 +346,7 @@
          :action "apps:prev-app"}
         {:mods [:cmd :ctrl]
          :key "`"
-         :action toggle-console}
+         :action hs.toggleConsole}
         {:mods [:cmd :ctrl]
          :key :o
          :action "emacs:edit-with-emacs"}])
