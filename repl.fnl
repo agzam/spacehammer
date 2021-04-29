@@ -13,16 +13,13 @@
                                   (: :read "*all")
                                   (: :gsub "^#![^\n]*\n" "")))
                   (: f :close))
-    "eval" (do
-             (tset msg
-                   :pp view
-                   :code (fennel.compileString msg.code)))
     (f msg)))
 
 
 (fn start
   []
-  (set server (jeejah.start nil {:middleware fennel-middleware
+  (set server (jeejah.start nil {:fennel true
+                                 :middleware fennel-middleware
                                  :debug true}))
   (print (hs.inspect server))
   server)
