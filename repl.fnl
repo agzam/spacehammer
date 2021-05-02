@@ -1,7 +1,7 @@
+(local coroutine (require :coroutine))
 (local fennel (require :fennel))
 (local jeejah (require :jeejah))
 (local view (require :fennelview))
-(var server nil)
 
 (fn fennel-middleware
   [f msg]
@@ -15,19 +15,31 @@
                   (: f :close))
     (f msg)))
 
+(local repl-coro-freq 0.05)
+
+(fn run
+  [server]
+  (let [repl-coro server
+        repl-spin (fn [] (coroutine.resume repl-coro))
+        repl-chk (fn [] (not= (coroutine.status repl-coro) "dead"))]
+    (hs.timer.doWhile repl-chk repl-spin repl-coro-freq)))
+
+(fn start-opts
+  [opts]
+  (let [server (jeejah.start nil opts)]
+    server))
 
 (fn start
   []
-  (set server (jeejah.start nil {:fennel true
-                                 :middleware fennel-middleware
-                                 :debug true}))
-  (print (hs.inspect server))
-  server)
+  (start-opts {:fennel true
+               :middleware fennel-middleware
+               :debug true}))
 
 (fn stop
-  []
-  (jeejah.stop server)
-  (set server nil))
+  [server]
+  (jeejah.stop server))
 
-{:start start
+{:run run
+ :start start
+ :start-opts start-opts
  :stop stop}

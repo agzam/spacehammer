@@ -21,7 +21,6 @@
         :reduce    reduce
         :split     split
         :some      some} (require :lib.functional))
-(local repl (require :repl))
 (require-macros :lib.macros)
 
 ;; Make ~/.spacehammer folder override repo files
@@ -212,5 +211,3 @@ Returns nil. This function causes side-effects.
                     (let [module (require path)]
                       {path (module.init config)})))
              (reduce #(merge $1 $2) {})))
-
-(repl.start)
