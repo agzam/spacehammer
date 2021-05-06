@@ -1,7 +1,37 @@
+;; Copyright (c) 2017-2021 Ag Ibragimov & Contributors
+;;
+;;; Author: Ag Ibragimov <agzam.ibragimov@gmail.com>
+;;
+;;; URL: https://github.com/agzam/spacehammer
+;;
+;;; License: MIT
+;;
+
 (local coroutine (require :coroutine))
 (local fennel (require :fennel))
 (local jeejah (require :jeejah))
 (local view (require :fennelview))
+(local {:merge merge} (require :lib.functional))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; nREPL support
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; This module adds support to start an nREPL server. This allows a client to
+;; connect to the running server and interact with it while it is running, which
+;; can help avoid repeatedly reloading the config.
+;;
+;; Example usage:
+;;
+;; - To your ~/.spacehammer/config.fnl add:
+;;   (local repl (require :repl))
+;;   (repl.run (repl.start))
+;;
+;; repl.start takes an optional 'opts' table with the following fields:
+;; - port: Define the port to listen on (default 7888)
+;; - fennel: Expect fennel code (as opposed to lua) (default true)
+;; - serialize: Provide a function that converts objects to strings
+;;   (default hs.inspect)
 
 (fn fennel-middleware
   [f msg]
@@ -15,6 +45,12 @@
                   (: f :close))
     (f msg)))
 
+(local default-opts
+       {:port nil
+        :fennel true
+        :middleware fennel-middleware
+        :serialize hs.inspect})
+
 (local repl-coro-freq 0.05)
 
 (fn run
@@ -24,16 +60,11 @@
         repl-chk (fn [] (not= (coroutine.status repl-coro) "dead"))]
     (hs.timer.doWhile repl-chk repl-spin repl-coro-freq)))
 
-(fn start-opts
-  [opts]
-  (let [server (jeejah.start nil opts)]
-    server))
-
 (fn start
-  []
-  (start-opts {:fennel true
-               :middleware fennel-middleware
-               :debug true}))
+  [custom-opts]
+  (let [opts (merge {} default-opts custom-opts)
+        server (jeejah.start (. opts :port) opts)]
+    server))
 
 (fn stop
   [server]
@@ -41,5 +72,4 @@
 
 {:run run
  :start start
- :start-opts start-opts
  :stop stop}
