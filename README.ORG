@@ -34,7 +34,7 @@
       git clone https://github.com/agzam/spacehammer ~/.hammerspoon
     #+end_src
 ** LEAD keybinding
-   =LEAD= is the main and major keybinding that invokes main Spacehammer modal. By default set to =Option+SPC=, but it can be re-configured in =~/.spacehammer/config.fnl=, and to be set for example to =Cmd+SPC=. Be warned though, in OS X =Cmd+SPC= is usually used for Spotlight.
+   =LEAD= is the main and major keybinding that invokes main Spacehammer modal. By default set to =Option+SPC=, but it can be re-configured in =~/.spacehammer/config.fnl= by changing the `:mods` and `:key` that has the `"lib.modal:activate-modal"` action. You might want to set it, for example to =Cmd+SPC=. Be warned though, in OS X =Cmd+SPC= is usually used for Spotlight.
 
    In order for Cmd+SPC to work as =LEAD= you will have to rebind it in your system
 
