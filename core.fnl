@@ -40,18 +40,25 @@
 (set hs.hints.fontSize 30)
 (set hs.window.animationDuration 0.2)
 
+(global get-alert-screens-primary (fn [] [(hs.screen.primaryScreen)]))
+(global get-alert-screens-main (fn [] [(hs.screen.mainScreen)]))
+(global get-alert-screens-all (fn [] (hs.screen.allScreens)))
+(global get-alert-screens get-alert-screens-all)
+
 "
 alert :: str, { style }, seconds -> nil
-Shortcut for showing an alert on the primary screen for a specified duration
+Shortcut for showing an alert for a specified duration.
 Takes a message string, a style table, and the number of seconds to show alert
+Uses `get-alert-screens` to determine which screens to display on
 Returns nil. This function causes side-effects.
 "
-(global alert (fn
-                [str style seconds]
-                (hs.alert.show str
-                               style
-                               (hs.screen.primaryScreen)
-                               seconds)))
+(global alert (fn [str style seconds]
+                (each [key screen (ipairs (get-alert-screens))]
+                  (hs.alert.show str
+                                 ;; Screen is ignored if style is nil
+                                 (or style 1)
+                                 screen
+                                 seconds))))
 (global fw hs.window.focusedWindow)
 
 (fn file-exists?
