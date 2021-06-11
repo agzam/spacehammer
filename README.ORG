@@ -135,7 +135,7 @@
      For instance you may make your hyper trigger the virtual =:F18= key and use a program like [[https://github.com/tekezo/Karabiner-Elements][karabiner-elements]] to map caps-lock to =F18=.
 
     #+BEGIN_SRC fennel
-      (local config {:hyper {:mods [:cmd :ctrl :alt :shift]}
+      (local config {:hyper {:key :F18}
                      :keys  [{:mods   [:cmd]
                               :key    :space
                               :action "lib.modal:activate-modal"}
