@@ -331,8 +331,9 @@
 (fn move-to-screen
   [screen]
   "Moves current window onto given hs.screen instance"
-  (let [w (hs.window.focusedWindow)]
-    (: w :moveToScreen screen)))
+  (let [w (hs.window.focusedWindow)
+        no-resize true]
+    (: w :moveToScreen screen no-resize)))
 
 (fn move-screen
   [method]

@@ -34,9 +34,9 @@
       git clone https://github.com/agzam/spacehammer ~/.hammerspoon
     #+end_src
 ** LEAD keybinding
-   =LEAD= is the main and major keybinding that invokes main Spacehammer modal. By default set to =Option+SPC=, but it can be re-configured in =~/.spacehammer/config.fnl=, and to be set for example to =Cmd+SPC=. Be warned though, in OS X =Cmd+SPC= is usually used for Spotlight.
+   =LEAD= is the main and major keybinding that invokes main Spacehammer modal. By default set to =Option+SPC=, but it can be re-configured in =~/.spacehammer/config.fnl= by changing the `:mods` and `:key` that has the `"lib.modal:activate-modal"` action. You might want to set it, for example to =Cmd+SPC=. Be warned though, in OS X =Cmd+SPC= is usually used for Spotlight.
 
-   In order for Cmd+SPC to work as =LEAD= - you will have to rebind it in your system
+   In order for Cmd+SPC to work as =LEAD= you will have to rebind it in your system
 
 ***** For changing it in the system preferences
       Go to your Preferences/Keyboard, find =Cmd+SPC= keybinding and change it. Unfortunately, simply disabling it sometimes is not enough. You'd have to set it to be something else e.g. =Ctrl+Cmd+Shift+\= or anything else , it doesn't really matter, since you can then un-check the checkbox and disable it.
@@ -69,26 +69,27 @@
 
        a) because different external keyboards impose their own ways to control media.
 
-       b) Spacehammer allows you to keep fingers on the home row.
+       b) because Spacehammer allows you to keep fingers on the home row.
 
-    By default =LEAD m a= - =jump to music ap= is configured to work with Spotify, but you can change that in =~./spacehammer/config.fnl=
+    By default =LEAD m a= - =jump to music app= is configured to work with Spotify, but you can change that in =~./spacehammer/config.fnl=
 
 *** Edit anything [with Emacs]
     You can edit any text in any app =Cmd+Ctrl+O=. Currently, it supports only Emacs. Read more [[docs/emacs.org][here]].
+
 ** Other features
 **** Alternative App Switcher =Option n/p=
 **** Simple tab switcher for Chrome and iTerm =Option j/k=
 **** Slack Desktop App enhancements
-      - Scroll trough current Slack thread =Ctrl-j/Ctrl-k= (slow) or =Ctrl-e/Ctrl-y= (fast)
+      - Scroll through current Slack thread =Ctrl-j/Ctrl-k= (slow) or =Ctrl-e/Ctrl-y= (fast)
       - Jump to the end of the thread with =Cmd-g=
-      - Adding emoji to the last message - =Cmd-r= (Slack's default =Cmd-Shift+\= is quite inconvenient)
-      - =Ctrl-o/Ctrl-i= - jumping back and forth in history
+      - Add emoji to the last message - =Cmd-r= (Slack's default =Cmd-Shift+\= is quite inconvenient)
+      - Jump back and forth through history - =Ctrl-o/Ctrl-i=
 
 ** Customizing
-*** Update menus, menu items, bindings, and app specific features
+*** Update menus, menu items, bindings, and app-specific features
     All menu, app, and key bindings are defined in =~/.spacehammer/config.fnl=.
     That is your custom config and will be safe from any upstream changes to the default config.fnl.
-    /The reason for to keep it in its own directory, so it can be maintained in version-control/.
+    /The reason to keep it in its own directory is so that it can be maintained in version-control in your own repo/.
 **** Modal Menu Items
      Menu items are listed when you press =LEAD= and they can be nested.
 
@@ -130,8 +131,8 @@
      Additionally you may specify =repeat: true= to repeat the action while the key is held down.
 
      If you place =:hyper= as a mod, it will use a hyper mode that can be configured by the =hyper= config attribute.
-     This can be used to help create bindings that wont interfere with other apps.
-     For instance you may make your hyper trigger the virtual =:F18= and use a program like [[https://github.com/tekezo/Karabiner-Elements][karabiner-elements]] to map caps-lock to =F18=.
+     This can be used to help create bindings that won't interfere with other apps.
+     For instance you may make your hyper trigger the virtual =:F18= key and use a program like [[https://github.com/tekezo/Karabiner-Elements][karabiner-elements]] to map caps-lock to =F18=.
 
     #+BEGIN_SRC fennel
       (local config {:hyper {:mods [:cmd :ctrl :alt :shift]}
