@@ -3,24 +3,26 @@
   ;; TODO: Instrument the function body with calls to its advice
   (let [docstring (tostring docstring)]
     `(global ,name (fn ,args ,docstring
-                     ;; Call :before funcs with original args
-                     (if (. _G (.. ,(tostring name) "__before"))
-                       (let [bfunc# (. _G (.. ,(tostring name) "__before"))]
-                         (bfunc# (table.unpack ,args))))
-                     ;; TODO: Call :before-while funcs, shortcircuiting if any returns nil
-                     ;; TODO: Unpack its rv into ... (We can't do this, ... is special)
-                     ;; If there is :override, then don't run the body
-                     (let [rv# (if (. _G (.. ,(tostring name) "__override"))
-                                 (let [ofunc# (. _G (.. ,(tostring name) "__override"))]
-                                   (ofunc# (table.unpack ,args)))
-                                 (do ,...))]
-                       ;; Call :after funcs
-                       (if (. _G (.. ,(tostring name) "__after"))
-                         (let [afunc# (. _G (.. ,(tostring name) "__after"))]
-                           (afunc# (table.unpack ,args))))
-                       ;; TODO: Call :after-while funcs if rv is not nil
-                       rv#
-                       )))))
+                     (let [orig# (fn ,args ,...)]
+                       ;; Call :before funcs with original args
+                       (if (. _G (.. ,(tostring name) "__before"))
+                         (let [bfunc# (. _G (.. ,(tostring name) "__before"))]
+                           (bfunc# (table.unpack ,args))))
+                       ;; If there is :override, then don't call the original
+                       (let [rv# (if (. _G (.. ,(tostring name) "__override"))
+                                   (let [ofunc# (. _G (.. ,(tostring name) "__override"))]
+                                     (ofunc# (table.unpack ,args)))
+                                   ;; If there is ::around, call it instead,
+                                   ;; providing the original
+                                   (if (. _G (.. ,(tostring name) "__around"))
+                                     (let [afunc# (. _G (.. ,(tostring name) "__around"))]
+                                       (afunc# orig# (table.unpack ,args)))
+                                     (orig# (table.unpack ,args))))]
+                         ;; Call :after funcs
+                         (if (. _G (.. ,(tostring name) "__after"))
+                           (let [afunc# (. _G (.. ,(tostring name) "__after"))]
+                             (afunc# (table.unpack ,args))))
+                         rv#))))))
 
 (fn defadvice!
   [name args docstring where funcname ...]
