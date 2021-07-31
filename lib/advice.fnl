@@ -1,4 +1,4 @@
-(fn advisable-fn
+(fn afn
   [name args docstring ...]
   ;; TODO: Instrument the function body with calls to its advice
   (let [docstring (tostring docstring)]
@@ -29,5 +29,5 @@
      (add-advice!# ,funcname
                   ,where ,name))))
 
-{: advisable-fn
+{: afn
  : defadvice!}
