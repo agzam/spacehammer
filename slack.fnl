@@ -73,11 +73,11 @@ Slack functions to make complex or less accessible features more vim like!
 
 (fn scroll-up
   []
-  (scroll-slack -3))
+  (scroll-slack 3))
 
 (fn scroll-down
   []
-  (scroll-slack 3))
+  (scroll-slack -3))
 
 
 ;; History
