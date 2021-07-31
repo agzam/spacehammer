@@ -46,8 +46,7 @@ Shortcut for showing an alert on the primary screen for a specified duration
 Takes a message string, a style table, and the number of seconds to show alert
 Returns nil. This function causes side-effects.
 "
-(global alert (fn
-                [str style seconds]
+(global alert (fn [str style seconds]
                 (hs.alert.show str
                                style
                                (hs.screen.primaryScreen)
@@ -86,12 +85,13 @@ Returns nil. This function causes side-effects.
 
 ;; If ~/.spacehammer/config.fnl does not exist
 ;; - Create ~/.spacehammer dir
-;; - Copy default ~/.hammerspoon/config.fnl to ~/.spacehammer/config.fnl
-(when (not (file-exists? (.. customdir "/config.fnl")))
-  (log.d "Copying ~/.hammerspoon/config.fnl to ~/.spacehammer/config.fnl")
-  (hs.fs.mkdir customdir)
-  (copy-file (.. homedir "/.hammerspoon/config.fnl")
-             (.. customdir "/config.fnl")))
+;; - Copy default ~/.hammerspoon/config.example.fnl to ~/.spacehammer/config.fnl
+(let [example-path (.. homedir "/.hammerspoon/config.example.fnl")
+      target-path (.. customdir "/config.fnl")]
+  (when (not (file-exists? target-path))
+    (log.d (.. "Copying " example-path " to " target-path))
+    (hs.fs.mkdir customdir)
+    (copy-file example-path target-path)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
