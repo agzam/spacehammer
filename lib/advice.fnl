@@ -5,23 +5,19 @@
     `(global ,name (fn ,args ,docstring
                      (let [orig# (fn ,args ,...)]
                        ;; Call :before funcs with original args
-                       (if (. _G (.. ,(tostring name) "__before"))
-                         (let [bfunc# (. _G (.. ,(tostring name) "__before"))]
-                           (bfunc# (table.unpack ,args))))
+                       (when-let [bfunc# (. _G (.. ,(tostring name) "__before"))]
+                                 (bfunc# (table.unpack ,args)))
                        ;; If there is :override, then don't call the original
-                       (let [rv# (if (. _G (.. ,(tostring name) "__override"))
-                                   (let [ofunc# (. _G (.. ,(tostring name) "__override"))]
-                                     (ofunc# (table.unpack ,args)))
+                       (let [rv# (if-let [ofunc# (. _G (.. ,(tostring name) "__override"))]
+                                   (ofunc# (table.unpack ,args))
                                    ;; If there is ::around, call it instead,
                                    ;; providing the original
-                                   (if (. _G (.. ,(tostring name) "__around"))
-                                     (let [afunc# (. _G (.. ,(tostring name) "__around"))]
-                                       (afunc# orig# (table.unpack ,args)))
+                                   (if-let [afunc# (. _G (.. ,(tostring name) "__around"))]
+                                     (afunc# orig# (table.unpack ,args))
                                      (orig# (table.unpack ,args))))]
                          ;; Call :after funcs
-                         (if (. _G (.. ,(tostring name) "__after"))
-                           (let [afunc# (. _G (.. ,(tostring name) "__after"))]
-                             (afunc# (table.unpack ,args))))
+                         (when-let [afunc# (. _G (.. ,(tostring name) "__after"))]
+                                   (afunc# (table.unpack ,args)))
                          rv#))))))
 
 (fn defadvice!
