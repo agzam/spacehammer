@@ -1,18 +1,18 @@
 [[http://www.hammerspoon.org/][Hammerspoon]] config inspired by [[http://spacemacs.org/][Spacemacs]]
 
 ** Rationale
-   Keyboard-oriented workflows are often far more efficient and less frustrating than similar mouse-driven techniques. However, the most popular strategy in that space is to use a multitude of keyboard shortcuts. And obviously, that approach is not very scalable. You start adding keyboard shortcuts for various actions, and soon you run out of ideas. You inevitably will be blocked by conflicting shortcuts.
+   Keyboard-oriented workflows are often far more efficient and less frustrating than similar mouse-driven techniques. However, the most popular strategy in that space is to use a multitude of keyboard shortcuts. And obviously, that approach is not very scalable. You start adding keyboard shortcuts for various actions, and soon you will be blocked by conflicting shortcuts.
 
-   Ideas of command composability (first explored in ~Vi~ and later expanded in its successor ~Vim~), although do require some initial learning and getting used to, allow you to expand your keyboard-oriented workflow with a minimal effort to memorize keys. There's so much you can do with using ~h/j/k/l~ keys alone.
+   Command composability (first explored in ~Vi~ and later expanded in its successor ~Vim~), although does require some initial learning and getting used to, allows you to expand your keyboard-oriented workflow with a minimal effort to memorize keys. There's so much you can do with the ~h/j/k/l~ keys alone.
 
-   However, the "one-dimensional" approach utilized in vanilla Vim, where a single modal (to switch from Normal to Edit to Select mode) is used, also has limitations. Fortunately, basic ideas of modality can be expanded further. [[http://spacemacs.org/][Spacemacs]] project is an excellent example of where that was done. In Spacemacs - there is a single primary "modifier" key - ~SPACE~. To trigger an action, user is required to press a mnemonically recognizable combination of keys (that usually starts with ~space~ key), e.g., ~SPC w m~ is used to maximize current window/buffer.
+   However, the "one-dimensional" approach utilized in vanilla Vim, where a single modal (to switch from Normal to Edit to Select mode) is used, also has limitations. Fortunately, the basic idea of modality can be expanded further. The [[http://spacemacs.org/][Spacemacs]] project is an excellent example of where that was done. In Spacemacs there is a single primary "modifier" key ~SPACE~. To trigger an action, user is required to press a mnemonically recognizable combination of keys (that usually starts with ~SPACE~ key), e.g., ~SPC w m~ is used to maximize the current window/buffer.
 
-   Spacehammer project explores these ideas to allow you to take your keyboard-driven workflow to the next level. Jumping between applications, controlling the size and position of their windows, searching for things, etc. - everything follows simple, mnemonic semantics. It lets you keep your fingers on the home row and liberates you from having to memorize a myriad of keystrokes. Or to drag your hand to reach for mouse/touchpad/arrow keys - that inevitably slows you down.
+   The Spacehammer project explores these ideas to allow you to take your keyboard-driven workflow to the next level. Jumping between applications, controlling the size and position of their windows, searching for things, etc. - everything follows simple, mnemonic semantics. It lets you keep your fingers on the home row and liberates you from having to memorize a myriad of keystrokes, or require you to drag your hand to reach for mouse/touchpad/arrow keys - which inevitably slows you down.
 
 *** Fennel
     Spacehammer initially was written in Lua (as the majority of Hammerspoon
     configs), but later was completely re-written in
-    [[https://fennel-lang.org/][Fennel]] - tiny Lisp that compiles into Lua.
+    [[https://fennel-lang.org/][Fennel]] - a tiny Lisp that compiles to Lua.
     There is nothing wrong with Lua, but Lisp has many benefits (sadly often
     overlooked and ignored by majority of programmers today). Switching to
     Fennel allowed us to keep the code more structured and concise.
@@ -34,12 +34,13 @@
       git clone https://github.com/agzam/spacehammer ~/.hammerspoon
     #+end_src
 ** LEAD keybinding
-   =LEAD= is the main and major keybinding that invokes main Spacehammer modal. By default set to =Option+SPC=, but it can be re-configured in =~/.spacehammer/config.fnl= by changing the `:mods` and `:key` that has the `"lib.modal:activate-modal"` action. You might want to set it, for example to =Cmd+SPC=. Be warned though, in OS X =Cmd+SPC= is usually used for Spotlight.
+   =LEAD= is the main and major keybinding that invokes the main Spacehammer modal. By default it is set to =Option+SPC=, but it can be re-configured in =~/.spacehammer/config.fnl= by changing the =:mods= and =:key= bindings for the =lib.modal:activate-modal= action string. You might want to set it, for example, to =Ctrl+Shift+SPC=.
 
-   In order for Cmd+SPC to work as =LEAD= you will have to rebind it in your system
+   If you want to use =Cmd+SPC= as =LEAD= you will have to rebind it in your system, since it is normally used for Spotlight.
 
-***** For changing it in the system preferences
-      Go to your Preferences/Keyboard, find =Cmd+SPC= keybinding and change it. Unfortunately, simply disabling it sometimes is not enough. You'd have to set it to be something else e.g. =Ctrl+Cmd+Shift+\= or anything else , it doesn't really matter, since you can then un-check the checkbox and disable it.
+***** Unbinding =Cmd+SPC= in system preferences.
+      Go to your Preferences/Keyboard, find =Cmd+SPC= keybinding and change it to something else. Unfortunately, simply disabling it sometimes is not enough. You'd have to set it to be something else e.g. =Ctrl+Cmd+Shift+\= or anything else , it doesn't really matter, since you can then un-check the checkbox and disable it.
+
 ** Features
 **** =LEAD w= - Window management
      - =hjkl= - moving windows around halves of the screen
@@ -124,11 +125,11 @@
      #+END_SRC
 
 ***** Lifecycle methods
-    Menu items may also define =:enter= and =:exit= functions or action strings. The parent menu item will call the =enter= function when it is opened and =exit= when it is closed. This may be used to manage more complex, or dynamic menus.
+    Menu items may also define =:enter= and =:exit= functions or action strings. The parent menu item will call the =enter= function when it is opened and =exit= when it is closed. This may be used to manage more complex or dynamic menus.
 **** Global keys
      Global keys are used to set up universal hot-keys for the actions you specify.
      Unlike menu items they do not require a title attribute.
-     Additionally you may specify =repeat: true= to repeat the action while the key is held down.
+     Additionally you may specify =:repeat true= to repeat the action while the key is held down.
 
      If you place =:hyper= as a mod, it will use a hyper mode that can be configured by the =hyper= config attribute.
      This can be used to help create bindings that won't interfere with other apps.
