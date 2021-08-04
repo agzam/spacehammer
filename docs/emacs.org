@@ -2,7 +2,8 @@
 
   [[./edit-with-emacs-demo.gif/]]
 
-  Any text, in just any app can be edited using Emacs. The idea is simple - you press dedicated key-combo (set to =Cmd+Ctrl+O=), Spacehammer copies existing text, then calls ~emacsclient~, then invokes a function that opens a buffer and pastes the text into it. After you're done editing the text in Emacs, you press =C-c C-c= - it grabs the text, switches back to the program, pastes the text back in there. It works surprisingly well.
+  Any text, in just any app can be edited using Emacs. The idea is simple - you press a dedicated key-combo (default: =Cmd+Ctrl+O=), Spacehammer copies the existing text & calls ~emacsclient~, then it invokes a function that opens a buffer and pastes the text into it. After you're done editing the text in Emacs, you press =C-c C-c=, it grabs the text, switches back to the program & pastes the text back in there. It works surprisingly well.
+
   You can for example:
   - open Browser's Dev Tools;
   - press =Cmd+Ctrl+O=,
@@ -13,11 +14,13 @@
 
 ** Setup and customization
 
-   After Spacehammer invokes ~emacsclient~ (note that Emacs *has to be running in daemon mode*, [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Emacs-Server.html][see documentation]]), it invokes emacs-lisp function(s). Those functions are in =~./hammerspoon/spacehammer.el= Emacs package. That package needs to be pre-loaded into Emacs.
+   Note that Emacs *has to be running in daemon mode*, [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Emacs-Server.html][see documentation]].
+
+   After Spacehammer invokes ~emacsclient~ , it invokes emacs-lisp function(s). Those functions are in the =~./hammerspoon/spacehammer.el= Emacs package. That package needs to be pre-loaded into Emacs.
 
 *** Package installation
 
-    The package currently is not available on MELPA or other public repositories, so you'd have to use ~use-package~ or other ways to load it to Emacs.
+    The package currently is not available on MELPA or other public repositories, so you have to use ~use-package~ or other ways to load it to Emacs.
 
 *** Spacemacs
 
@@ -26,10 +29,10 @@
     - or create a custom Spacemacs layer;
     - or add required pieces to an existing one.
 
-      Creating a layer is easy, you need ~packages.el~ file in a directory for your custom layer (to learn more, check [[https://github.com/syl20bnr/spacemacs/blob/develop/doc/LAYERS.org][Spacemacs documentation]])
+      Creating a layer is easy, you need a ~packages.el~ file in a directory for your custom layer (to learn more, check [[https://github.com/syl20bnr/spacemacs/blob/develop/doc/LAYERS.org][Spacemacs documentation]])
 
 **** Spacemacs layer minimal example
-    Let's say you call the layer ~my-layer~, then the directory structure would be the following:
+    Let's say you call the layer ~my-layer~, then the directory structure would look like the following:
 
     #+begin_src
     ├── my-layer
@@ -73,7 +76,7 @@
                                          '(spacehammer :location local))))
       #+end_src
 
-    - Next thing you need, is to add init function like so:
+    - Next thing you need is to add an init function like so:
 
     #+begin_src emacs-lisp
       (defun my-layer/init-spacehammer ()
@@ -85,11 +88,11 @@
     - Either restart Emacs or run ~M-x dotspacemacs/sync-configuration-layers~ =<SPC f e R>=
 
 *** Customization
-    You can customize the major mode and other things for edit-with-emacs buffer using ~spacehammer/edit-with-emacs-hook~, here's an example:
+    You can customize the major mode and other things for the edit-with-emacs buffer using ~spacehammer/edit-with-emacs-hook~, here's an example:
 
     #+begin_src emacs-lisp
-      ;; Note that the hook function accepts arguments, and if wrong number of
-      ;; arguments passed - it won't work.
+      ;; Note that the hook function accepts arguments, and if the wrong number
+      ;; of arguments is passed it won't work.
       ;; Refer to spacehammer.el source to learn more
 
       (defun on-spacehammer-edit-with-emacs (buffer-name pid title)
@@ -105,4 +108,4 @@
         (add-hook 'spacehammer/edit-with-emacs-hook 'on-spacehammer-edit-with-emacs))
     #+end_src
 
-    You can see that using the hook allows some versatility, and you can, for example, set a different major-mode for different applications or toggle variable-pitch, line-numbers, etc.
+    You can see that using the hook allows some versatility and you can, for example, set a different major-mode for different applications or toggle variable-pitch, line-numbers, etc.
