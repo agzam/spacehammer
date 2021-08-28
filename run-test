@@ -1,5 +1,3 @@
 #!/usr/bin/env bash
 
-## exec fennel --add-fennel-path "$HOME/.hammerspoon/?.fnl" "$@"
-
 exec hs ./lib/testing/test.lua "$(pwd)" "$@"

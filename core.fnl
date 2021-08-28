@@ -119,7 +119,8 @@ Returns nil. This function causes side-effects.
     (and
      (or (contains? "fnl" ext)
          (contains? "lua" ext))
-     (not (string.match file "-test")))))
+     (not (string.match file "-test%..*$")))))
+
 
 (fn source-updated?
   [file]

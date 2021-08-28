@@ -113,27 +113,34 @@ Usage:
  "Functional Tools"
  (fn []
    (before (fn []
-             (print "Peform pre-test setup")))
+             (print "Perform pre-test setup")))
 
    (it "Should do math"
        (fn []
          (is.eq? (+ 1 1) 2 "Did not result in 2")))))
 #+end_src
 
-=before= is useful for resetting or setting test state before tests are run
+=before= is best used as a way to prepare data, or allocate resources
+tests may use before they're setup
+
+*** Does =before= run before each =it=?
+
+Before runs before all =it= calls within a describe block. If you wanted
+to run a before call before each test, consider wrapping each test in
+a describe block.
 
 ** After
 
 Run a function after tests run in a suite
 
-Usage
+Usage:
 
 #+begin_src fennel
 (describe
  "Functional Tools"
  (fn []
    (after (fn []
-             (print "Peform post-test cleanup")))
+             (print "Perform post-test cleanup")))
 
    (it "Should do math"
        (fn []
@@ -145,7 +152,8 @@ running tests.
 
 * Assertions
 
-Currently, only two basic assertion functions are provided by [[../lib/testing/assert.fnl][assert.fnl]]
+Currently, only two basic assertion functions are provided by
+[[../lib/testing/assert.fnl][assert.fnl]]
 
 Require them in test files like the following:
 
@@ -218,8 +226,8 @@ Another caveat due to the =hs= cli system is that tests are running against the
 global Hammerspoon state. If the library you are testing is changing
 global state, you may find data persists between re-runs of tests.
 
-If running into issues, try reloading Hammerspoon. When Hammerspoon reloads, the global state will reset and tests can
-run fresh.
+If running into issues, try reloading Hammerspoon. When Hammerspoon
+reloads, the global state will reset and tests can  run fresh.
 
 The =before= or =after= hook APIs are useful for resetting state before or
 after all tests run in a suite.
@@ -232,8 +240,8 @@ performance within lua.
 
 * Auto-running Tests
 
-Open to improvements here, but one option is to leverage the =npm= package [[https://www.npmjs.com/package/nodemon][nodemon]]
-to re-run tests when fennel files update.
+Open to improvements here, but one option is to leverage the =npm=
+package [[https://www.npmjs.com/package/nodemon][nodemon]]  to re-run tests when fennel files update.
 
 #+begin_src bash :results none
 npx nodemon -e ".fnl" -x "./run-test" --delay 2 -- test/*.fnl
