@@ -212,7 +212,7 @@
   "
   Change a window's rect geometry which includes x, y, width, and height
   Takes a rectangle table
-  Performs side-effects to move\resize the active window and update history.
+  Performs side-effects to move or resize the active window and update history.
   Returns nil
   "
   (: history :push)

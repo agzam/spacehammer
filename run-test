@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+exec hs ./lib/testing/test.lua "$(pwd)" "$@"

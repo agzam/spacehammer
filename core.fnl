@@ -14,6 +14,7 @@
 (hs.ipc.cliInstall) ; ensure CLI installed
 
 (local fennel (require :fennel))
+(require :lib.globals)
 (local {:contains? contains?
         :for-each  for-each
         :map       map
@@ -119,7 +120,8 @@ Returns nil. This function causes side-effects.
     (and
      (or (contains? "fnl" ext)
          (contains? "lua" ext))
-     (not (string.match file "-test")))))
+     (not (string.match file "-test%..*$")))))
+
 
 (fn source-updated?
   [file]
@@ -215,13 +217,3 @@ Returns nil. This function causes side-effects.
                       {path (module.init config)})))
              (reduce #(merge $1 $2) {})))
 
-
-(fn docstr-f [x y z]
-  "The docstr-f docstr"
-  (print "hi"))
-
-(fn no-fun [x y z]
-  (print "hi"))
-
-
-(global pprint (fn [x] (print (fennel.view x))))
