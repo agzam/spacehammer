@@ -58,6 +58,10 @@
   [sep list]
   (table.concat list sep))
 
+(fn first
+  [list]
+  (. list 1))
+
 (fn last
   [list]
   (. list (length list)))
@@ -97,7 +101,9 @@
 
 (fn slice-start
   [start list]
-  (slice-start-end start (length list) list))
+  (slice-start-end (if (< start 0)
+                       (+ (length list) start)
+                       start) (length list) list))
 
 (fn slice
   [start end list]
@@ -237,6 +243,7 @@
  :eq?       eq?
  :filter    filter
  :find      find
+ :first     first
  :for-each  for-each
  :get       get
  :get-in    get-in
