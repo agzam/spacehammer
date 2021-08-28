@@ -1,0 +1,859 @@
+#+title: Advising API
+
+* What is it?
+
+Inspired by emacs, the advising system provides an API for defining
+core functions that users can then customize by adding hooks in the
+form of other functions that can override, wrap, run before, run
+after, among other behaviors. Instead of limiting users to a few
+config options maintainers and contributors provide, users can
+customize core behaviors however they would like.
+
+* Adding Advice
+
+Maintainers and contributors define core functions as advisable using
+the =defn= and =afn= macros described at the bottom of this document. Most
+people will use the advising APIs below to customize behavior to their liking.
+
+** Advising APIs
+
+*** defadvice
+
+The =defadvice= macro should be the primary means for adding advice but
+a direct =add-advice= alternative is available.
+
+Usage:
+
+#+begin_src fennel
+(defadvice advisor-function-name
+  [x y z]
+  :override target-function-or-key
+  "docstr"
+  body-1
+  ...body ;; Optional
+  )
+#+end_src
+
+- The string keyword =:override= refers to one of many advice types
+  described below.
+- The advisor-function-name makes it easier to track advice later
+- A docstr is required
+- At least one body form is required, =nil= may be used for noop and
+  placeholder functions
+
+Example:
+
+#+begin_src fennel
+(defn defn-func-4
+      [x y z]
+      "docstr"
+      "default")
+
+(defadvice defn-func-override
+           [x y z]
+           :override defn-func-4
+           "Overrides defn-func-4"
+           "over-it")
+
+(defn-func-4)
+;; => "over-it"
+#+end_src
+
+- =defn-func-override= completely overrides =defn-func-4=
+- When calling =defn-func-4=, =defn-func-override= is called instead
+  returning "over-it" instead of "default"
+
+The defadvice call above expands to:
+
+#+begin_src fennel
+(local defn-func-override
+       (let [adv_0_ (require "lib.advice")
+             advice-fn_0_ (fn defn-func-override
+                            [x y z]
+                            "Overrides defn-func-4" "over-it")]
+         (adv_0_.add-advice defn-func-4 "override" advice-fn_0_)
+         advice-fn_0_))
+#+end_src
+
+=defadvice= is best used in top-level calls within a module so that
+they can be removed if needed later.
+
+*** add-advice
+
+If the =defadvice= macro does not suit your needs, the =add-advice= function
+may prove a helpful alternative. It's what =defadvice= uses under the hood.
+
+Usage:
+
+#+begin_src fennel
+(add-advice target-function-or-key :advice-type advice-function)
+#+end_src
+
+- =target-function-or-key= refers to advisable-fn.key or the string itself
+- =:advice-type= refers to one of many advice types described below
+- =advice-function= depends on the advice type as it will receive
+  different args along with different expected return types
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+(local {: add-advice} :lib.advice)
+
+(defn defn-func-5
+      [x y z]
+      "docstr"
+      "default")
+
+(add-advice defn-func-5
+            :override (fn [x y z]
+                        "over-it"))
+
+(defn-func-5)
+;; => "over-it"
+#+end_src
+
+- Identical behavior to the =defadvice= behavior described above, but a
+  more primitive API.
+- It's recommended to use =defadvice= most of the time as it enforces
+  better habits that will keep projects from becoming a mess.
+
+* Advise Types
+
+This doc exclusively showcases the =override= advice-type but there are
+more to choose from. Each will receive a different set of args, expect
+a different return type, and may fire at different times during the
+execution cycle.
+
+** override
+
+Replaces the target function and receives the arguments the original
+function was called with. May return any value but be mindful of what
+callers are expecting.
+
+Behavior:
+
+#+begin_src fennel
+(fn [...]
+  (advice-fn (table.unpack [...])))
+#+end_src
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+
+(defn original-fn
+      [x y z]
+      "docstr"
+      "Hi")
+
+(defadvice advice-fn
+           [x y z]
+           :override original-fn
+           "Overrides original-fn"
+           "over-it")
+
+(original-fn)
+;; => "over-it"
+#+end_src
+
+** around
+
+Wraps the target function and receives the original function as the
+first value followed by the arguments the original function was called
+with. This is the best choice for customizing the modal behavior in
+the spacehammer menu because it allows you to customize the arguments
+provided to the lower-level alert API but does not require a full
+re-implementation. This advise-type is the most versatile.
+
+Behavior:
+
+#+begin_src fennel
+(fn [...]
+  (advice-fn original-function (table.unpack [...])))
+#+end_src
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+
+(defn original-fn
+      [x y z]
+      "docstr"
+      "Good job,")
+
+(defadvice advice-fn
+           [orig-fn x y z]
+           :around original-fn
+           "Wraps original-fn"
+           ;; May call orig-fn anytime, maybe even more than once
+           ;; and return anything
+           (.. "Yay! " (orig-fn x y z) " me"))
+
+(original-fn)
+;; => "Yay! Good job, me"
+#+end_src
+
+** before
+
+Call a function before the original function with the same arguments.
+Return value is discarded from the advising function.
+
+Behavior:
+
+#+begin_src fennel
+(fn [...]
+  (advice-fn   (table.unpack [...]))
+  (original-fn (table.unpack [...])))
+#+end_src
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+
+(defn original-fn
+      [x y z]
+      "docstr"
+      (+ x y z))
+
+(defadvice advice-fn
+           [x y z]
+           :before original-fn
+           "Before original-fn"
+           (print "before:" (hs.inspect [x y z])))
+
+(original-fn 1 2 3)
+;; => "before: [1 2 3]"  ;; Before hook printing args
+;; => 6                  ;; Original function sum
+#+end_src
+
+** before-while
+
+Call a function before the original function with the same arguments.
+If the return value of the advising function is truthy, it will also
+call the original function with the same arguments. If the return
+value is falsey, the original function will not be called.
+
+Behavior:
+
+#+begin_src fennel
+(fn [...]
+  (and (advice-fn   (table.unpack [...]))
+       (original-fn (table.unpack [...]))))
+#+end_src
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+
+(defn original-fn
+      [x y z]
+      "docstr"
+      (+ x y z))
+
+(original-fn 1 2 3)
+;; => 6
+
+(defadvice advice-fn
+           [x y z]
+           :before-while original-fn
+           "Before-while original-fn"
+           nil)
+
+(original-fn 1 2 3)
+;; => nil ;; Original function was not called, advice fn returned nil
+#+end_src
+
+** before-until
+
+Call a function before the original function with the same arguments.
+If the return value of the advising function is falsey, it will then
+call the original function with the same arguments. If the return
+value is truthy, the original function will not be called. It behaves
+like the inverse of =before-while=.
+
+Behavior:
+
+#+begin_src fennel
+(fn [...]
+  (or (advice-fn   (table.unpack [...]))
+      (original-fn (table.unpack [...]))))
+#+end_src
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+
+(defn original-fn
+      [x y z]
+      "docstr"
+      (+ x y z))
+
+(original-fn 1 2 3)
+;; => 6
+
+(defadvice advice-fn
+           [x y z]
+           :before-until original-fn
+           "Before-until original-fn"
+           true)
+
+(original-fn 1 2 3)
+;; => true ;; advice-fn returned truthy value, original not called
+#+end_src
+
+** after
+
+Call a function after the original function with the same arguments.
+Only the original function's return value is returned
+
+Behavior:
+
+#+begin_src fennel
+(fn [...]
+  (original-fn (table.unpack [...]))
+  (advice-fn   (table.unpack [...])))
+#+end_src
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+
+(defn original-fn
+      [x y z]
+      "docstr"
+      (print (+ x y z)))
+
+(defadvice advice-fn
+           [x y z]
+           :after original-fn
+           "After original-fn"
+           (+ (- y x) z))
+
+(original-fn 1 2 3)
+;; => 6 ;; original fn prints the sum
+;; => 4 ;; advice fn called after, its value returned
+#+end_src
+
+** after-while
+
+Calls the original function first, if it returns a truthy value the
+advising function is also called with the same arguments and its
+return value is what the caller receives.
+
+Behavior:
+
+#+begin_src fennel
+(fn [...]
+  (and
+   (original-fn (table.unpack [...]))
+   (advice-fn   (table.unpack [...]))))
+#+end_src
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+
+(defn original-fn
+      [x y z]
+      "docstr"
+      true)
+
+(original-fn 1 2 3)
+;; => true
+
+(defadvice advice-fn
+           [x y z]
+           :after-while original-fn
+           "After-while original-fn"
+           (+ x y z))
+
+(original-fn 1 2 3)
+;; => 6 ;; Original-fn returned truthy value, advice-fn called
+#+end_src
+
+** after-until
+
+Calls the original function first, if it returns a falsey value the
+advising function is also called with the same arguments and its
+return value is what the caller receives. It behaves like the inverse
+of =after-while=.
+
+Behavior:
+
+#+begin_src fennel
+(fn [...]
+  (or
+   (original-fn (table.unpack [...]))
+   (advice-fn   (table.unpack [...]))))
+#+end_src
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+
+(defn original-fn
+      [x y z]
+      "docstr"
+      true)
+
+(original-fn 1 2 3)
+;; => true
+
+(defadvice advice-fn
+           [x y z]
+           :after-until original-fn
+           "After-until original-fn"
+           (+ x y z))
+
+(original-fn 1 2 3)
+;; => true ;; original-fn returned truthy vaue, advice-fn not called
+#+end_src
+
+** filter-args
+
+The advising function is called with the args provided by the caller,
+it must return a table list of args to apply to the original function.
+It transforms arguments, similar to around but without having access to the original.
+
+Behavior:
+
+#+begin_src fennel
+(fn [...]
+  (original-fn (table.unpack (advice-fn (table.unpack [...])))))
+#+end_src
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+
+(defn original-fn
+      [x y z]
+      "docstr"
+      (+ x y z))
+
+(original-fn 1 2 3)
+;; => 6
+
+(defadvice advice-fn
+           [x y z]
+           :filter-args original-fn
+           "filter-args original-fn"
+           [(* x 2) (* y 2) (* z 2)])
+
+(original-fn 1 2 3)
+;; => 10 ;; Values returned by advice-fn applied to original-fn
+#+end_src
+
+** filter-return
+
+The advising function is called with the return value of the original
+function. It may transform the return value and return the transformed
+value to the caller. It is also similar to around but without access
+to the original.
+
+Behavior:
+
+#+begin_src fennel
+(fn [...]
+  (advice-fn (original-fn (table.unpack [...]))))
+#+end_src
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+
+(defn original-fn
+      [x y z]
+      "docstr"
+      (+ x y z))
+
+(original-fn 1 2 3)
+;; => 6
+
+(defadvice advice-fn
+           [sum]
+           :filter-return original-fn
+           "filter-return original-fn"
+           (* sum 2))
+
+(original-fn 1 2 3)
+;; => 12 ;; Return value of original-fn passed to advice-fn
+#+end_src
+
+
+* Advising Targets and Order
+
+** Function references or strings
+
+The add advice APIs accept both a target function or the unique key
+pointing to an advisable function entry. Only functions defined with
+=defn=, =afn=, or =make-advisable= are supported.
+
+For example, if this fennel code was in the []:
+
+#+begin_src fennel
+(import-macros {: defn} :lib.advice.macros)
+
+(defn defn-func-2
+      [x y z]
+      "docstr"
+      "default")
+
+(print defn-func-2.key)
+#+end_src
+
+It would print the following:
+
+#+begin_src fennel
+"test/advice-test/defn-func-2"
+#+end_src
+
+That key is a unique pointer to an advisable function. It can be
+passed as the target to both the =defadvice= macro and =add-advice=
+function. It is always calculated from the =~/.hammerspoon= root, if you
+are creating advisable functions within your =~/.spacehammer= directory,
+the keys will start with =spacehammer=.
+
+The following forms are equivalent:
+
+#+begin_src fennel
+(add-advice defn-func-2 :override (fn [x y z] "over-it"))
+(add-advice :test/advice-test/defn-func-2 :override (fn [x y z] "over-it"))
+#+end_src
+
+** Order does not matter
+
+Advice can be defined before the advisable function exists:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+
+(defadvice defn-func-override
+           [x y z]
+           :override defn-func-3
+           "Overrides defn-func-3"
+           "over-it")
+
+(defn defn-func-3
+      [x y z]
+      "docstr"
+      "Hi")
+
+(defn-func-3)
+;; => "over-it"
+#+end_src
+
+* Defining an Advisable Function
+
+Unlike emacs, functions are not advisable by default, in fennel, the
+=defn= and =afn= macros were created to define advisable functions.
+
+** defn
+
+The defn macro works like =fn= except that it only works for
+module-level locals, it will not work for ad-hoc functions created
+within a =let= form.
+
+Usage:
+
+#+begin_src fennel
+(defn function-name
+      [args]
+      "docstr"
+      body-1
+      ...body ;; Optional
+      )
+#+end_src
+
+- =docstr= is always required for advisable functions, it's a best
+  practice for root module functions and will help guide people who
+  wish to advise it.
+
+- At least one body form is required. If stubbing out a function =nil=
+  will do just fine. This is a requirement that comes from the fennel
+  =(fn)= special form.
+
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+
+(defn defn-func-1
+      [x y z]
+      "docstr"
+      "Hi")
+
+(defn-func-1)
+;; => "Hi"
+
+(defadvice defn-func-override
+           [x y z]
+           :override defn-func-1
+           "Overrides defn-func-1"
+           "over-it")
+
+(defn-func-1)
+;; => "over-it"
+#+end_src
+
+The =defn= macro transforms the above call into the following:
+
+#+begin_src fennel
+(local defn-func-1
+       (let [adv_0_ (require "lib.advice")]
+         (adv_0_.make-advisable
+          "defn-func-2" (fn [x y z]
+                          "docstr"
+                          "hi"))))
+#+end_src
+
+The =defn= macro should be the primary API for creating advisable
+functions, but =afn= covers the use cases where =defn= will not work.
+
+** afn
+
+The afn macro supports inline functions defined as callback arguments
+to higher-order-functions or when creating bespoke functions in =let= forms.
+
+Usage:
+
+#+begin_src fennel
+(afn function-name
+     [args]
+     body-1
+     ...body ;; Optional
+     )
+#+end_src
+
+- It's nearly identical to =defn= but the docstr is not supported.
+- At least one function body form is required. Can be =nil= if trying to
+  make a noop or placeholder function.
+
+Example:
+
+#+begin_src fennel
+(import-macros {: afn
+                : defadvice} :lib.advice.macros)
+
+(let [scoped-func (afn scoped-func
+                       [x y z]
+                       "default")]
+  (scoped-func)
+  ;; => "default"
+
+  (defadvice scoped-func-advice
+    [x y z]
+    :override scoped-func
+    "Overrides scoped-func"
+    "over-it")
+
+  (scoped-func)
+  ;; => "over-it"
+
+  )
+#+end_src
+
+The =afn= macro transforms the above call into:
+
+#+begin_src fennel
+(let [adv_0_ (require "lib.advice")]
+  (adv_0_.make-advisable
+   "priv-func"
+   (fn [x y z]
+     "default")))
+#+end_src
+
+** make-advisable
+
+Lastly if macros are not an option for whatever reason, they mostly
+wrap the =make-advisable= function.
+
+Usage:
+
+#+begin_src fennel
+(make-advisable "unique key"
+  (fn [args]
+    body-1
+    ...body ;; Optional
+  ))
+#+end_src
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+(local {: make-advisable} :lib.advice)
+
+(local advisable
+       (make-advisable
+        :advisable
+        (fn [x y z]
+          "default")))
+
+(advisable)
+;; => "default"
+
+#+end_src
+
+* Other Useful APIs
+
+** Remove Advice
+
+Given the nature of this project, users will most likely be dealing
+with original functions where as emacs you may have layers of packages
+that advise core emacs functions. Therefore it's unlikely that
+remove-advice will be widely used but it has its uses in testing and debugging.
+
+Usage:
+
+#+begin_src fennel
+(remove-advice original-fn :advice-type advice-fn)
+#+end_src
+
+- Args are the same as =add-advice=
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+(local {: remove-advice} :lib.advice)
+
+(defn original-fn
+      [x y z]
+      "docstr"
+      "default")
+
+(original-fn)
+;; => "default"
+
+(defadvice advice-fn
+           [x y z]
+           :override original-fn
+           "over-it")
+;; => "over-it"
+
+(remove-advice original-fn :override advice-fn)
+
+(original-fn)
+;; => "default'
+#+end_src
+
+** Get Advice For an Advisable Function
+
+When testing or debugging it may be useful to see the list of advice
+applied to an advisable function.
+
+The =get-advice= function will do just that:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+(local {: get-advice} :lib.advice)
+
+(defn original-fn
+      [x y z]
+      "docstr"
+      "default")
+
+(defadvice advice-fn
+           [x y z]
+           :override original-fn
+           "over-it")
+
+(pprint (get-advice original-fn))
+#+end_src
+
+Will print a table like the following:
+
+#+begin_src fennel
+[
+ {:f    "advice-fn: 0x600000278c80"
+  :type "override"}
+]
+#+end_src
+
+** Log Advisable Functions
+
+It may be useful to see a list of advisable function keys. Use the
+=print-advisable-keys= function to print a nicely formatted list of
+advisable keys.
+
+Example:
+
+#+begin_src fennel
+(local {: print-advisable-keys} :lib.advice)
+
+(print-advisable-keys)
+#+end_src
+
+Which would print something like:
+
+#+begin_example
+:test/advice-test/test-func-1
+:test/advice-test/test-func-2
+:test/advice-test/test-func-3
+;; ...
+:test/advice-test/test-func-7
+#+end_example
+
+* Considerations
+
+** Performance
+
+Creating advisable functions does come with some runtime overhead
+iterating through the advice. In most cases the performance hit should
+be negligible,  but if anyone does experience unexpected performance
+issues please report it so maintainers can investigate.
+
+Functions that fire on a short interval, such as animation functions
+that run every 5 milliseconds, may encounter degraded performance
+caused by the advising overhead. It's not recommended to make
+functions like that advisable.
+
+** Complexity
+
+Just like with emacs, use advisable functions cautiously when it's the
+best choice for users to customize behaviors.
+
+** Tables vs. Functions
+
+The =make-advisable= function and =defadvice= macro return tables with
+a =__call=, =__index=, and =__name= metatable entries. The resulting
+tables can be called just like functions, but if you run
+=(type defn-func-2-advice)= it may return  "table" instead of
+function. If this causes any issues, please report it so we can
+consider alternatives.
+
+* Prior Art
+
+This concept was directly inspired and arguably ripped-off of emacs'
+advising system. Much of their docs are relevant to this, if you would
+like to dig deeper check out the official [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Advising-Functions.html][emacs advice docs]] for more
+information.

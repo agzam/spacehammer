@@ -55,6 +55,8 @@ Returns nil. This function causes side-effects.
 
 (global fw hs.window.focusedWindow)
 
+(global pprint (fn [x] (print (fennel.view x))))
+
 (fn file-exists?
   [filepath]
   "
