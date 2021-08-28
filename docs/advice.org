@@ -30,11 +30,11 @@ Usage:
       )
 #+end_src
 
-- ~"docstr"~ is always required for advisable functions, it's a best
+- ="docstr"= is always required for advisable functions, it's a best
   practice for root module functions and will help guide people who
   wish to advise it.
 
-- At least one body form is required. If stubbing out a function ~nil~
+- At least one body form is required. If stubbing out a function =nil=
   will do just fine. This is a requirement that comes from the fennel
   =(fn)= special form.
 
@@ -80,7 +80,7 @@ functions, but =afn= covers the use cases where =defn= will not work.
 ** afn
 
 The afn macro supports inline functions defined as callback arguments
-to higher-order-functions or when creating bespoke functions in ~let~ forms.
+to higher-order-functions or when creating bespoke functions in =let= forms.
 
 Usage:
 
@@ -181,7 +181,7 @@ That key is a unique pointer to an advisable function. It can be
 passed as the target to both the =defadvice= macro and =add-advice=
 function. It is always calculated from the =~/.hammerspoon= root, if you
 are creating advisable functions within your =~/.spacehammer= directory,
-the keys will start with ~"spacehammer"~.
+the keys will start with ="spacehammer"=.
 
 The following forms are equivalent:
 
@@ -218,7 +218,7 @@ Advice can be defined before the advisable function exists:
 *** defadvice
 
 The =defadvice= macro should be the primary means for adding advice but
-a direct ~add-advice~ alternative is available.
+a direct =add-advice= alternative is available.
 
 Usage:
 
@@ -232,11 +232,11 @@ Usage:
   )
 #+end_src
 
-- The string keyword ~:override~ refers to one of many advice types
+- The string keyword =:override= refers to one of many advice types
   described below.
 - The advisor-function-name makes it easier to track advice later
 - A docstr is required
-- At least one body form is required, ~nil~ may be used for noop and
+- At least one body form is required, =nil= may be used for noop and
   placeholder functions
 
 Example:
@@ -275,7 +275,7 @@ The defadvice call above expands to:
 
 *** add-advice
 
-If in the event =defadvice= macro does not work, the ~add-advice~ function
+If in the event =defadvice= macro does not work, the =add-advice= function
 may be better suited. It's what =defadvice= uses under the hood.
 
 Usage:
