@@ -383,11 +383,11 @@ Example:
            :around defn-func-7
            "Wraps defn-func-6"
            ;; May call orig-fn anytime, maybe even more than once
-           ;; and retur
-           (.. (orig-fn x y z) " me"))
+           ;; and return anything
+           (.. "Yay! " (orig-fn x y z) " me"))
 
 (defn-func-7)
-;; => "Good job, me"
+;; => "Yay! Good job, me"
 #+end_src
 
 ** before
