@@ -28,45 +28,40 @@ Advising API to register functions
 (var advice {})
 (var advisable [])
 
-(fn add-advice
-  [f advice-type advice-fn]
-  (let [key (or f.key f)
-        advice-entry (. advice key)]
-    (when advice-entry
-      (table.insert advice-entry.advice {:type advice-type :f advice-fn}))))
-
-(fn remove-advice
-  [advice-type f]
-  (let [key f.key
-        advice-entry (. advice key)]
-    (tset advice-entry :advice
-          (->> advice-entry.advice
-               (filter #(not (and (= $1.type  advice-type)
-                                  (= $1.f     f))))))
-    nil))
-
 (fn register-advisable
   [key f]
-  ;; @TODO Replace with if-let or similar macro but doesn't work in an isolated fennel file
-  (when (contains? key advisable)
-    (error (.. "Advisable function" key "already exists")))
-  (table.insert advisable key)
+  ;; @TODO Replace with if-let or similar macro but doesn't work in an
+  ;; isolated fennel file
   (let [advice-entry (. advice key)]
+    (when (and advice-entry
+               advice-entry.original
+               (not (= advice-entry.original f)))
+        (error (.. "Advisable function " key " already exists")))
     (if advice-entry
-        advice-entry
+        (tset advice-entry
+              :original f)
         (tset advice key
               {:original f
                :advice []}))))
 
+(fn get-or-create-advice-entry
+  [key]
+  "
+  Gets or create an advice-entry without an original. This allows
+  advice to be added before the advisable function is defined
+  "
+  (let [advice-entry (. advice key)]
+    (if advice-entry
+        advice-entry
+        (do
+          ;; Don't set original as that is used to determine when an
+          ;; advisable function by that key was already defined
+          (tset advice key {:advice []})
+          (. advice key)))))
+
 (fn advisable-keys
   []
   (slice 0 advisable))
-
-(fn print-advisable-keys
-  []
-  (print "\nAdvisable functions:\n")
-  (each [i key (ipairs (advisable-keys))]
-    (print (.. "  :" key))))
 
 (fn get-module-name
   []
@@ -155,24 +150,27 @@ Advising API to register functions
           (entry.original (table.unpack args))))))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public API
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn make-advisable
   [fn-name f]
   "
-  Registers a function name against the global advisable table that contains
-  advice registered for a function. Advice can be defined before a function is
-  defined making it a really safe way to extend behavior without exploding
-  config options.
+  Registers a function name against the global advisable table that
+  contains advice registered for a function. Advice can be defined
+  before a function is defined making it a really safe way to extend
+  behavior without exploding config options.
+
+  It is recommended to use the `defn` or `afn` macros instead.
 
   Usage:
   (make-advisable :some-func (fn some-func [] \"Some return string\"))
 
   - Supports passing some-func directly into add-advice
   - Supports passing in some-func.key directly into add-advice
-  - Supports passing in a string like :path/to/module/some-func to add-advice
+  - Supports passing in a string like :path/to/module/some-func to
+    add-advice
   "
   (let [module (get-module-name)
         key (.. module "/" fn-name)
@@ -187,10 +185,52 @@ Advising API to register functions
       (: fennel.metadata :set ret k v))
     ret))
 
+(fn add-advice
+  [f advice-type advice-fn]
+  "
+  Register advice for an advisable function. It is recommended to use
+  the `defadvice` macro instead.
+
+  Takes a key string or a callable table with a key property, an
+  advising type key string, and an advising function
+
+  Returns nil, as it performs a side-effect
+  "
+  (let [key (or f.key f)
+        advice-entry (get-or-create-advice-entry key)]
+    (when advice-entry
+      (table.insert advice-entry.advice {:type advice-type :f advice-fn}))))
+
+(fn remove-advice
+  [f advice-type advice-fn]
+  "
+  Remove advice from a function
+  "
+  (let [key (or f.key f)
+        advice-entry (. advice key)]
+    (tset advice-entry :advice
+          (->> advice-entry.advice
+               (filter #(not (and (= $1.type  advice-type)
+                                  (= $1.f     advice-fn))))))
+    nil))
+
 (fn reset
   []
+  "
+  Anticipated for internal, testing, and debugging
+  Use with Caution
+  "
   (set advice {})
   (set advisable []))
+
+(fn print-advisable-keys
+  []
+  "
+  Prints a list of advisable function keys
+  "
+  (print "\nAdvisable functions:\n")
+  (each [i key (ipairs (advisable-keys))]
+    (print (.. "  :" key))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -201,5 +241,4 @@ Advising API to register functions
  : make-advisable
  : add-advice
  : remove-advice
- : advisable-keys
  : print-advisable-keys}

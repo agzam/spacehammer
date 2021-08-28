@@ -4,14 +4,13 @@
 (local {: reset
         : make-advisable
         : add-advice
-        : advisable-keys
+        : remove-advice
         : print-advisable-keys} (require :lib.advice))
 
 (local fennel (require :fennel))
 (local is (require :lib.testing.assert))
 (local {: join
         : map} (require :lib.functional))
-
 
 (describe
  "Advice"
@@ -39,6 +38,46 @@
 
            (add-advice test-func :override (fn [...] (.. "Overrided " (join " " [...]))))
            (is.eq? (test-func "anchovie" "pizza") "Overrided anchovie pizza" "Override test-func did not return \"Overrided anchovie pizza\""))))
+
+   (it "Should support advice added by string name"
+       (fn []
+         (let [test-func (make-advisable
+                          :test-func-2b
+                          (fn [...]
+                            "Advisable test function"
+                            "Plain pizza"))]
+
+           (add-advice :test/advice-test/test-func-2b :override (fn [...] (.. "Overrided " (join " " [...]))))
+           (is.eq? (test-func "anchovie" "pizza") "Overrided anchovie pizza" "Override test-func did not return \"Overrided anchovie pizza\""))))
+
+   (it "Should call original when remove-advice is called"
+       (fn []
+         (let [test-func (make-advisable
+                          :test-func-2c
+                          (fn [x y z]
+                            "Advisable test function"
+                            "default"))
+               advice-fn (fn [x y z]
+                           "over-it")]
+
+           (add-advice    test-func :override advice-fn)
+           (remove-advice test-func :override advice-fn)
+
+           (is.eq? (test-func) "default" "Original function was not called"))))
+
+   (it "Should support advice added before advisable function is created"
+       (fn []
+         (add-advice :test/advice-test/test-func-2d :override
+                     (fn [x y z]
+                       "over-it"))
+         (let [test-func (make-advisable
+                          :test-func-2d
+                          (fn [...]
+                            "Advisable test function"
+                            "default"))]
+
+           (is.eq? (test-func) "over-it" "test-func was not advised"))))
+
 
    (it "Should call around functions with orig"
        (fn []
