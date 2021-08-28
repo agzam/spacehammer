@@ -7,11 +7,11 @@ package.cpath = package.cpath .. ";" .. os.getenv("HOME") .. "/.luarocks/lib/lua
 
 fennel = require("fennel")
 
+-- Support docstrings
+
 local searcher = fennel.makeSearcher({
       useMetadata = true,
 })
-
--- table.insert(package.loaders or package.searchers, searcher)
 
 local testRunner = require "lib.testing.test-runner"
 
