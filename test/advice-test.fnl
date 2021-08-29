@@ -5,6 +5,7 @@
         : make-advisable
         : add-advice
         : remove-advice
+        : get-advice
         : print-advisable-keys} (require :lib.advice))
 
 (local fennel (require :fennel))
@@ -335,10 +336,47 @@
                "docstr"
                (print "hi"))
 
-         (defadvice defn-func-2 [x y z]
-                    :override defn-override
+         (defadvice defn-func-2-advice [x y z]
+                    :override defn-func-2
                     "Override defn-func-2 with this sweet, sweet syntax sugar"
                     "This feature is done!")
 
          (is.eq? (defn-func-2) "This feature is done!" "defadvice did not advise defn-func-2")))
+
+   (it "Should support advice added with defadvice"
+       (fn []
+         (defn defn-func-3
+               [x y z]
+               "docstr"
+               "default")
+
+         (is.eq? (defn-func-3) "default" "original-fn did not return default")
+
+         (defadvice defn-func-3-advice [x y z]
+                    :override defn-func-3
+                    "Override defn-func-3 with this sweet, sweet syntax sugar"
+                    "over-it")
+
+         (is.eq? (defn-func-3) "over-it" "defadvice did not advise defn-func-3")
+
+         (remove-advice defn-func-3 :override defn-func-3-advice)
+
+         (is.eq? (defn-func-3) "default" "advice was not removed from original-fn")))
+
+   (it "Should support get-advice returning the advice list for an advised func"
+       (fn []
+         (defn defn-func-4
+               [x y z]
+               "docstr"
+               "default")
+
+         (defadvice defn-func-4-advice [x y z]
+                    :override defn-func-4
+                    "Override defn-func-4"
+                    "over-it")
+
+         (is.eq? (defn-func-4) "over-it" "defn-func-4 was not advised")
+         (is.eq? (length (get-advice defn-func-4)) 1 "advice list should be 1")))
+
+
    ))

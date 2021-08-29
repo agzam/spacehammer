@@ -52,18 +52,28 @@ Macros to create advisable functions or register advice for advisable functions
 
 
 (fn defadvice
-  [f-or-key args advice-type fn-name docstr body1 ...]
+  [fn-name args advice-type f-or-key docstr body1 ...]
   "
   Define advice for an advisable function. Syntax sugar for calling
   (add-advice key-or-advisable-fn (fn [] ...))
 
   @example
-
+  (defadvice my-advice-fn
+    [x y z]
+    :override original-fn
+    \"Override original-fn\"
+    (* x y z))
   "
   (assert (= (type docstr) :string) "A docstr is required for defining advice")
   (assert body1 "advisable function expected body")
-  `(let [adv# (require :lib.advice)]
-     (adv#.add-advice ,f-or-key ,advice-type (fn ,fn-name ,args ,docstr ,body1 ,...))))
+  `(local ,fn-name
+          (let [adv# (require :lib.advice)
+                advice-fn# (setmetatable
+                            {}
+                            {:__name ,(tostring fn-name)
+                             :__call (fn ,fn-name ,args ,docstr ,body1 ,...)})]
+            (adv#.add-advice ,f-or-key ,advice-type advice-fn#)
+            advice-fn#)))
 
 {: afn
  : defn

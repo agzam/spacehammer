@@ -177,7 +177,8 @@ Advising API to register functions
         advice-reg (register-advisable key f)
         ret {:key key}]
     (setmetatable ret
-                  {:__call (fn [...]
+                  {:__name fn-name
+                   :__call (fn [...]
                              (dispatch-advice key [...]))
                    :__index (fn [tbl key]
                               (. tbl key))})
@@ -232,6 +233,18 @@ Advising API to register functions
   (each [i key (ipairs (advisable-keys))]
     (print (.. "  :" key))))
 
+(fn get-advice
+  [f-or-key]
+  "
+  Returns the advice list for a given function or advice entry key
+  "
+  (let [advice-entry (. advice (or f-or-key.key f-or-key))]
+    (if advice-entry
+        (map
+         (fn [adv]
+           {:f (tostring adv.f) :type adv.type})
+         (slice 0 advice-entry.advice))
+        [])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Exports
@@ -241,4 +254,5 @@ Advising API to register functions
  : make-advisable
  : add-advice
  : remove-advice
+ : get-advice
  : print-advisable-keys}
