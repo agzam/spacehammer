@@ -832,6 +832,14 @@ performance overhead may be noticeably chuggy.
 Just like with emacs, use advisable functions cautiously when it's the
 best choice for users to customize behaviors.
 
+** Tables vs. Functions
+
+The =make-advisable= function and =defadvice= macro return tables with a
+=__call=, =__index=, and =__name= metatable entries. The resulting tables
+can be called just like functions, but if you run =(type
+defn-func-2-advice)= it may return  "table" instead of function. If
+this causes any issues, please report it so we can consider alternatives.
+
 * Prior Art
 
 This concept was directly inspired and arguably ripped-off of emacs'
