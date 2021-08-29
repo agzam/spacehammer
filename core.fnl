@@ -217,12 +217,4 @@ Returns nil. This function causes side-effects.
              (reduce #(merge $1 $2) {})))
 
 
-(fn docstr-f [x y z]
-  "The docstr-f docstr"
-  (print "hi"))
-
-(fn no-fun [x y z]
-  (print "hi"))
-
-
 (global pprint (fn [x] (print (fennel.view x))))
