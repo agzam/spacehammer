@@ -2,16 +2,17 @@
 
 * What is it?
 
-Inspired by emacs, the advising system allows SpaceHammer developers
-to define functions that users can hook to run operations before,
-after, wrap, or replace the original implementation. This gives users
-the flexibility to customize behavior without having to create
-extraneous config.fnl options.
+Inspired by emacs, the advising system provides an API for defining
+core functions that users can then customize by adding hooks in the
+form of other functions that can override, wrap, run before, run
+after, among other behaviors. Instead of limiting users to a few
+config options maintainers and contributors provide, users can
+customize core behaviors however they would like.
 
 * Defining an Advisable Function
 
 Unlike emacs, functions are not advisable by default, in fennel, the
-=defn= and =afn= macros can define advisable functions.
+=defn= and =afn= macros were created to define advisable functions.
 
 ** defn
 
@@ -162,177 +163,6 @@ Example:
 ;; => "default"
 
 #+end_src
-
-* Adding Advice
-
-With an advisable function created, we can now add advice to extend
-the behaviors. This section will cover the APIs to add advice, and the
-next section will cover the supported advice types.
-
-** Function references or strings
-
-The add advice APIs accept both a target function or the unique key
-pointing to an advisable function entry. Only functions defined with
-=defn=, =afn=, or =make-advisable= are supported.
-
-For example, if this fennel code was in the []:
-
-#+begin_src fennel
-(import-macros {: defn} :lib.advice.macros)
-
-(defn defn-func-2
-      [x y z]
-      "docstr"
-      "default")
-
-(print defn-func-2.key)
-#+end_src
-
-It would print the following:
-
-#+begin_src fennel
-"test/advice-test/defn-func-2"
-#+end_src
-
-That key is a unique pointer to an advisable function. It can be
-passed as the target to both the =defadvice= macro and =add-advice=
-function. It is always calculated from the =~/.hammerspoon= root, if you
-are creating advisable functions within your =~/.spacehammer= directory,
-the keys will start with ="spacehammer"=.
-
-The following forms are equivalent:
-
-#+begin_src fennel
-(add-advice defn-func-2 :override (fn [x y z] "over-it"))
-(add-advice :test/advice-test/defn-func-2 :override (fn [x y z] "over-it"))
-#+end_src
-
-** Order does not matter
-
-Advice can be defined before the advisable function exists:
-
-#+begin_src fennel
-(import-macros {: defn
-                : defadvice} :lib.advice.macros)
-
-(defadvice defn-func-override
-           [x y z]
-           :override defn-func-3
-           "Overrides defn-func-3"
-           "over-it")
-
-(defn defn-func-3
-      [x y z]
-      "docstr"
-      "Hi")
-
-(defn-func-3)
-;; => "over-it"
-#+end_src
-
-** Advising APIs
-
-*** defadvice
-
-The =defadvice= macro should be the primary means for adding advice but
-a direct =add-advice= alternative is available.
-
-Usage:
-
-#+begin_src fennel
-(defadvice advisor-function-name
-  [x y z]
-  :override target-function-or-key
-  "docstr"
-  body-1
-  ...body ;; Optional
-  )
-#+end_src
-
-- The string keyword =:override= refers to one of many advice types
-  described below.
-- The advisor-function-name makes it easier to track advice later
-- A docstr is required
-- At least one body form is required, =nil= may be used for noop and
-  placeholder functions
-
-Example:
-
-#+begin_src fennel
-(defn defn-func-4
-      [x y z]
-      "docstr"
-      "default")
-
-(defadvice defn-func-override
-           [x y z]
-           :override defn-func-4
-           "Overrides defn-func-4"
-           "over-it")
-
-(defn-func-4)
-;; => "over-it"
-#+end_src
-
-- defn-func-override completely overrides defn-func-4
-- When defn-func-4 is called, defn-func-override is called instead
-  returning "over-it" instead of "default"
-
-The defadvice call above expands to:
-
-#+begin_src fennel
-(local defn-func-override
-       (let [adv_0_ (require "lib.advice")
-             advice-fn_0_ (fn defn-func-override
-                            [x y z]
-                            "Overrides defn-func-4" "over-it")]
-         (adv_0_.add-advice defn-func-4 "override" advice-fn_0_)
-         advice-fn_0_))
-#+end_src
-
-=defadvice= is best used in top-level calls within a module so that
-they can be removed if needed latter.
-
-*** add-advice
-
-If in the event =defadvice= macro does not work, the =add-advice= function
-may be better suited. It's what =defadvice= uses under the hood.
-
-Usage:
-
-#+begin_src fennel
-(add-advice target-function-or-key :advice-type advice-function)
-#+end_src
-
-- target-function-or-key refers to advisable-fn.key or the string itself
-- :advice-type refers to one of many advice types described below
-- advice-function depends on the advice type as it will receive
-  different args along with different expected return types
-
-Example:
-
-#+begin_src fennel
-(import-macros {: defn
-                : defadvice} :lib.advice.macros)
-(local {: add-advice} :lib.advice)
-
-(defn defn-func-5
-      [x y z]
-      "docstr"
-      "default")
-
-(add-advice defn-func-5
-            :override (fn [x y z]
-                        "over-it"))
-
-(defn-func-5)
-;; => "over-it"
-#+end_src
-
-- Identical behavior to the =defadvice= behavior described above, but a
-  more primitive API.
-- It's recommended to use =defadvice= most of the time as it enforces
-  better habits that will keep projects from becoming a mess.
 
 * Advise Types
 
@@ -711,6 +541,177 @@ Example:
 
 (original-fn 1 2 3)
 ;; => 12 ;; Return value of original-fn passed to advice-fn
+
+* Adding Advice
+
+With an advisable function created, we can now add advice to extend
+the behaviors. This section will cover the APIs to add advice, and the
+next section will cover the supported advice types.
+
+** Advising APIs
+
+*** defadvice
+
+The =defadvice= macro should be the primary means for adding advice but
+a direct =add-advice= alternative is available.
+
+Usage:
+
+#+begin_src fennel
+(defadvice advisor-function-name
+  [x y z]
+  :override target-function-or-key
+  "docstr"
+  body-1
+  ...body ;; Optional
+  )
+#+end_src
+
+- The string keyword =:override= refers to one of many advice types
+  described below.
+- The advisor-function-name makes it easier to track advice later
+- A docstr is required
+- At least one body form is required, =nil= may be used for noop and
+  placeholder functions
+
+Example:
+
+#+begin_src fennel
+(defn defn-func-4
+      [x y z]
+      "docstr"
+      "default")
+
+(defadvice defn-func-override
+           [x y z]
+           :override defn-func-4
+           "Overrides defn-func-4"
+           "over-it")
+
+(defn-func-4)
+;; => "over-it"
+#+end_src
+
+- defn-func-override completely overrides defn-func-4
+- When defn-func-4 is called, defn-func-override is called instead
+  returning "over-it" instead of "default"
+
+The defadvice call above expands to:
+
+#+begin_src fennel
+(local defn-func-override
+       (let [adv_0_ (require "lib.advice")
+             advice-fn_0_ (fn defn-func-override
+                            [x y z]
+                            "Overrides defn-func-4" "over-it")]
+         (adv_0_.add-advice defn-func-4 "override" advice-fn_0_)
+         advice-fn_0_))
+#+end_src
+
+=defadvice= is best used in top-level calls within a module so that
+they can be removed if needed latter.
+
+*** add-advice
+
+If in the event =defadvice= macro does not work, the =add-advice= function
+may be better suited. It's what =defadvice= uses under the hood.
+
+Usage:
+
+#+begin_src fennel
+(add-advice target-function-or-key :advice-type advice-function)
+#+end_src
+
+- target-function-or-key refers to advisable-fn.key or the string itself
+- :advice-type refers to one of many advice types described below
+- advice-function depends on the advice type as it will receive
+  different args along with different expected return types
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+(local {: add-advice} :lib.advice)
+
+(defn defn-func-5
+      [x y z]
+      "docstr"
+      "default")
+
+(add-advice defn-func-5
+            :override (fn [x y z]
+                        "over-it"))
+
+(defn-func-5)
+;; => "over-it"
+#+end_src
+
+- Identical behavior to the =defadvice= behavior described above, but a
+  more primitive API.
+- It's recommended to use =defadvice= most of the time as it enforces
+  better habits that will keep projects from becoming a mess.
+
+** Function references or strings
+
+The add advice APIs accept both a target function or the unique key
+pointing to an advisable function entry. Only functions defined with
+=defn=, =afn=, or =make-advisable= are supported.
+
+For example, if this fennel code was in the []:
+
+#+begin_src fennel
+(import-macros {: defn} :lib.advice.macros)
+
+(defn defn-func-2
+      [x y z]
+      "docstr"
+      "default")
+
+(print defn-func-2.key)
+#+end_src
+
+It would print the following:
+
+#+begin_src fennel
+"test/advice-test/defn-func-2"
+#+end_src
+
+That key is a unique pointer to an advisable function. It can be
+passed as the target to both the =defadvice= macro and =add-advice=
+function. It is always calculated from the =~/.hammerspoon= root, if you
+are creating advisable functions within your =~/.spacehammer= directory,
+the keys will start with ="spacehammer"=.
+
+The following forms are equivalent:
+
+#+begin_src fennel
+(add-advice defn-func-2 :override (fn [x y z] "over-it"))
+(add-advice :test/advice-test/defn-func-2 :override (fn [x y z] "over-it"))
+#+end_src
+
+** Order does not matter
+
+Advice can be defined before the advisable function exists:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+
+(defadvice defn-func-override
+           [x y z]
+           :override defn-func-3
+           "Overrides defn-func-3"
+           "over-it")
+
+(defn defn-func-3
+      [x y z]
+      "docstr"
+      "Hi")
+
+(defn-func-3)
+;; => "over-it"
+#+end_src
 
 * Other Useful APIs
 
