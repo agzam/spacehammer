@@ -59,8 +59,8 @@ Example:
 ;; => "over-it"
 #+end_src
 
-- defn-func-override completely overrides defn-func-4
-- When calling defn-func-4, defn-func-override is called instead
+- =defn-func-override= completely overrides =defn-func-4=
+- When calling =defn-func-4=, =defn-func-override= is called instead
   returning "over-it" instead of "default"
 
 The defadvice call above expands to:
@@ -463,6 +463,7 @@ Example:
 (original-fn 1 2 3)
 ;; => 10 ;; Values returned by advice-fn applied to original-fn
 #+end_src
+
 ** filter-return
 
 The advising function is called with the return value of the original
