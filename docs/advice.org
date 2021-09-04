@@ -9,160 +9,115 @@ after, among other behaviors. Instead of limiting users to a few
 config options maintainers and contributors provide, users can
 customize core behaviors however they would like.
 
-* Defining an Advisable Function
+* Adding Advice
 
-Unlike emacs, functions are not advisable by default, in fennel, the
-=defn= and =afn= macros were created to define advisable functions.
+Maintainers and contributors define core functions as advisable using
+the =defn= and =afn= macros described at the bottom of this document. Most
+people will use the advising APIs below to customize behavior to their liking.
 
-** defn
+** Advising APIs
 
-The defn macro works like =fn= except that it only works for
-module-level locals, it will not work for ad-hoc functions created
-within a =let= form.
+*** defadvice
 
-Usage:
-
-#+begin_src fennel
-(defn function-name
-      [args]
-      "docstr"
-      body-1
-      ...body ;; Optional
-      )
-#+end_src
-
-- ="docstr"= is always required for advisable functions, it's a best
-  practice for root module functions and will help guide people who
-  wish to advise it.
-
-- At least one body form is required. If stubbing out a function =nil=
-  will do just fine. This is a requirement that comes from the fennel
-  =(fn)= special form.
-
-
-Example:
-
-#+begin_src fennel
-(import-macros {: defn
-                : defadvice} :lib.advice.macros)
-
-(defn defn-func-1
-      [x y z]
-      "docstr"
-      "Hi")
-
-(defn-func-1)
-;; => "Hi"
-
-(defadvice defn-func-override
-           [x y z]
-           :override defn-func-1
-           "Overrides defn-func-1"
-           "over-it")
-
-(defn-func-1)
-;; => "over-it"
-#+end_src
-
-The =defn= macro transforms the above call into the following:
-
-#+begin_src fennel
-(local defn-func-1
-       (let [adv_0_ (require "lib.advice")]
-         (adv_0_.make-advisable
-          "defn-func-2" (fn [x y z]
-                          "docstr"
-                          "hi"))))
-#+end_src
-
-The =defn= macro should be the primary API for creating advisable
-functions, but =afn= covers the use cases where =defn= will not work.
-
-** afn
-
-The afn macro supports inline functions defined as callback arguments
-to higher-order-functions or when creating bespoke functions in =let= forms.
+The =defadvice= macro should be the primary means for adding advice but
+a direct =add-advice= alternative is available.
 
 Usage:
 
 #+begin_src fennel
-(afn function-name
-     [args]
-     body-1
-     ...body ;; Optional
-     )
-#+end_src
-
-- It's nearly identical to =defn= but the docstr is not supported.
-- At least one function body form is required. Can be =nil= if trying to
-  make a noop or placeholder function.
-
-Example:
-
-#+begin_src fennel
-(import-macros {: afn
-                : defadvice} :lib.advice.macros)
-
-(let [scoped-func (afn scoped-func
-                       [x y z]
-                       "default")]
-  (scoped-func)
-  ;; => "default"
-
-  (defadvice scoped-func-advice
-    [x y z]
-    :override scoped-func
-    "Overrides scoped-func"
-    "over-it")
-
-  (scoped-func)
-  ;; => "over-it"
-
+(defadvice advisor-function-name
+  [x y z]
+  :override target-function-or-key
+  "docstr"
+  body-1
+  ...body ;; Optional
   )
 #+end_src
 
-The =afn= macro transforms the above call into:
+- The string keyword =:override= refers to one of many advice types
+  described below.
+- The advisor-function-name makes it easier to track advice later
+- A docstr is required
+- At least one body form is required, =nil= may be used for noop and
+  placeholder functions
+
+Example:
 
 #+begin_src fennel
-(let [adv_0_ (require "lib.advice")]
-  (adv_0_.make-advisable
-   "priv-func"
-   (fn [x y z]
-     "default")))
+(defn defn-func-4
+      [x y z]
+      "docstr"
+      "default")
+
+(defadvice defn-func-override
+           [x y z]
+           :override defn-func-4
+           "Overrides defn-func-4"
+           "over-it")
+
+(defn-func-4)
+;; => "over-it"
 #+end_src
 
-** make-advisable
+- defn-func-override completely overrides defn-func-4
+- When calling defn-func-4, defn-func-override is called instead
+  returning "over-it" instead of "default"
 
-Lastly if macros are not an option for whatever reason, they mostly
-wrap the =make-advisable= function.
+The defadvice call above expands to:
+
+#+begin_src fennel
+(local defn-func-override
+       (let [adv_0_ (require "lib.advice")
+             advice-fn_0_ (fn defn-func-override
+                            [x y z]
+                            "Overrides defn-func-4" "over-it")]
+         (adv_0_.add-advice defn-func-4 "override" advice-fn_0_)
+         advice-fn_0_))
+#+end_src
+
+=defadvice= is best used in top-level calls within a module so that
+they can be removed if needed latter.
+
+*** add-advice
+
+If in the event =defadvice= macro does not work, the =add-advice= function
+may be better suited. It's what =defadvice= uses under the hood.
 
 Usage:
 
 #+begin_src fennel
-(make-advisable "unique key"
-  (fn [args]
-    body-1
-    ...body ;; Optional
-  ))
+(add-advice target-function-or-key :advice-type advice-function)
 #+end_src
+
+- target-function-or-key refers to advisable-fn.key or the string itself
+- :advice-type refers to one of many advice types described below
+- advice-function depends on the advice type as it will receive
+  different args along with different expected return types
 
 Example:
 
 #+begin_src fennel
 (import-macros {: defn
                 : defadvice} :lib.advice.macros)
-(local {: make-advisable} :lib.advice)
+(local {: add-advice} :lib.advice)
 
-(local advisable
-       (make-advisable
-        :advisable
-        (fn [x y z]
-          "default")))
+(defn defn-func-5
+      [x y z]
+      "docstr"
+      "default")
 
-(advisable)
-;; => "default"
+(add-advice defn-func-5
+            :override (fn [x y z]
+                        "over-it"))
 
+(defn-func-5)
+;; => "over-it"
 #+end_src
+
+- Identical behavior to the =defadvice= behavior described above, but a
+  more primitive API.
+- It's recommended to use =defadvice= most of the time as it enforces
+  better habits that will keep projects from becoming a mess.
 
 * Advise Types
 
@@ -542,115 +497,7 @@ Example:
 (original-fn 1 2 3)
 ;; => 12 ;; Return value of original-fn passed to advice-fn
 
-* Adding Advice
-
-With an advisable function created, we can now add advice to extend
-the behaviors. This section will cover the APIs to add advice, and the
-next section will cover the supported advice types.
-
-** Advising APIs
-
-*** defadvice
-
-The =defadvice= macro should be the primary means for adding advice but
-a direct =add-advice= alternative is available.
-
-Usage:
-
-#+begin_src fennel
-(defadvice advisor-function-name
-  [x y z]
-  :override target-function-or-key
-  "docstr"
-  body-1
-  ...body ;; Optional
-  )
-#+end_src
-
-- The string keyword =:override= refers to one of many advice types
-  described below.
-- The advisor-function-name makes it easier to track advice later
-- A docstr is required
-- At least one body form is required, =nil= may be used for noop and
-  placeholder functions
-
-Example:
-
-#+begin_src fennel
-(defn defn-func-4
-      [x y z]
-      "docstr"
-      "default")
-
-(defadvice defn-func-override
-           [x y z]
-           :override defn-func-4
-           "Overrides defn-func-4"
-           "over-it")
-
-(defn-func-4)
-;; => "over-it"
-#+end_src
-
-- defn-func-override completely overrides defn-func-4
-- When defn-func-4 is called, defn-func-override is called instead
-  returning "over-it" instead of "default"
-
-The defadvice call above expands to:
-
-#+begin_src fennel
-(local defn-func-override
-       (let [adv_0_ (require "lib.advice")
-             advice-fn_0_ (fn defn-func-override
-                            [x y z]
-                            "Overrides defn-func-4" "over-it")]
-         (adv_0_.add-advice defn-func-4 "override" advice-fn_0_)
-         advice-fn_0_))
-#+end_src
-
-=defadvice= is best used in top-level calls within a module so that
-they can be removed if needed latter.
-
-*** add-advice
-
-If in the event =defadvice= macro does not work, the =add-advice= function
-may be better suited. It's what =defadvice= uses under the hood.
-
-Usage:
-
-#+begin_src fennel
-(add-advice target-function-or-key :advice-type advice-function)
-#+end_src
-
-- target-function-or-key refers to advisable-fn.key or the string itself
-- :advice-type refers to one of many advice types described below
-- advice-function depends on the advice type as it will receive
-  different args along with different expected return types
-
-Example:
-
-#+begin_src fennel
-(import-macros {: defn
-                : defadvice} :lib.advice.macros)
-(local {: add-advice} :lib.advice)
-
-(defn defn-func-5
-      [x y z]
-      "docstr"
-      "default")
-
-(add-advice defn-func-5
-            :override (fn [x y z]
-                        "over-it"))
-
-(defn-func-5)
-;; => "over-it"
-#+end_src
-
-- Identical behavior to the =defadvice= behavior described above, but a
-  more primitive API.
-- It's recommended to use =defadvice= most of the time as it enforces
-  better habits that will keep projects from becoming a mess.
+* Advising Targets and Order
 
 ** Function references or strings
 
@@ -711,6 +558,161 @@ Advice can be defined before the advisable function exists:
 
 (defn-func-3)
 ;; => "over-it"
+#+end_src
+
+* Defining an Advisable Function
+
+Unlike emacs, functions are not advisable by default, in fennel, the
+=defn= and =afn= macros were created to define advisable functions.
+
+** defn
+
+The defn macro works like =fn= except that it only works for
+module-level locals, it will not work for ad-hoc functions created
+within a =let= form.
+
+Usage:
+
+#+begin_src fennel
+(defn function-name
+      [args]
+      "docstr"
+      body-1
+      ...body ;; Optional
+      )
+#+end_src
+
+- ="docstr"= is always required for advisable functions, it's a best
+  practice for root module functions and will help guide people who
+  wish to advise it.
+
+- At least one body form is required. If stubbing out a function =nil=
+  will do just fine. This is a requirement that comes from the fennel
+  =(fn)= special form.
+
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+
+(defn defn-func-1
+      [x y z]
+      "docstr"
+      "Hi")
+
+(defn-func-1)
+;; => "Hi"
+
+(defadvice defn-func-override
+           [x y z]
+           :override defn-func-1
+           "Overrides defn-func-1"
+           "over-it")
+
+(defn-func-1)
+;; => "over-it"
+#+end_src
+
+The =defn= macro transforms the above call into the following:
+
+#+begin_src fennel
+(local defn-func-1
+       (let [adv_0_ (require "lib.advice")]
+         (adv_0_.make-advisable
+          "defn-func-2" (fn [x y z]
+                          "docstr"
+                          "hi"))))
+#+end_src
+
+The =defn= macro should be the primary API for creating advisable
+functions, but =afn= covers the use cases where =defn= will not work.
+
+** afn
+
+The afn macro supports inline functions defined as callback arguments
+to higher-order-functions or when creating bespoke functions in =let= forms.
+
+Usage:
+
+#+begin_src fennel
+(afn function-name
+     [args]
+     body-1
+     ...body ;; Optional
+     )
+#+end_src
+
+- It's nearly identical to =defn= but the docstr is not supported.
+- At least one function body form is required. Can be =nil= if trying to
+  make a noop or placeholder function.
+
+Example:
+
+#+begin_src fennel
+(import-macros {: afn
+                : defadvice} :lib.advice.macros)
+
+(let [scoped-func (afn scoped-func
+                       [x y z]
+                       "default")]
+  (scoped-func)
+  ;; => "default"
+
+  (defadvice scoped-func-advice
+    [x y z]
+    :override scoped-func
+    "Overrides scoped-func"
+    "over-it")
+
+  (scoped-func)
+  ;; => "over-it"
+
+  )
+#+end_src
+
+The =afn= macro transforms the above call into:
+
+#+begin_src fennel
+(let [adv_0_ (require "lib.advice")]
+  (adv_0_.make-advisable
+   "priv-func"
+   (fn [x y z]
+     "default")))
+#+end_src
+
+** make-advisable
+
+Lastly if macros are not an option for whatever reason, they mostly
+wrap the =make-advisable= function.
+
+Usage:
+
+#+begin_src fennel
+(make-advisable "unique key"
+  (fn [args]
+    body-1
+    ...body ;; Optional
+  ))
+#+end_src
+
+Example:
+
+#+begin_src fennel
+(import-macros {: defn
+                : defadvice} :lib.advice.macros)
+(local {: make-advisable} :lib.advice)
+
+(local advisable
+       (make-advisable
+        :advisable
+        (fn [x y z]
+          "default")))
+
+(advisable)
+;; => "default"
+
 #+end_src
 
 * Other Useful APIs
