@@ -101,13 +101,14 @@
                             "Advisable test function"
                             (let [args [...]]
                               (tset state :args (.. state.args " " (join " " (map #(+ $1 2) [...])))))
-                            (tset state :calls (+ state.calls 1))))]
+                            (tset state :calls (+ state.calls 1))
+                            "original"))]
 
            (add-advice test-func :before (fn [...]
                                            (let [args [...]]
                                              (tset state :args (join " " [...])))
                                            (tset state :calls (+ state.calls 1))))
-           (test-func 1 2)
+           (is.eq? (test-func 1 2) "original" "Before test-func did not return original return value")
            (is.eq? state.calls 2 "Before test-func did not call both the original and before fn")
            (is.eq? state.args "1 2 3 4" "Before test-func did not call both the original and before with the same args"))))
 
@@ -199,7 +200,7 @@
                                            (let [args [...]]
                                              (tset state :args (.. state.args " " (join " " (map #(+ $1 2) [...])))))
                                            (tset state :calls (+ state.calls 1))))
-           (test-func 1 2)
+           (is.eq? (test-func 1 2) true "After did not return the original return value")
            (is.eq? state.calls 2 "After test-func did not call both the original and after fn")
            (is.eq? state.args "1 2 3 4" "After test-func did not call both the original and after with the same args"))))
 

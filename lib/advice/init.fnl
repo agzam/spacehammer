@@ -100,9 +100,9 @@ Advising API to register functions
 
    (= type :after)
    (fn [args]
-     (orig-f (table.unpack args))
-     (f (table.unpack args)))
-
+     (let [ret (orig-f (table.unpack args))]
+       (f (table.unpack args))
+       ret))
 
    (= type :after-while)
    (fn [args]
