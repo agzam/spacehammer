@@ -76,12 +76,12 @@ The defadvice call above expands to:
 #+end_src
 
 =defadvice= is best used in top-level calls within a module so that
-they can be removed if needed latter.
+they can be removed if needed later.
 
 *** add-advice
 
-If in the event =defadvice= macro does not work, the =add-advice= function
-may be better suited. It's what =defadvice= uses under the hood.
+If the =defadvice= macro does not suit your needs, the =add-advice= function
+may prove a helpful alternative. It's what =defadvice= uses under the hood.
 
 Usage:
 
@@ -311,11 +311,12 @@ Example:
 
 (original-fn 1 2 3)
 ;; => true ;; advice-fn returned truthy value, original not called
+#+end_src
 
 ** after
 
 Call a function after the original function with the same arguments.
-The return value of the advised function is discarded as it executes side-effects.
+Only the original function's return value is returned
 
 Behavior:
 
@@ -345,6 +346,7 @@ Example:
 (original-fn 1 2 3)
 ;; => 6 ;; original fn prints the sum
 ;; => 4 ;; advice fn called after, its value returned
+#+end_src
 
 ** after-while
 
@@ -383,6 +385,7 @@ Example:
 
 (original-fn 1 2 3)
 ;; => 6 ;; Original-fn returned truthy value, advice-fn called
+#+end_src
 
 ** after-until
 
@@ -422,6 +425,7 @@ Example:
 
 (original-fn 1 2 3)
 ;; => true ;; original-fn returned truthy vaue, advice-fn not called
+#+end_src
 
 ** filter-args
 
@@ -458,8 +462,7 @@ Example:
 
 (original-fn 1 2 3)
 ;; => 10 ;; Values returned by advice-fn applied to original-fn
-
-
+#+end_src
 ** filter-return
 
 The advising function is called with the return value of the original
@@ -496,6 +499,8 @@ Example:
 
 (original-fn 1 2 3)
 ;; => 12 ;; Return value of original-fn passed to advice-fn
+#+end_src
+
 
 * Advising Targets and Order
 
@@ -582,7 +587,7 @@ Usage:
       )
 #+end_src
 
-- ="docstr"= is always required for advisable functions, it's a best
+- =docstr= is always required for advisable functions, it's a best
   practice for root module functions and will help guide people who
   wish to advise it.
 
@@ -821,14 +826,15 @@ Which would print something like:
 
 ** Performance
 
-Creating advisable functions and iterating through the composed advice
-that can be added does come with some overhead. For the purposes of
-spacehammer it should be negligible but if you find it bogging your
-system down, please create an issue so we can investigate.
+Creating advisable functions does come with some runtime overhead
+iterating through the advice. In most cases the performance hit should
+be negligible,  but if anyone does experience unexpected performance
+issues please report it so maintainers can investigate.
 
-It's not advisable (pun not intended but happily discovered) to make
-animation functions advisable intended to run every few ms as the
-performance overhead may be noticeably chuggy.
+For example, functions that run in a short interval like an animation
+function that fires every 5 milliseconds, may experience degraded
+performance if made advisable due to the overhead caused by
+dispatching advice every time they fire.
 
 ** Complexity
 
