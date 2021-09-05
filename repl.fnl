@@ -43,7 +43,7 @@
                                   (: :read "*all")
                                   (: :gsub "^#![^\n]*\n" "")))
                   (: f :close))
-    (f msg)))
+    _ (f msg)))
 
 (local default-opts
        {:port nil
