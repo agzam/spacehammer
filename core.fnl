@@ -199,6 +199,7 @@ Returns nil. This function causes side-effects.
 (local modules [:lib.hyper
                 :vim
                 :windows
+                :apps
                 :lib.bind
                 :lib.modal
                 :lib.apps])
