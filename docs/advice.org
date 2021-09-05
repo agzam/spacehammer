@@ -89,9 +89,9 @@ Usage:
 (add-advice target-function-or-key :advice-type advice-function)
 #+end_src
 
-- target-function-or-key refers to advisable-fn.key or the string itself
-- :advice-type refers to one of many advice types described below
-- advice-function depends on the advice type as it will receive
+- =target-function-or-key= refers to advisable-fn.key or the string itself
+- =:advice-type= refers to one of many advice types described below
+- =advice-function= depends on the advice type as it will receive
   different args along with different expected return types
 
 Example:
@@ -832,10 +832,10 @@ iterating through the advice. In most cases the performance hit should
 be negligible,  but if anyone does experience unexpected performance
 issues please report it so maintainers can investigate.
 
-For example, functions that run in a short interval like an animation
-function that fires every 5 milliseconds, may experience degraded
-performance if made advisable due to the overhead caused by
-dispatching advice every time they fire.
+Functions that fire on a short interval, such as animation functions
+that run every 5 milliseconds, may encounter degraded performance
+caused by the advising overhead. It's not recommended to make
+functions like that advisable.
 
 ** Complexity
 
