@@ -1,5 +1,8 @@
 (local fennel (require :fennel))
-(local {: slice}  (require :lib.functional))
+(require :lib.globals)
+(local {: map
+        : slice
+        : pprint}  (require :lib.functional))
 
 (local homedir (os.getenv "HOME"))
 (local customdir (.. homedir "/.spacehammer"))
@@ -8,7 +11,6 @@
 
 ;; Setup some globals for test files and debugging
 
-(global pprint (fn [x] (print (fennel.view x))))
 
 (global {: after
          : before

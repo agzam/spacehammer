@@ -14,6 +14,7 @@
 (hs.ipc.cliInstall) ; ensure CLI installed
 
 (local fennel (require :fennel))
+(require :lib.globals)
 (local {:contains? contains?
         :for-each  for-each
         :map       map
@@ -216,5 +217,3 @@ Returns nil. This function causes side-effects.
                       {path (module.init config)})))
              (reduce #(merge $1 $2) {})))
 
-
-(global pprint (fn [x] (print (fennel.view x))))
