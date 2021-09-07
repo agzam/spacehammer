@@ -28,6 +28,7 @@
 ;;   (repl.run (repl.start))
 ;;
 ;; repl.start takes an optional 'opts' table with the following fields:
+;; - host: Define the host to listen on (default "localhost")
 ;; - port: Define the port to listen on (default 7888)
 ;; - fennel: Expect fennel code (as opposed to lua) (default true)
 ;; - serialize: Provide a function that converts objects to strings
@@ -63,13 +64,13 @@
 (fn start
   [custom-opts]
   (let [opts (merge {} default-opts custom-opts)
-        server (jeejah.start (. opts :port) opts)]
+        server (jeejah.start opts.port opts)]
     server))
 
 (fn stop
   [server]
   (jeejah.stop server))
 
-{:run run
- :start start
- :stop stop}
+{: run
+ : start
+ : stop}
