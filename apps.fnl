@@ -10,11 +10,21 @@
 ;;; License: MIT
 ;;
 
-(local {:global-filter global-filter} (require :lib.utils))
+(local {: global-filter} (require :lib.utils))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; App switcher
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(fn calc-thumbnail-size
+  []
+  "
+  Calculates the height of thumbnail in pixels based on the screen size
+  @TODO Make this advisable when #102 lands
+  "
+  (let [screen (hs.screen.mainScreen)
+        {: h} (: screen :currentMode)]
+    (/ h 2)))
 
 (global switcher
        (hs.window.switcher.new
@@ -23,7 +33,7 @@
          :showTitles false
          :showThumbnails false
          :showSelectedTitle false
-         :selectedThumbnailSize 800
+         :selectedThumbnailSize (calc-thumbnail-size)
          :backgroundColor [0 0 0 0]}))
 
 (fn prev-app
