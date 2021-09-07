@@ -30,8 +30,6 @@ Advising API to register functions
 
 (fn register-advisable
   [key f]
-  ;; @TODO Replace with if-let or similar macro but doesn't work in an
-  ;; isolated fennel file
   (let [advice-entry (. advice key)]
     (when (and advice-entry
                advice-entry.original
@@ -42,7 +40,8 @@ Advising API to register functions
               :original f)
         (tset advice key
               {:original f
-               :advice []}))))
+               :advice []}))
+    (. advice key)))
 
 (fn get-or-create-advice-entry
   [key]
@@ -141,13 +140,10 @@ Advising API to register functions
                0)))
 
 (fn dispatch-advice
-  [key [_tbl & args]]
-  (let [entry (. advice key)]
-    (if (> (count entry.advice) 0)
-        (do
-          (apply-advice entry args))
-        (do
-          (entry.original (table.unpack args))))))
+  [entry [_tbl & args]]
+  (if (> (count entry.advice) 0)
+      (apply-advice entry args)
+      (entry.original (table.unpack args))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -174,12 +170,13 @@ Advising API to register functions
   "
   (let [module (get-module-name)
         key (.. module "/" fn-name)
-        advice-reg (register-advisable key f)
-        ret {:key key}]
+        advice-entry (register-advisable key f)
+        ret {:key key
+             :advice advice-entry}]
     (setmetatable ret
                   {:__name fn-name
                    :__call (fn [...]
-                             (dispatch-advice key [...]))
+                             (dispatch-advice advice-entry [...]))
                    :__index (fn [tbl key]
                               (. tbl key))})
     (each [k v (pairs (or (. fennel.metadata f) []))]
