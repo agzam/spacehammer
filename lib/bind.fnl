@@ -102,7 +102,7 @@
   Binds keys to actions globally like pressing cmd + space to open modal menu
   Takes a list of bindings from config.fnl
   Performs side-effect of creating the key binding to a function.
-  Returns a function to unbding keys.
+  Returns a function to unbind keys.
   "
   (map
    (fn [item]
