@@ -235,30 +235,30 @@
 ;; Exports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-{:call-when call-when
- :compose   compose
- :concat    concat
- :contains? contains?
- :count     count
- :eq?       eq?
- :filter    filter
- :find      find
- :first     first
- :for-each  for-each
- :get       get
- :get-in    get-in
- :has-some? has-some?
- :identity  identity
- :join      join
- :last      last
- :logf      logf
- :map       map
- :merge     merge
- :noop      noop
- :reduce    reduce
- :seq       seq
- :seq?      seq?
- :some      some
- :slice     slice
- :split     split
- :tap       tap}
+{: call-when
+ : compose
+ : concat
+ : contains?
+ : count
+ : eq?
+ : filter
+ : find
+ : first
+ : for-each
+ : get
+ : get-in
+ : has-some?
+ : identity
+ : join
+ : last
+ : logf
+ : map
+ : merge
+ : noop
+ : reduce
+ : seq
+ : seq?
+ : some
+ : slice
+ : split
+ : tap}

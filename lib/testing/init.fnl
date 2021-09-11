@@ -24,7 +24,8 @@
   [description test-f]
   (if state.suite
       (table.insert state.suite.tests {:desc description
-                                       :test test-f})))
+                                       :test test-f})
+      (error "Calling it outside of a describe test suite")))
 
 (fn before
   [before-f]

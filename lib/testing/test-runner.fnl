@@ -40,8 +40,7 @@
 
 
   (collect-tests)
-  (run-all-tests)
-  )
+  (run-all-tests))
 
 
 {: load-tests}

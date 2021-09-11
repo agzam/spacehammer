@@ -5,7 +5,7 @@
 The testing library provides basic unit-testing capabilities to Spacehammer by
 running scripts against the hammerspoon CLI =hs=.
 
-Tests can be ran invoking the following shell command within the =~/.hammerspoon= directory:
+Run tests by invoking the following shell command within the =~/.hammerspoon= directory:
 
 #+begin_src bash :dir ..
 ./run-test test/*.fnl
@@ -125,9 +125,27 @@ tests may use before they're setup
 
 *** Does =before= run before each =it=?
 
-Before runs before all =it= calls within a describe block. If you wanted
-to run a before call before each test, consider wrapping each test in
-a describe block.
+No. =before= runs once before all tests in a =describe= suite.
+
+#+begin_src fennel
+(describe
+ "A Test Suite"
+ (fn []
+   (before
+    (fn []
+      (print "This only prints once. Before all tests in this suite.")))
+   (after
+    (fn []
+      (print "This only prints once. After all tests in this suite.")))
+
+   (it "Addition"
+       (fn []
+         (is.eq (+ 1 1) 2 "Did not result in 2")))
+
+   (it "Subtraction"
+       (fn []
+         (is.eq (- 1 1) 0 "Did not result in 0")))))
+#+end_src
 
 ** After
 
@@ -258,17 +276,3 @@ Run the following command, will only work if Node is installed:
 npm install nodemon
 #+end_src
 
-* Todo List
-
-- [ ] Consider replacing describe and it with =testing= and =is= macros
-  inspired by Clojure testing. The =is= macro displays the failing code
-  in addition to the evaluation result, where as currently assertions
-  only show the evaluated values provided.
-
-- [ ] Improve consistency when running tests to avoid IPC issues when
-  tests run too early. Maybe polling in the run-test bash script?
-
-- [ ] Reduce persisted state between tests. Perhaps try calling
-  ~hs.reload()~ after tests run?
-
-- [ ] Improve test performance
