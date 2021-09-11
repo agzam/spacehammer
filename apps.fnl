@@ -26,15 +26,17 @@
         {: h} (: screen :currentMode)]
     (/ h 2)))
 
-(global switcher
-       (hs.window.switcher.new
-        (global-filter)
-        {:textSize 12
-         :showTitles false
-         :showThumbnails false
-         :showSelectedTitle false
-         :selectedThumbnailSize (calc-thumbnail-size)
-         :backgroundColor [0 0 0 0]}))
+(fn init
+  [config]
+  (global switcher
+          (hs.window.switcher.new
+           (or (?. config :modules :switcher :filter) (global-filter))
+           {:textSize 12
+            :showTitles false
+            :showThumbnails false
+            :showSelectedTitle false
+            :selectedThumbnailSize (calc-thumbnail-size)
+            :backgroundColor [0 0 0 0]})))
 
 (fn prev-app
   []
@@ -60,5 +62,6 @@
 ;; Exports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-{:prev-app                prev-app
- :next-app                next-app}
+{: init
+ : prev-app
+ : next-app}
