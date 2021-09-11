@@ -14,6 +14,7 @@
 (hs.ipc.cliInstall) ; ensure CLI installed
 
 (local fennel (require :fennel))
+(require :lib.globals)
 (local {:contains? contains?
         :for-each  for-each
         :map       map
@@ -51,6 +52,7 @@ Returns nil. This function causes side-effects.
                                style
                                (hs.screen.primaryScreen)
                                seconds)))
+
 (global fw hs.window.focusedWindow)
 
 (fn file-exists?
@@ -115,8 +117,11 @@ Returns nil. This function causes side-effects.
   Returns true if file extension ends in .fnl or .lua
   "
   (let [ext (split "%p" file)]
-    (or (contains? "fnl" ext)
-        (contains? "lua" ext))))
+    (and
+     (or (contains? "fnl" ext)
+         (contains? "lua" ext))
+     (not (string.match file "-test%..*$")))))
+
 
 (fn source-updated?
   [file]
@@ -211,3 +216,4 @@ Returns nil. This function causes side-effects.
                     (let [module (require path)]
                       {path (module.init config)})))
              (reduce #(merge $1 $2) {})))
+

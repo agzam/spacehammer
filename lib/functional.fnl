@@ -58,6 +58,10 @@
   [sep list]
   (table.concat list sep))
 
+(fn first
+  [list]
+  (. list 1))
+
 (fn last
   [list]
   (. list (length list)))
@@ -97,7 +101,9 @@
 
 (fn slice-start
   [start list]
-  (slice-start-end start (length list) list))
+  (slice-start-end (if (< start 0)
+                       (+ (length list) start)
+                       start) (length list) list))
 
 (fn slice
   [start end list]
@@ -229,29 +235,30 @@
 ;; Exports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-{:call-when call-when
- :compose   compose
- :concat    concat
- :contains? contains?
- :count     count
- :eq?       eq?
- :filter    filter
- :find      find
- :for-each  for-each
- :get       get
- :get-in    get-in
- :has-some? has-some?
- :identity  identity
- :join      join
- :last      last
- :logf      logf
- :map       map
- :merge     merge
- :noop      noop
- :reduce    reduce
- :seq       seq
- :seq?      seq?
- :some      some
- :slice     slice
- :split     split
- :tap       tap}
+{: call-when
+ : compose
+ : concat
+ : contains?
+ : count
+ : eq?
+ : filter
+ : find
+ : first
+ : for-each
+ : get
+ : get-in
+ : has-some?
+ : identity
+ : join
+ : last
+ : logf
+ : map
+ : merge
+ : noop
+ : reduce
+ : seq
+ : seq?
+ : some
+ : slice
+ : split
+ : tap}

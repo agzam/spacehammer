@@ -1,0 +1,278 @@
+#+title: Testing
+
+* How It Works
+
+The testing library provides basic unit-testing capabilities to Spacehammer by
+running scripts against the hammerspoon CLI =hs=.
+
+Run tests by invoking the following shell command within the =~/.hammerspoon= directory:
+
+#+begin_src bash :dir ..
+./run-test test/*.fnl
+#+end_src
+
+Which will output something like the following:
+
+#+begin_example
+Running tests for       /Users/j/.hammerspoon/test/functional-test.fnl
+Running tests for       /Users/j/.hammerspoon/test/statemachine-test.fnl
+
+Functional
+
+  Call when calls function if it exists ...
+    [ OK ]
+
+  Compose combines functions together in reverse order ...
+    [ OK ]
+
+  Contains? returns true if list table contains a value ...
+    [ OK ]
+
+State Machine
+
+  Should create a new fsm in the closed state ...
+    [ OK ]
+
+  Should transition to opened on open event ...
+    [ OK ]
+
+  Should transition back to opened on close event ...
+    [ OK ]
+
+  Should not explode when dispatching an unhandled event ...
+05:27:10 ** Warning:    statemach: Could not fail from closed state
+    [ OK ]
+
+
+  Ran 7 tests 7 passed 0 failed in 0.038301000000047 seconds
+#+end_example
+
+* Requirements
+
+Be sure to run the =hs.ipc.cliInstall= [[https://www.hammerspoon.org/docs/hs.ipc.html#cliInstall][command]] from hammerspoon. You may paste
+this or eval against the Hammerspoon console:
+
+#+begin_src lua
+hs.ipc.cliInstall()
+#+end_src
+
+* Testing API
+
+The current form of the testing API is inspired by JS libraries like [[https://mochajs.org/][mocha]] given
+how easy it is to implement.
+
+** Describe
+
+Label a test suite
+
+Usage:
+
+#+begin_src fennel
+(describe
+ "Functional Tools"
+ (fn []
+   ;; Other describe calls or `it` tests can run here
+   )
+#+end_src
+
+Describe a suite of tests contained in its function body. The function
+body may contain other =describe= calls as well as =it= calls to perform tests.
+
+The aim is to help organize displayed test results, as its inner tests
+are indented underneath the describe text label when printing test results.
+
+** It
+
+Perform a test that can either pass or fail.
+
+Usage:
+
+#+begin_src fennel
+(describe
+ "Basic Fennel Tests"
+ (fn []
+   (it "Should do math"
+       (fn []
+         (is.eq? (+ 1 1) 2 "Did not result in 2")))))
+#+end_src
+
+The bodies of =it= calls should run code and perform assertions, if no
+error is thrown, the test has passed.
+
+=it= calls cannot be nested, instead should have siblings within a
+=describe= suite.
+
+** Before
+
+Run a function before tests run in a suite
+
+Usage:
+
+#+begin_src fennel
+(describe
+ "Functional Tools"
+ (fn []
+   (before (fn []
+             (print "Perform pre-test setup")))
+
+   (it "Should do math"
+       (fn []
+         (is.eq? (+ 1 1) 2 "Did not result in 2")))))
+#+end_src
+
+=before= is best used as a way to prepare data, or allocate resources
+tests may use before they're setup
+
+*** Does =before= run before each =it=?
+
+No. =before= runs once before all tests in a =describe= suite.
+
+#+begin_src fennel
+(describe
+ "A Test Suite"
+ (fn []
+   (before
+    (fn []
+      (print "This only prints once. Before all tests in this suite.")))
+   (after
+    (fn []
+      (print "This only prints once. After all tests in this suite.")))
+
+   (it "Addition"
+       (fn []
+         (is.eq? (+ 1 1) 2 "Did not result in 2")))
+
+   (it "Subtraction"
+       (fn []
+         (is.eq? (- 1 1) 0 "Did not result in 0")))))
+#+end_src
+
+** After
+
+Run a function after tests run in a suite
+
+Usage:
+
+#+begin_src fennel
+(describe
+ "Functional Tools"
+ (fn []
+   (after (fn []
+             (print "Perform post-test cleanup")))
+
+   (it "Should do math"
+       (fn []
+         (is.eq? (+ 1 1) 2 "Did not result in 2")))))
+#+end_src
+
+=after= is useful for cleaning up or resetting test state caused by
+running tests.
+
+* Assertions
+
+Currently, only two basic assertion functions are provided by
+[[../lib/testing/assert.fnl][assert.fnl]]
+
+Require them in test files like the following:
+
+#+begin_src fennel
+(local is (require :lib.testing.assert))
+#+end_src
+
+** is.eq?
+
+Asserts that the actual value is identical to the expected value or
+throws an error.
+
+Usage:
+
+#+begin_src fennel
+(is.eq? actual expected message)
+#+end_src
+
+Appends error messages with ~instead got <actual>~ at the end of the
+supplied message arg.
+
+Example:
+
+#+begin_src fennel
+(is.eq? (+ 1 1) 2 "Math is wack")
+#+end_src
+
+** is.ok?
+
+Asserts that the actual value is truthy or throws an error.
+
+Usage:
+
+#+begin_src fennel
+(is.ok? actual message)
+#+end_src
+
+Appends error messages with ~instead got <actual>~ at the end of the
+supplied message arg.
+
+Example:
+
+#+begin_src fennel
+(is.ok? true "true was not truthy")     ;; => PASS
+(is.ok? "hi" "hi was not truthy")       ;; => PASS
+(is.ok? 5 "5 was not truthy")           ;; => PASS
+
+;; These will throw
+
+(is.ok? nil "nil was not truthy")       ;; => FAIL
+(is.ok? false "false was not truthy")   ;; => FAIL
+#+end_src
+
+
+* Known-Issues
+
+The testing capabilities are still early in development and subject to change in
+future iterations.
+
+** Tests run inconsistently
+
+Because the =hs= cli command runs scripts against the Hammerspoon ipc server,
+tests may not run consistently until after a reload completes and Hammerspoon
+applies the changes. When this happens, try running the tests again. The
+solution for auto-running tests at the bottom can help mitigate these kinds of issues.
+
+** State may persist between runs
+
+Another caveat due to the =hs= cli system is that tests are running against the
+global Hammerspoon state. If the library you are testing is changing
+global state, you may find data persists between re-runs of tests.
+
+If running into issues, try reloading Hammerspoon. When Hammerspoon
+reloads, the global state will reset and tests can  run fresh.
+
+The =before= or =after= hook APIs are useful for resetting state before or
+after all tests run in a suite.
+
+** Slow Performance
+
+Fennel tests do run a bit slowly, possibly due to sending code over
+ipc to the hammerspoon server to eval, also limited by fennel
+performance within lua.
+
+* Auto-running Tests
+
+Open to improvements here, but one option is to leverage the =npm=
+package [[https://www.npmjs.com/package/nodemon][nodemon]]  to re-run tests when fennel files update.
+
+#+begin_src bash :results none
+npx nodemon -e ".fnl" -x "./run-test" --delay 2 -- test/*.fnl
+#+end_src
+
+The delay is 2 seconds in that example, which gives Hammerspoon time to restart
+the process. Adjust to what works best on your machine.
+
+** Installation
+
+Run the following command, will only work if Node is installed:
+
+#+begin_src bash
+npm install nodemon
+#+end_src
+
