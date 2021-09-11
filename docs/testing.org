@@ -140,7 +140,7 @@ No. =before= runs once before all tests in a =describe= suite.
 
    (it "Addition"
        (fn []
-         (is.eq (+ 1 1) 2 "Did not result in 2")))
+         (is.eq? (+ 1 1) 2 "Did not result in 2")))
 
    (it "Subtraction"
        (fn []
