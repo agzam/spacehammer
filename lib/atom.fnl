@@ -54,18 +54,24 @@ Example:
    :watchers {}})
 
 (fn copy
-  [tbl]
+  [tbl copies]
   "
   Copies a table into a new table
-  Allows us to treat tables as immutable
+  Allows us to treat tables as immutable. Tracks visited so recursive
+  references should be no problem here.
   Returns new table copy
   "
-  (if (~= (type tbl) :table)
-   tbl
-   (let [copy-tbl (setmetatable {} (getmetatable tbl))]
-     (each [k v (pairs tbl)]
-       (tset copy-tbl (copy k) (copy v)))
-     copy-tbl)))
+  (let [copies (or copies {})]
+    (if (~= (type tbl) :table) tbl
+        ;; is a table, but already visited
+        (. copies tbl)         (. copies tbl)
+        ;; else - Is a table, not yet visited
+        (let [copy-tbl {}]
+          (tset copies tbl copy-tbl)
+          (each [k v (pairs tbl)]
+            (tset copy-tbl (copy k copies) (copy v copies)))
+          (setmetatable copy-tbl (copy (getmetatable tbl) copies))
+          copy-tbl))))
 
 (fn deref
   [atom]
