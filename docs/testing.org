@@ -144,7 +144,7 @@ No. =before= runs once before all tests in a =describe= suite.
 
    (it "Subtraction"
        (fn []
-         (is.eq (- 1 1) 0 "Did not result in 0")))))
+         (is.eq? (- 1 1) 0 "Did not result in 0")))))
 #+end_src
 
 ** After
