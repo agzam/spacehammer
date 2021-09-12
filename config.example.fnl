@@ -12,6 +12,7 @@
 
 
 (require-macros :lib.macros)
+(require-macros :lib.advice.macros)
 (local windows (require :windows))
 (local emacs (require :emacs))
 (local slack (require :slack))
@@ -484,7 +485,8 @@
         :enter (fn [] (windows.hide-display-numbers))
         :exit  (fn [] (windows.hide-display-numbers))
         :apps  apps
-        :hyper {:key :F18}})
+        :hyper {:key :F18}
+        :modules {:windows {:center-ratio "80:50"}}})
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
