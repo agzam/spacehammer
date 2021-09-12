@@ -22,6 +22,7 @@
         :reduce    reduce
         :split     split
         :some      some} (require :lib.functional))
+(local atom (require :lib.atom))
 (require-macros :lib.macros)
 (require-macros :lib.advice.macros)
 
@@ -64,6 +65,14 @@ Returns nil. This function causes side-effects.
 (global fw hs.window.focusedWindow)
 
 (global pprint (fn [x] (print (fennel.view x))))
+
+(global get-config
+        (afn get-config
+          []
+          "
+          Returns the global config object, or error if called early
+          "
+          (error "get-config can only be called after all modules have initialized")))
 
 (fn file-exists?
   [filepath]
@@ -218,6 +227,12 @@ Returns nil. This function causes side-effects.
                 :lib.bind
                 :lib.modal
                 :lib.apps])
+
+(defadvice get-config-impl
+           []
+           :override get-config
+           "Returns global config obj"
+           config)
 
 ;; Create a global reference so services like hs.application.watcher
 ;; do not get garbage collected.
