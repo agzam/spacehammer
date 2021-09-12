@@ -68,10 +68,12 @@ Macros to create advisable functions or register advice for advisable functions
   (assert body1 "advisable function expected body")
   `(local ,fn-name
           (let [adv# (require :lib.advice)
+                target-fn# (fn ,fn-name ,args ,docstr ,body1 ,...)
                 advice-fn# (setmetatable
                             {}
                             {:__name ,(tostring fn-name)
-                             :__call (fn ,fn-name ,args ,docstr ,body1 ,...)})]
+                             :__call (fn [_tbl# ...]
+                                       (target-fn# (table.unpack [...])))})]
             (adv#.add-advice ,f-or-key ,advice-type advice-fn#)
             advice-fn#)))
 
