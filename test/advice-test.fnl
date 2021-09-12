@@ -33,12 +33,13 @@
        (fn []
          (let [test-func (make-advisable
                           :test-func-2
-                          (fn [...]
+                          (fn [x y z]
                             "Advisable test function"
-                            "Plain pizza"))]
+                            (+ x y z)))]
 
-           (add-advice test-func :override (fn [...] (.. "Overrided " (join " " [...]))))
-           (is.eq? (test-func "anchovie" "pizza") "Overrided anchovie pizza" "Override test-func did not return \"Overrided anchovie pizza\""))))
+           (is.eq? (test-func 1 2 3) 6 "Original function did not return 6")
+           (add-advice test-func :override (fn [x y z] (+ x y z 1)))
+           (is.eq? (test-func 1 2 3) 7 "Override advice did not return 7"))))
 
    (it "Should support advice added by string name"
        (fn []
@@ -48,7 +49,10 @@
                             "Advisable test function"
                             "Plain pizza"))]
 
-           (add-advice :test/advice-test/test-func-2b :override (fn [...] (.. "Overrided " (join " " [...]))))
+           (add-advice :test/advice-test/test-func-2b :override
+                       (fn [...]
+                         (is.eq? (length [...]) 2 "Override advice received more than 2 args")
+                         (.. "Overrided " (join " " [...]))))
            (is.eq? (test-func "anchovie" "pizza") "Overrided anchovie pizza" "Override test-func did not return \"Overrided anchovie pizza\""))))
 
    (it "Should call original when remove-advice is called"
@@ -344,6 +348,19 @@
 
          (is.eq? (defn-func-2) "This feature is done!" "defadvice did not advise defn-func-2")))
 
+   (it "Should support afn advice added with defadvice"
+       (fn []
+         (let [afn-func-2 (afn afn-func-2
+                               [x y z]
+                               "docstr"
+                               (+ x y z))]
+           (defadvice afn-func-2-advice [x y z]
+                      :override afn-func-2
+                      "Override afn-func-2 with this sweet, sweet syntax sugar"
+                      (+ x y z 1))
+
+           (is.eq? (afn-func-2 1 2 3) 7 "defadvice did not advise afn-func-2"))))
+
    (it "Should support advice added with defadvice"
        (fn []
          (defn defn-func-3
@@ -378,6 +395,21 @@
 
          (is.eq? (defn-func-4) "over-it" "defn-func-4 was not advised")
          (is.eq? (length (get-advice defn-func-4)) 1 "advice list should be 1")))
+
+   (it "Should support get-advice on afn advisable functions"
+       (fn []
+         (let [afn-func-3 (afn afn-func-3
+                               [x yz]
+                               "docstr"
+                               "default")]
+
+           (defadvice afn-func-3-advice [x y z]
+                      :override afn-func-3
+                      "Override afn-func-3"
+                      "over-it")
+
+           (is.eq? (afn-func-3) "over-it" "afn-func-3 was not advised")
+           (is.eq? (length (get-advice afn-func-3)) 1 "advice list should be 1"))))
 
 
    ))

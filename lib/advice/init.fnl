@@ -140,7 +140,7 @@ Advising API to register functions
                0)))
 
 (fn dispatch-advice
-  [entry [_tbl & args]]
+  [entry args]
   (if (> (count entry.advice) 0)
       (apply-advice entry args)
       (entry.original (table.unpack args))))
@@ -175,7 +175,7 @@ Advising API to register functions
              :advice advice-entry}]
     (setmetatable ret
                   {:__name fn-name
-                   :__call (fn [...]
+                   :__call (fn [_tbl ...]
                              (dispatch-advice advice-entry [...]))
                    :__index (fn [tbl key]
                               (. tbl key))})

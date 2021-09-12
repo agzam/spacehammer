@@ -23,6 +23,7 @@
         :split     split
         :some      some} (require :lib.functional))
 (require-macros :lib.macros)
+(require-macros :lib.advice.macros)
 
 ;; Make ~/.spacehammer folder override repo files
 (local homedir (os.getenv "HOME"))
@@ -47,11 +48,18 @@ Shortcut for showing an alert on the primary screen for a specified duration
 Takes a message string, a style table, and the number of seconds to show alert
 Returns nil. This function causes side-effects.
 "
-(global alert (fn [str style seconds]
-                (hs.alert.show str
-                               style
-                               (hs.screen.primaryScreen)
-                               seconds)))
+(global alert
+        (afn
+         alert
+         [str style seconds]
+         "
+         Global alert function used for spacehammer modals and reload
+         alerts after config reloads
+         "
+         (hs.alert.show str
+                        style
+                        (hs.screen.primaryScreen)
+                        seconds)))
 
 (global fw hs.window.focusedWindow)
 
