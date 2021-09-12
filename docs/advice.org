@@ -534,7 +534,7 @@ That key is a unique pointer to an advisable function. It can be
 passed as the target to both the =defadvice= macro and =add-advice=
 function. It is always calculated from the =~/.hammerspoon= root, if you
 are creating advisable functions within your =~/.spacehammer= directory,
-the keys will start with ="spacehammer"=.
+the keys will start with =spacehammer=.
 
 The following forms are equivalent:
 
@@ -854,6 +854,5 @@ this causes any issues, please report it so we can consider alternatives.
 
 This concept was directly inspired and arguably ripped-off of emacs'
 advising system. Much of their docs are relevant to this, if you would
-like to dig deeper check out the official [[emacs advising
-docs][https://www.gnu.org/software/emacs/manual/html_node/elisp/Advising-Functions.html]]
-for more information.
+like to dig deeper check out the official [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Advising-Functions.html][emacs advice docs]] for more
+information.
