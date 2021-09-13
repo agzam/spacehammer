@@ -91,16 +91,16 @@
   (highlight-active-window))
 
 (defn position-window-center
-      [ratio-str window]
+      [ratio-str window screen]
       "
       Takes the center-ratio key from config, or default value if not
-      provided, and the window center-window-frame was called with.
+      provided, and the window center-window-frame was called with,
+      and the current screen.
       Should calculate the centered dimensions of the target window
       using the ratio values
       This function is advisable.
       "
-      (let [screen (hs.screen.primaryScreen)
-            frame (: screen :fullFrame)
+      (let [frame (: screen :fullFrame)
             [w-percent h-percent] (split ":" ratio-str)
             w-percent (/ (tonumber w-percent) 100)
             h-percent (/ (tonumber h-percent) 100)
@@ -119,9 +119,10 @@
   (let [win (hs.window.focusedWindow)
         prev-duration hs.window.animationDuration
         config (get-config)
-        ratio  (or config.modules.windows.center-ratio "80:50")]
+        ratio  (or config.modules.windows.center-ratio "80:50")
+        screen (hs.screen.primaryScreen)]
     (tset hs.window :animationDuration 0)
-    (position-window-center ratio win)
+    (position-window-center ratio win screen)
     (tset hs.window :animationDuration prev-duration)))
 
 (fn activate-app
