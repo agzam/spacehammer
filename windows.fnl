@@ -10,19 +10,20 @@
 ;;; License: MIT
 ;;
 
-(local {:filter    filter
-        :get-in    get-in
-        :count     count
-        :concat    concat
-        :contains? contains?
-        :map       map
-        :for-each  for-each} (require :lib.functional))
+(local {: filter
+        : get-in
+        : count
+        : concat
+        : contains?
+        : map
+        : for-each
+        : split} (require :lib.functional))
 (local {:global-filter global-filter} (require :lib.utils))
 (local {:atom   atom
         :deref  deref
         :swap!  swap!
         :reset! reset!} (require :lib.atom))
-
+(require-macros :lib.advice.macros)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; History
@@ -89,15 +90,40 @@
   (: (hs.window.focusedWindow) :maximize 0)
   (highlight-active-window))
 
+(defn position-window-center
+      [ratio-str window screen]
+      "
+      Takes the center-ratio key from config, or default value if not
+      provided, and the window center-window-frame was called with,
+      and the current screen.
+      Should calculate the centered dimensions of the target window
+      using the ratio values
+      This function is advisable.
+      "
+      (let [frame (: screen :fullFrame)
+            [w-percent h-percent] (split ":" ratio-str)
+            w-percent (/ (tonumber w-percent) 100)
+            h-percent (/ (tonumber h-percent) 100)
+            update {:w (* w-percent frame.w)
+                    :h (* h-percent frame.h)
+                    :x 0
+                    :y 0}]
+        (doto window
+          (: :setFrameInScreenBounds update)
+          (: :centerOnScreen))
+        (highlight-active-window)))
+
 (fn center-window-frame
   []
   (: history :push)
-  (let [win (hs.window.focusedWindow)]
-    (: win :maximize 0)
-    (hs.grid.resizeWindowThinner win)
-    (hs.grid.resizeWindowShorter win)
-    (: win :centerOnScreen))
-  (highlight-active-window))
+  (let [win (hs.window.focusedWindow)
+        prev-duration hs.window.animationDuration
+        config (get-config)
+        ratio  (or config.modules.windows.center-ratio "80:50")
+        screen (hs.screen.primaryScreen)]
+    (tset hs.window :animationDuration 0)
+    (position-window-center ratio win screen)
+    (tset hs.window :animationDuration prev-duration)))
 
 (fn activate-app
   [app-name]
@@ -501,39 +527,40 @@
 ;; Exports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-{:activate-app            activate-app
- :center-window-frame     center-window-frame
- :enter-window-menu       enter-window-menu
- :exit-window-menu        exit-window-menu
- :hide-display-numbers    hide-display-numbers
- :highlight-active-window highlight-active-window
- :init                    init
- :jump                    jump
- :jump-to-last-window     jump-to-last-window
- :jump-window-above       jump-window-above
- :jump-window-below       jump-window-below
- :jump-window-left        jump-window-left
- :jump-window-right       jump-window-right
- :maximize-window-frame   maximize-window-frame
- :move-east               move-east
- :move-north              move-north
- :move-south              move-south
- :move-to-screen          move-to-screen
- :move-west               move-west
- :rect                    rect
- :resize-down             resize-down
- :resize-half-bottom      resize-half-bottom
- :resize-half-left        resize-half-left
- :resize-half-right       resize-half-right
- :resize-half-top         resize-half-top
- :resize-inc-bottom       resize-inc-bottom
- :resize-inc-left         resize-inc-left
- :resize-inc-right        resize-inc-right
- :resize-inc-top          resize-inc-top
- :resize-left             resize-left
- :resize-right            resize-right
- :resize-up               resize-up
- :set-mouse-cursor-at     set-mouse-cursor-at
- :show-display-numbers    show-display-numbers
- :show-grid               show-grid
- :undo-action             undo}
+{: activate-app
+ : center-window-frame
+ : enter-window-menu
+ : exit-window-menu
+ : hide-display-numbers
+ : highlight-active-window
+ : init
+ : jump
+ : jump-to-last-window
+ : jump-window-above
+ : jump-window-below
+ : jump-window-left
+ : jump-window-right
+ : maximize-window-frame
+ : move-east
+ : move-north
+ : move-south
+ : move-to-screen
+ : move-west
+ : position-window-center
+ : rect
+ : resize-down
+ : resize-half-bottom
+ : resize-half-left
+ : resize-half-right
+ : resize-half-top
+ : resize-inc-bottom
+ : resize-inc-left
+ : resize-inc-right
+ : resize-inc-top
+ : resize-left
+ : resize-right
+ : resize-up
+ : set-mouse-cursor-at
+ : show-display-numbers
+ : show-grid
+ : undo}
