@@ -74,6 +74,8 @@ Returns nil. This function causes side-effects.
           "
           (error "get-config can only be called after all modules have initialized")))
 
+(global spoon {})
+
 (fn file-exists?
   [filepath]
   "
