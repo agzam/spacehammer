@@ -26,6 +26,12 @@
 (require-macros :lib.macros)
 (require-macros :lib.advice.macros)
 
+;; Add compatability with spoons as the spoon global may not exist at
+;; this point until a spoon is loaded. It will exist if a spoon is
+;; loaded from init.lua
+
+(global spoon (or _G.spoon {}))
+
 ;; Make ~/.spacehammer folder override repo files
 (local homedir (os.getenv "HOME"))
 (local customdir (.. homedir "/.spacehammer"))
