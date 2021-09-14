@@ -75,8 +75,11 @@
 ;; Shared Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(fn highlight-active-window
+(defn highlight-active-window
   []
+  "
+  Draw a border around the active window for a short period to highlight
+  "
   (let [rect (hs.drawing.rectangle (: (hs.window.focusedWindow) :frame))]
     (: rect :setStrokeColor {:red 1 :blue 0 :green 1 :alpha 1})
     (: rect :setStrokeWidth 5)
