@@ -105,7 +105,7 @@
     (when app
       (: app :activate)
       (hs.timer.doAfter
-       0.01
+       0.001
        (fn [] (: app :selectMenuItem [:Edit :Paste]))))))
 
 (fn maximize
