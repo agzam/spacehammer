@@ -1,17 +1,3 @@
-;; spacehammer.el - Auxiliary Emacs helpers to be used with Spacehammer
-;;
-;; Copyright (c) 2017-2020 Ag Ibragimov & Contributors
-;;
-;;; Author: Ag Ibragimov <agzam.ibragimov@gmail.com>
-;;
-;;; Contributors:
-;;   Jay Zawrotny <jayzawrotny@gmail.com>
-;;
-;;; URL: https://github.com/agzam/spacehammer
-;;
-;;; License: MIT
-;;
-
 (defun spacehammer/alert (message)
   "shows Hammerspoon's hs.alert popup with a MESSAGE"
   (when (and message (eq system-type 'darwin))
