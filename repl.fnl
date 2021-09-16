@@ -1,12 +1,3 @@
-;; Copyright (c) 2017-2021 Ag Ibragimov & Contributors
-;;
-;;; Author: Ag Ibragimov <agzam.ibragimov@gmail.com>
-;;
-;;; URL: https://github.com/agzam/spacehammer
-;;
-;;; License: MIT
-;;
-
 (local coroutine (require :coroutine))
 (local fennel (require :fennel))
 (local jeejah (require :jeejah))

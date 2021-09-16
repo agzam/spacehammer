@@ -1,12 +1,3 @@
-;; Copyright (c) 2017-2020 Ag Ibragimov & Contributors
-;;
-;;; Author: Jay Zawrotny <jayzawrotny@gmail.com>
-;;
-;;; URL: https://github.com/agzam/spacehammer
-;;
-;;; License: MIT
-;;
-
 (local {:do-action do-action} (require :lib.bind))
 (local log (hs.logger.new "lifecycle.fnl" "debug"))
 
