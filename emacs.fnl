@@ -104,7 +104,9 @@
   (let [app (hs.application.applicationForPID (tonumber pid))]
     (when app
       (: app :activate)
-      (: app :selectMenuItem [:Edit :Paste]))))
+      (hs.timer.doAfter
+       0.001
+       (fn [] (: app :selectMenuItem [:Edit :Paste]))))))
 
 (fn maximize
   []
