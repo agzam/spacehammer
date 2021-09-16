@@ -21,8 +21,10 @@
     (if f
         (f (table.unpack (or args [])))
         (do
-          (log.wf "Could not invoke action %s"
-                  action)))))
+          (log.wf "Could not dispatch action %s: Function \"%s\" was not found in module \"%s\".\nEnsure the correct action is referenced in config.fnl."
+                  action
+                  fn-name
+                  file)))))
 
 
 (fn create-action-fn
