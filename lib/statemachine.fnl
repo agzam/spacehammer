@@ -1,9 +1,7 @@
 (local atom (require :lib.atom))
-(local {:filter filter
-        :logf logf
-        :map map
-        :merge merge
-        :tap tap} (require :lib.functional))
+(local {: filter
+        : map
+        : merge} (require :lib.functional))
 
 (local log (hs.logger.new "\tstatemachine.fnl\t" "debug"))
 

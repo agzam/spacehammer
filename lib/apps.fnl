@@ -10,19 +10,10 @@ This module works mechanically similar to lib/modal.fnl.
 (local atom (require :lib.atom))
 (local statemachine (require :lib.statemachine))
 (local os (require :os))
-(local {:call-when call-when
-        :concat    concat
-        :find      find
-        :filter    filter
-        :get       get
-        :has-some? has-some?
-        :join      join
-        :last      last
-        :map       map
-        :merge     merge
-        :noop      noop
-        :slice     slice
-        :tap       tap}
+(local {: call-when
+        : find
+        : noop
+        : tap}
        (require :lib.functional))
 (local {:action->fn action->fn
         :bind-keys bind-keys}

@@ -1,6 +1,5 @@
-(local {:map    map
-        :merge  merge
-        :reduce reduce} (require :lib.functional))
+(local {: map
+        : reduce} (require :lib.functional))
 
 "
 These functions will align items in a modal menu based on columns.

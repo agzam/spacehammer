@@ -1,5 +1,5 @@
 (require-macros :lib.macros)
-(local {:find find} (require :lib.functional))
+(local {: find} (require :lib.functional))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
