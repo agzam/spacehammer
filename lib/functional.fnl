@@ -206,6 +206,14 @@
   (let [filtered (filter f tbl)]
     (<= 1 (length filtered))))
 
+(fn push
+  [tbl e]
+  (concat tbl [e]))
+
+(fn pop
+  [tbl]
+  (slice 1 -1 tbl))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Others
@@ -246,6 +254,8 @@
  : map
  : merge
  : noop
+ : pop
+ : push
  : reduce
  : seq
  : seq?

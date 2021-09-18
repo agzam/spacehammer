@@ -22,6 +22,8 @@ switching menus in one place which is then powered by config.fnl.
         : map
         : merge
         : noop
+        : push
+        : pop
         : slice}
        (require :lib.functional))
 (local {:align-columns align-columns}
@@ -272,7 +274,7 @@ switching menus in one place which is then powered by config.fnl.
    :stop-timeout :nil
    :unbind-keys (bind-menu-keys menu.items)
    :history (if history
-                (concat [] history [menu])
+                (push history menu)
                 [menu])})
 
 
@@ -438,7 +440,7 @@ switching menus in one place which is then powered by config.fnl.
                (show-modal-menu (merge state
                                        {:menu prev-menu
                                         :prev-menu menu}))
-               {:history (slice 1 -1 history)})
+               {:history (pop history)})
         (idle->active state))))
 
 
