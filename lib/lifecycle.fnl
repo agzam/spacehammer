@@ -1,4 +1,4 @@
-(local {:do-action do-action} (require :lib.bind))
+(local {: do-action} (require :lib.bind))
 (local log (hs.logger.new "lifecycle.fnl" "debug"))
 
 

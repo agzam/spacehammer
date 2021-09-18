@@ -1,7 +1,7 @@
 (local hyper (require :lib.hyper))
-(local {:contains? contains?
-        :map       map
-        :split     split}
+(local {: contains?
+        : map
+        : split}
        (require :lib.functional))
 
 (local log (hs.logger.new "bind.fnl" "debug"))
