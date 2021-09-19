@@ -9,44 +9,49 @@
 
 (local log (hs.logger.new "\tstatemachine.fnl\t" "debug"))
 
-;;
+;; Finite state machine
 ;; Schema
-;; { :current-state ; An atom keyword
-;;   ; States table: A map of state names to a map of actions to functions
-;;   ; These functions must return a map containing the new state keyword, the
-;;   ; effect, and a new context
-;;   :states {:state1 {}
-;;            :state2 {}
-;;            :state3 {:leave :state2
-;;                     :enter :state3}}}}
-;;   :transitions} ; takes in fsm & event
-;;   :context ; an atom that tracks extra data e.g. current app, history, etc.
-;;
+;; {:current-state ; An atom keyword
+;;  ; States table: A map of state names to a map of actions to functions
+;;  ; These functions must return a map containing the new state keyword, the
+;;  ; effect, and a new context
+;;  :states {:state1 {}
+;;           :state2 {}
+;;           :state3 {:leave :state2
+;;                    :enter :state3}}}}
+;;  :transitions} ; takes in fsm & event
+;;  :context
+
+
 (fn set-current-state
   [fsm state]
   (atom.swap! fsm.current-state (fn [_ state] state) state))
+
+(fn set-context
+  [fsm context]
+  (atom.swap! fsm.context (fn [_ context] context) context))
 
 (fn signal
   [fsm action extra]
   "Based on the action and the fsm's current-state, set the new state and call
   the all subscribers with the old state, new state, action, and extra"
   (let [current-state (atom.deref fsm.current-state)
-        _ (log.wf "XXX Current state %s" current-state) ;; DELETEME
+        _ (log.wf "XXX Current state: %s" current-state) ;; DELETEME
         ; TODO: Better name? This is the map that contains old, new, effect, etc.
         ; TODO: Handle a signal with no handler
-        transition ((. fsm.states current-state action) fsm.context action extra)
-        _ (log.wf "XXX received transition info %s" (hs.inspect transition)) ;; DELETEME
+        transition ((. fsm.states current-state action) (atom.deref  fsm.context) action extra)
+        ;; _ (log.wf "XXX received transition info:\n%s" (hs.inspect transition)) ;; DELETEME
         next-state transition.current-state
+        _ (log.wf "XXX next state: %s" next-state) ;; DELETEME
         new-context transition.context
-        _ (log.wf "XXX next state %s" next-state) ;; DELETEME
+        ;; _ (log.wf "XXX new context: %s" (hs.inspect new-context)) ;; DELETEME
         effect transition.effect]
     ; If next-state is nil, error: Means the action is not expected in this state
     (log.wf "XXX Signal current: :%s next: :%s action: :%s extra: %s effect: :%s" current-state next-state action extra effect) ;; DELETEME
 
     (set-current-state fsm next-state)
-          ; TODO: Should we let this callback decide on the new state? But there
-          ; can be multiple listeners
-          ; TODO: Provide whole FSM or just context?
+    (set-context fsm new-context)
+    ; Call all subscribers
     (each [_ sub (pairs (atom.deref fsm.subscribers))]
       (sub {:context new-context :prev-state current-state :next-state next-state :effect effect :extra extra}))))
 
@@ -68,17 +73,16 @@
   [effect-map]
   "
   Takes a map of effect->function and returns a function that handles these
-  effects and cleans up on the next transition.
+  effects by calling the mapped-to function, and then calls that function's
+  return value (a cleanup function) and calls it on the next transition.
 
-  These functions must return their own cleanup function
-
-  Not required but cleans up some of the state management code
+  These functions must return their own cleanup function or nil.
   "
   ;; Create a one-time atom used to store the cleanup function
   (let [cleanup-ref (atom.new nil)]
     ;; Return a subscriber function
     (fn [{: context : prev-state : next-state : effect : action : extra}]
-      (log.wf "Effect handler called")
+      (log.wf "Effect handler called") ;; DELETEME
       ;; Whenever a transition occurs, call the cleanup function, if set
       (call-when (atom.deref cleanup-ref))
       ;; Get a new cleanup function or nil and update cleanup-ref atom
@@ -87,11 +91,12 @@
 
 (fn create-machine
   [states initial-state]
-  (merge {:current-state (atom.new initial-state)
-          :context (atom.new states.context)
-          ; TODO: Use something less naive for subscribers
-          :subscribers (atom.new {})}
-         states))
+  {:current-state (atom.new initial-state)
+   :context (atom.new states.context)
+   :states states.states
+   ; TODO: Use something less naive for subscribers
+   :subscribers (atom.new {})})
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Example
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -99,36 +104,33 @@
 (var modal-fsm nil)
 (fn enter-menu
   [context action extra]
-  (log.wf "XXX Enter menu action: %s. Current stack: %s" action (hs.inspect (atom.deref context.menu-stack))) ;; DELETEME
-  (atom.swap! context.menu-stack (fn [stack menu] (conj stack menu)) extra)
+  (log.wf "XXX Enter menu action: %s. Current stack: %s" action (hs.inspect context.menu-stack)) ;; DELETEME
   {:current-state :menu
-   :context (merge context {:menu-stack context.menu-stack
+   :context (merge context {:menu-stack (conj context.menu-stack extra)
                             :current-menu :main})
    :effect :modal-opened})
 
 (fn up-menu
   [context action extra]
   "Go up a menu in the stack."
-  (log.wf "XXX Up menu. Current stack: %s" (hs.inspect (atom.deref context.menu-stack))) ;; DELETEME
-  ; Pop the menu off the stack
-  (atom.swap! context.menu-stack (fn [stack] (butlast stack)))
-  ; Calculate new state transition
-  (let [stack (atom.deref context.menu-stack)
+  (log.wf "XXX Up menu. Current stack: %s" (hs.inspect context.menu-stack)) ;; DELETEME
+  ; Pop the menu off the stack & calculate new state transition
+  (let [stack (butlast context.menu-stack)
         depth (length stack)
         target-state (if (= 0 depth) :idle :menu)
         target-effect (if (= :idle target-state) :modal-closed :modal-opened)
         new-menu (last stack)]
     {:current-state target-state
-     :context (merge context {:menu-stack context.menu-stack
+     :context (merge context {:menu-stack stack
                               :current-menu new-menu})
      :effect target-effect}) )
 
 (fn leave-menu
   [context action extra]
-  (log.wf "XXX Leave menu. Current stack: %s" (hs.inspect (atom.deref context.menu-stack))) ;; DELETEME
+  (log.wf "XXX Leave menu. Current stack: %s" (hs.inspect context.menu-stack)) ;; DELETEME
   {:current-state :idle
-   :context {:menu-stack context.menu-stack
-             :menu :main-menu}
+   :context (merge context {:menu-stack context.menu-stack
+                            :menu :main-menu})
    :effect :modal-closed})
 
 (local modal-states
@@ -143,10 +145,10 @@
                                    :b {}
                                    :c {}}
                   :current-menu nil
-                  :menu-stack (atom.new [])}})
+                  :menu-stack []}})
 
 ; TODO: We could require the initial state be a key in the states map
-; TODO: If we preserve the initial context we can maybe fsm.reset, thoug that's
+; TODO: If we preserve the initial context we can maybe fsm.reset, though that's
 ; hard to do safely since it only restores state and context, not the state of
 ; hammerspoon itself, e.g. keys bindings, that have been messed with with all
 ; the signal handlers.
@@ -156,6 +158,13 @@
   (alert (string.format "MENU %s" extra))
   ;; Return a cleanup func
   (fn [] (log.wf "Modal opened menu handler CLEANUP called")))
+
+(fn modal-closed-menu-handler
+  [context extra]
+  (log.wf "Modal closed menu handler called")
+  (alert (string.format "MENU %s" extra))
+  ;; Return a cleanup func
+  (fn [] (log.wf "Modal closed menu handler CLEANUP called")))
 
 (fn modal-opened-key-handler
   [context extra]
@@ -172,9 +181,11 @@
 
 ; Add subscribers
 (local unsub-menu-sub
-       (subscribe modal-fsm (effect-handler {:modal-opened modal-opened-menu-handler})))
+       (subscribe modal-fsm (effect-handler {:modal-opened modal-opened-menu-handler
+                                             :modal-closed modal-closed-menu-handler})))
 (local unsub-key-sub
        (subscribe modal-fsm (effect-handler {:modal-opened modal-opened-key-handler})))
+(log.wf "FSM: %s" (hs.inspect modal-fsm)) ;; DELETEME
 (log.wf "Subs: %s" (hs.inspect (atom.deref modal-fsm.subscribers))) ;; DELETEME
 
 ; Debuging bindings. Call it in config.fnl so it's not trampled
@@ -182,7 +193,7 @@
   (hs.hotkey.bind [:alt :cmd :ctrl] :v
                   (fn []
                     (log.wf "XXX Current stack: %s"
-                            (hs.inspect (atom.deref modal-fsm.context.menu-stack)))))
+                            (hs.inspect (. (atom.deref modal-fsm.context) :menu-stack)))))
   (hs.hotkey.bind [:cmd] :o (fn [] (signal modal-fsm :open :main)))
   (hs.hotkey.bind [:cmd] :u (fn [] (signal modal-fsm :back nil)))
   (hs.hotkey.bind [:cmd] :l (fn [] (signal modal-fsm :leave nil)))
@@ -191,7 +202,7 @@
   (hs.hotkey.bind [:cmd] :c (fn [] (signal modal-fsm :select :c))))
 
 {: signal
- : bind
+ : bind ;; DELETEME
  : modal-fsm  ;; DELETEME
  : subscribe
  :new create-machine}
