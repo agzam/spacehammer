@@ -11,6 +11,9 @@
          (is.eq? (f.call-when (fn [] 2)) 2 "Unexpected result")
          (is.eq? (f.call-when nil) nil "Call-when did not return nil")))
 
+   (it "Call when passes args"
+       (fn []
+         (is.eq? (f.call-when (fn [a] a) 3) 3 "Unexpected result")))
 
    (it "Compose combines functions together in reverse order"
        (fn []
