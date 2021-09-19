@@ -12,11 +12,11 @@
 ;; { :current-state ; An atom keyword
 ;;   :states {:state1 {}
 ;;            :state2 {}
-;;            :state3 {
+;;            :state3
 ;;                     ; TODO: Do we want :enter and :exit, or let the effects
 ;;                     ; callback handle it
-;;                     :transitions {:leave :state2
-;;                                   :enter :state3}
+;;                     {:leave :state2
+;;                      :enter :state3}
 ;;            :state4 {}
 ;;                     }}}
 ;;   :transitions} ; takes in fsm & event
@@ -31,25 +31,45 @@
 (fn signal
   [fsm action extra]
   "Based on the action and the fsm's current-state, set the new state and call
-  the effects listener with the old state, new state, action, and extra"
+  the all subscribers with the old state, new state, action, and extra"
+  (log.wf "signal action :%s" action) ;; DELETEME
   (let [current-state (atom.deref fsm.current-state)
-        next-state (. fsm.states current-state :transitions action)
-        effects fsm.effects]
+        next-state ((. fsm.states current-state action) fsm.context action extra)
+        effect next-state.effect]
     ; If next-state is nil, error: Means the action is not expected in this state
-    (log.wf "XXX Signal current: :%s next: :%s action: :%s extra: %s" (atom.deref fsm.current-state) next-state action extra) ;; DELETEME
+    (log.wf "XXX Signal current: :%s next: :%s action: :%s extra: %s effect: :%s" (atom.deref fsm.current-state) (hs.inspect next-state) action extra effect) ;; DELETEME
     (if next-state
         (do
           (set-state fsm next-state)
           ; TODO: Should we let this callback decide on the new state? But there
           ; can be multiple listeners
           ; TODO: Provide whole FSM or just context?
-          (effects fsm.context current-state next-state action extra))
+          (each [_ sub (pairs (atom.deref fsm.subscribers))]
+            (log.wf "Calling sub %s" sub) ;; DELETEME
+                (sub {:prev-state current-state :next-state next-state :effect effect}))
+          )
         (log.wf "Action :%s is not defined in state :%s" action current-state))))
+
+(fn subscribe
+  [fsm sub]
+  "Adds a subscriber to the provided fsm. Returns a function to unsubscribe"
+  ; Super naive: Returns a function that just removes the entry at the inserted
+  ; key, but doesn't allow the same function to subscribe more than once since
+  ; its keyed by the string of the function itself.
+  (let [sub-key (tostring sub)]
+    (log.wf "Adding subscriber %s" sub) ;; DELETEME
+    (atom.swap! fsm.subscribers (fn [subs sub]
+                                  (merge {sub-key sub} subs)) sub)
+    ; Return the unsub func
+    (fn []
+      (atom.swap! fsm.subscribers (fn [subs key] (tset subs key nil)) sub-key))))
 
 (fn create-machine
   [states initial-state]
   (merge {:current-state (atom.new initial-state)
-          :context (atom.new states.context)}
+          :context (atom.new states.context)
+          ; TODO: Use something less naive for subscribers
+          :subscribers (atom.new {})}
          states))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Example
@@ -59,16 +79,11 @@
 (fn enter-menu
   [context menu]
   (log.wf "XXX Enter menu %s. Current stack: %s" menu (hs.inspect (atom.deref context.menu-stack))) ;; DELETEME
-  ; TODO: Show the actual menu
-  ; TODO: Bind keys according to actual menu
-  (alert "menu")
   (atom.swap! context.menu-stack (fn [stack menu] (conj stack menu)) menu)
-  (hs.hotkey.bind [:cmd] "l" (fn [] (signal modal-fsm :leave)))
-  ; Down a menu deeper
-  (hs.hotkey.bind [:cmd] "d"
-                  (fn [] (signal modal-fsm :select (tostring (length (atom.deref context.menu-stack))))))
-  ; Up a menu
-  (hs.hotkey.bind [:cmd] "u" (fn [] (signal modal-fsm :back))))
+  {:current-state :menu
+   :context {:history []
+             :menu :main-menu}
+   :effect :modal-opened})
 
 (fn up-menu
   [context menu]
@@ -96,7 +111,7 @@
   (log.wf "XXX Got action :%s with extra %s while in :%s, transitioning to :%s" action extra old-state new-state) ;; DELETEME
   (if (=  old-state :idle)
       (if (= action :leave) nil
-          (= action :activate) (enter-menu context :main))
+          (= action :open) (enter-menu context :main))
       (= old-state :menu)
       (if (= action :leave) (leave-menu context)
           (= action :back) (up-menu context extra)
@@ -105,22 +120,15 @@
 
 
 (local modal-states
-       {:states {:idle {:enter nil
-                        :exit nil
-                        :transitions {:leave :idle
-                                      :activate :menu}}
-                 :menu {:enter nil
-                        :exit nil
-                        ; TODO: How can we allow a transition to a previous menu
-                        :transitions {
-                                      ; Leave dumps all menus
-                                      :leave :idle
-                                      ; Back pops a menu off the stack
-                                      :back :menu
-                                      ; Select pushes a menu on the stack
-                                      :select :menu}}}
-        ; TODO: This would be an event stream dispatcher or publish func
-        :effects modal-action
+       {:states {:idle {:leave :idle
+                        :open (fn [context action extra]
+                                {:current-state :menu
+                                 :context {:history []
+                                           :menu :main-menu}
+                                 :effect :modal-opened})}
+                 :menu {:leave leave-menu
+                        :back up-menu
+                        :select enter-menu}}
         :context {:modal {:modal nil
                           :stop-func nil}
                   ; TODO: This would be filled based on config
@@ -128,11 +136,22 @@
                   :menu-stack (atom.new [])}})
 
 ; This creates an atom for current-state and context
+; TODO: We could require the initiali state me a key in the states map
+; TODO: If we preserve the initial context we can maybe fsm.reset, thoug that's
+; hard to do safely since it only restores state and context, not the state of
+; hammerspoon itself, e.g. keys bindings, that have been messed with with all
+; the signal handlers.
 (set modal-fsm (create-machine modal-states :idle))
+(local unsub-display (subscribe modal-fsm (fn [] (alert "MENU HERE"))))
+(local unsub-bind (subscribe modal-fsm (fn [] (log.wf "Binding keys..."))))
+(log.wf "Subs: %s" (hs.inspect (atom.deref modal-fsm.subscribers))) ;; DELETEME
+;; (unsub) ;; DELETEME
+;; (log.wf "Subs: %s" (hs.inspect (atom.deref modal-fsm.subscribers))) ;; DELETEME
 
 ; Debuging bindings
 (hs.hotkey.bind [:cmd] :s (fn [] (log.wf "XXX Current stack: %s" (hs.inspect (atom.deref modal-fsm.context.menu-stack))))) ;; DELETEME
 
 {: signal
- :modal-fsm modal-fsm  ;; DELETEME
+ : modal-fsm  ;; DELETEME
+ : subscribe
  :new create-machine}
