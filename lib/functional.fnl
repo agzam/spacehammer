@@ -206,12 +206,14 @@
   (let [filtered (filter f tbl)]
     (<= 1 (length filtered))))
 
-(fn push
+(fn conj
   [tbl e]
+  "Return a new list with the element e added at the end"
   (concat tbl [e]))
 
-(fn pop
+(fn butlast
   [tbl]
+  "Return a new list with all but the last item"
   (slice 1 -1 tbl))
 
 
@@ -234,9 +236,11 @@
 ;; Exports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-{: call-when
+{: butlast
+ : call-when
  : compose
  : concat
+ : conj
  : contains?
  : count
  : eq?
@@ -254,8 +258,6 @@
  : map
  : merge
  : noop
- : pop
- : push
  : reduce
  : seq
  : seq?

@@ -1,8 +1,8 @@
 (local atom (require :lib.atom))
-(local {: merge
+(local {: butlast
         : concat
-        : push
-        : pop
+        : conj
+        : merge
         : slice} (require :lib.functional))
 
 (local log (hs.logger.new "\tstatemachine.fnl\t" "debug"))
@@ -62,7 +62,7 @@
   ; TODO: Show the actual menu
   ; TODO: Bind keys according to actual menu
   (alert "menu")
-  (atom.swap! context.menu-stack (fn [stack menu] (push stack menu)) menu)
+  (atom.swap! context.menu-stack (fn [stack menu] (conj stack menu)) menu)
   (hs.hotkey.bind [:cmd] "l" (fn [] (signal modal-fsm :leave)))
   ; Down a menu deeper
   (hs.hotkey.bind [:cmd] "d"
@@ -76,7 +76,7 @@
   event to :leave"
   (log.wf "XXX Up menu. Current stack: %s" (hs.inspect (atom.deref context.menu-stack))) ;; DELETEME
   ; TODO: Unbind keys from this menu
-  (let [stack (atom.deref (atom.swap! context.menu-stack (fn [stack] (pop stack))))]
+  (let [stack (atom.deref (atom.swap! context.menu-stack (fn [stack] (butlast stack))))]
     (when (= (length stack) 0) (signal modal-fsm :leave))))
 
 (fn leave-menu

@@ -12,8 +12,10 @@ switching menus in one place which is then powered by config.fnl.
 (local atom (require :lib.atom))
 (local statemachine (require :lib.statemachine))
 (local apps (require :lib.apps))
-(local {: call-when
+(local {: butlast
+        : call-when
         : concat
+        : conj
         : find
         : filter
         : has-some?
@@ -22,8 +24,6 @@ switching menus in one place which is then powered by config.fnl.
         : map
         : merge
         : noop
-        : push
-        : pop
         : slice}
        (require :lib.functional))
 (local {:align-columns align-columns}
@@ -274,7 +274,7 @@ switching menus in one place which is then powered by config.fnl.
    :stop-timeout :nil
    :unbind-keys (bind-menu-keys menu.items)
    :history (if history
-                (push history menu)
+                (conj history menu)
                 [menu])})
 
 
@@ -440,7 +440,7 @@ switching menus in one place which is then powered by config.fnl.
                (show-modal-menu (merge state
                                        {:menu prev-menu
                                         :prev-menu menu}))
-               {:history (pop history)})
+               {:history (butlast history)})
         (idle->active state))))
 
 
