@@ -5,10 +5,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn call-when
-  [f]
+  [f ...]
   "Execute function if it is not nil."
   (when (and f (= (type f) :function))
-    (f)))
+    (f ...)))
 
 (fn compose
   [...]
