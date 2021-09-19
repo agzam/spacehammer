@@ -1,61 +1,75 @@
-* Note: sorted starting from the most recent changes
-  - [2020-09-20 Sun]
-    - Fixed support for Hammerspoon 0.9.79 which uses Lua 5.4 see https://github.com/agzam/spacehammer/pull/70 for instructions
-  - [2020-05-14 Thu]
-    - Edit-with-emacs feature now detects if there's a pre-selected text already and edits only that chunk
-  - [2020-05-13 Wed]
-    - Addressed workaround for regression in fennel 0.4.0 https://github.com/bakpakin/Fennel/issues/276
-  - [2020-02-23 Sun]
-    - Move to display feature. Windows modal: <LEAD w> now would display a big
-      number at the corner of each display, when a number on the keypad is
-      pressed, current active app window will be moved onto that screen. Useful
-      for multi-monitor setups.
+* [2021-09-16 Thu]
+** Added
+- [[docs/advice/org][Advising system]]
+- [[repl.fnl][REPL support]]
+- [[./docs/testing.org][Basic unit testing]]
+* [2020-09-20 Sun]
+** Fixed
+- support for Hammerspoon 0.9.79 which uses Lua 5.4 see https://github.com/agzam/spacehammer/pull/70 for instructions
+* [2020-05-14 Thu]
+** Changed
+- Edit-with-emacs feature now detects if there's a pre-selected text already and edits only that chunk
+* [2020-05-13 Wed]
+** Fixed
+- Addressed workaround for regression in fennel 0.4.0 https://github.com/bakpakin/Fennel/issues/276
+* [2020-02-23 Sun]
+** Added
+- Move to display feature. Windows modal: <LEAD w> now would display a big number at the corner of each display, when a number on the keypad is pressed, current active app window will be moved onto that screen. Useful for multi-monitor setups.
 
-      Note: if ~/.spacehammer/config.fnl is used, it
-      needs to be updated in order for this feature to work.
-  - [2020-02-04 Tue]
-    - New, completely revamped modal engine - [[https://github.com/eccentric-j][@eccentric-j]]
-    - Improved state-machine implementation - [[https://github.com/eccentric-j][@eccentric-j]]
-    - ~/.spacehammer.d/config for localized customization - [[https://github.com/eccentric-j][@eccentric-j]]
-    - Nicer HUD - [[https://github.com/eccentric-j][@eccentric-j]]
-    - Added lots of docstrings - [[https://github.com/eccentric-j][@eccentric-j]]
-    - Fixed compatibility issues. Currently supported Fennel version 0.3.2 - [[https://github.com/eccentric-j][@eccentric-j]]
-    - =LEAD= keybinding is now by default set to =Option+SPC= (used to be =Cmd+SPC=)
-    - App switcher keybinding is now by default set to =Option+n/p= (used to be =Cmde+n/p=)
-    - Tab switcher keybinding is now by default set to =Option+j/k= (used to be =Cmd+j/k=)
-    - Pressing =SPC= in a submodal, brings you to the previous level modal (used to open ~Alfred~)
-      pressing =SPC= at the top level modal still takes you to ~Alfred~
-  - [2019-07-19 Fri]
-    - Refactored…
-      + Modals
-      + Configuration
-      + Keybindingsn
-      + App specific keybindings
-      + App specific modals
-      + Vim mode
-  - [2019-06-25 Tue]
-    - Emacs improvements
-      + run-emacs-fn
-      + full-screen
-      + vertical-split-with-emacs
-  - [2019-06-23 Sun]
-    - Auxiliary Emacs package, spacehammer.el
-    - Fixes Local app-keys are leaking #15
-  - [2019-05-07 Tue]
-    - Added local modals
-    - Grammarly + Emacs interaction
-  - [2019-05-06 Mon]
-    - Rewrote everything in Fennel
-  - [2017-10-14 Sat]
-    - Improved modal system - simplifies adding and extending modals
-    - Emacs module
-      currently invokes Emacs to enable system-wide org-capture. Accompanying emacs-lisp code can be found [[https://github.com/agzam/dot-spacemacs/blob/master/layers/ag-org/funcs.el#L144][here]]
-  - [2017-06-25 Sun]
-    - Sierra compatibility
-      /*Since Karabiner is not compatible anymore (starting with Sierra), had to find a way to get similar features*/
-    - ~keybdings~ module
-    - App switcher - =Cmd+j/k=
-    - Simple tab switcher for Chrome and iTerm2 - =Cmd+h/l=
-    - Simple =Vi-mode= - =Alt+j/k/l/m=
-    - App specific keybindings
-    - Changed Slack reaction key to =C-r=, so =Cmd+i= can be used to switch between current application windows
+Note: if ~/.spacehammer/config.fnl is used, it
+needs to be updated in order for this feature to work.
+* [2020-02-04 Tue]
+** Added
+ - New, completely revamped modal engine - [[https://github.com/eccentric-j][@eccentric-j]]
+ - Improved state-machine implementation - [[https://github.com/eccentric-j][@eccentric-j]]
+ - ~/.spacehammer.d/config for localized customization - [[https://github.com/eccentric-j][@eccentric-j]]
+ - Nicer HUD - [[https://github.com/eccentric-j][@eccentric-j]]
+ - Lots of docstrings - [[https://github.com/eccentric-j][@eccentric-j]]
+** Changed
+ - Fixed compatibility issues. Currently supported Fennel version 0.3.2 - [[https://github.com/eccentric-j][@eccentric-j]]
+ - =LEAD= keybinding is now by default set to =Option+SPC= (used to be =Cmd+SPC=)
+ - App switcher keybinding is now by default set to =Option+n/p= (used to be =Cmde+n/p=)
+ - Tab switcher keybinding is now by default set to =Option+j/k= (used to be =Cmd+j/k=)
+ - Pressing =SPC= in a submodal, brings you to the previous level modal (used to open ~Alfred~)
+   pressing =SPC= at the top level modal still takes you to ~Alfred~
+* [2019-07-19 Fri]
+** Changed
++ Modals
++ Configuration
++ Keybindingsn
++ App specific keybindings
++ App specific modals
++ Vim mode
+* [2019-06-25 Tue]
+** Changed
+*** Emacs improvements
++ run-emacs-fn
++ full-screen
++ vertical-split-with-emacs
+* [2019-06-23 Sun]
+** Added
+- Auxiliary Emacs package, spacehammer.el
+** Changed
+- Fixes Local app-keys are leaking #15
+* [2019-05-07 Tue]
+** Added
+- Added local modals
+- Grammarly + Emacs interaction
+* [2019-05-06 Mon]
+** Changed
+- Rewrote everything in Fennel
+* [2017-10-14 Sat]
+** Added
+- Improved modal system - simplifies adding and extending modals
+- Emacs module: Invoking Emacs to enable system-wide org-capture. Accompanying emacs-lisp code can be found [[https://github.com/agzam/dot-spacemacs/blob/master/layers/ag-org/funcs.el#L144][here]]
+* [2017-06-25 Sun]
+** Added
+- Sierra compatibility
+  /*Since Karabiner is not compatible anymore (starting with Sierra), had to find a way to get similar features*/
+- ~keybdings~ module
+- App switcher - =Cmd+j/k=
+- Simple tab switcher for Chrome and iTerm2 - =Cmd+h/l=
+- Simple =Vi-mode= - =Alt+j/k/l/m=
+- App specific keybindings
+** Changed
+- Changed Slack reaction key to =C-r=, so =Cmd+i= can be used to switch between current application windows
