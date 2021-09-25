@@ -93,14 +93,13 @@
       (atom.reset! cleanup-ref
                    (call-when (. effect-map effect) context extra)))))
 
-; TODO: We could require the initial state be a key in the states map
 ; TODO: If we preserve the initial context we can maybe fsm.reset, though that's
 ; hard to do safely since it only restores state and context, not the state of
 ; hammerspoon itself, e.g. keys bindings, that have been messed with with all
 ; the signal handlers.
 (fn create-machine
-  [states initial-state]
-  {:current-state (atom.new initial-state)
+  [states]
+  {:current-state (atom.new states.initial-state)
    :context (atom.new states.context)
    :states states.states
    ; TODO: Use something less naive for subscribers
@@ -143,7 +142,8 @@
    :effect :modal-closed})
 
 (local modal-states
-       {:states {:idle {:leave :idle
+       {:initial-state :idle
+        :states {:idle {:leave :idle
                         :open enter-menu}
                  :menu {:leave leave-menu
                         :back up-menu
@@ -181,7 +181,7 @@
   (fn [] (log.wf "Modal opened key handler CLEANUP called")))
 
 ; Create FSM
-(set modal-fsm (create-machine modal-states :idle))
+(set modal-fsm (create-machine modal-states))
 
 ; Add subscribers
 (local unsub-menu-sub
