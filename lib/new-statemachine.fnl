@@ -38,12 +38,10 @@
   [fsm current-state action]
   (. fsm.states current-state action))
 
-; TODO: Convert to method
 (fn get-state
   [fsm]
   (atom.deref fsm.state))
 
-; TODO: Convert to method
 (fn signal
   [fsm action extra]
   "Based on the action and the fsm's current-state, set the new state and call
@@ -65,7 +63,6 @@
                 (sub {:prev-state state :next-state new-state : action : effect : extra})))
         (log.wf "Action %s does not have a transition function in state %s" action current-state))))
 
-; TODO: Convert to method
 (fn subscribe
   [fsm sub]
   "Adds a subscriber to the provided fsm. Returns a function to unsubscribe"
@@ -101,10 +98,15 @@
 
 (fn create-machine
   [template]
-  {:state (atom.new {:current-state template.state.current-state :context template.state.context})
-   :states template.states
-   ; TODO: Use something less naive for subscribers
-   :subscribers (atom.new {})})
+  (let [fsm  {:state (atom.new {:current-state template.state.current-state :context template.state.context})
+              :states template.states
+              ; TODO: Use something less naive for subscribers
+              :subscribers (atom.new {})}]
+    ; Add methods
+    (tset fsm :get-state (partial get-state fsm))
+    (tset fsm :signal (partial signal fsm))
+    (tset fsm :subscribe (partial subscribe fsm))
+    fsm))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Example
