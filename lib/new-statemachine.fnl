@@ -49,7 +49,6 @@
   (let [state (get-state fsm)
         {: current-state : context} state]
     (if-let [tx-fn (get-transition-function fsm current-state action)]
-            ; TODO: Have per-fsm logger
             (let [
                   ; TODO: Should we pass the whole state (current state and context) or just context?
                   transition (tx-fn state action extra)
@@ -61,7 +60,7 @@
               ; Call all subscribers
               (each [_ sub (pairs (atom.deref fsm.subscribers))]
                 (sub {:prev-state state :next-state new-state : action : effect : extra})))
-        (log.wf "Action %s does not have a transition function in state %s" action current-state))))
+            (if fsm.log (fsm.log.wf "Action :%s does not have a transition function in state :%s" action current-state)))))
 
 (fn subscribe
   [fsm sub]
@@ -101,7 +100,8 @@
   (let [fsm  {:state (atom.new {:current-state template.state.current-state :context template.state.context})
               :states template.states
               ; TODO: Use something less naive for subscribers
-              :subscribers (atom.new {})}]
+              :subscribers (atom.new {})
+              :log (if template.log (hs.logger.new template.log "info"))}]
     ; Add methods
     (tset fsm :get-state (partial get-state fsm))
     (tset fsm :signal (partial signal fsm))
@@ -157,7 +157,8 @@
                         :open enter-menu}
                  :menu {:leave leave-menu
                         :back up-menu
-                        :select enter-menu}}})
+                        :select enter-menu}}
+        :log "modal FSM"})
 
 
 ;; Effect handlers
