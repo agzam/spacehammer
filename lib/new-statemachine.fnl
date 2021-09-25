@@ -11,16 +11,18 @@
 
 ;; Finite state machine
 ;; Schema
-;; {:current-state ; An atom keyword
+;; {
+;;  ; An atom keyword
+;;  :current-state :state1
 ;;  ; States table: A map of state names to a map of actions to functions
 ;;  ; These functions must return a map containing the new state keyword, the
 ;;  ; effect, and a new context
 ;;  :states {:state1 {}
 ;;           :state2 {}
-;;           :state3 {:leave :state2
-;;                    :enter :state3}}}}
-;;  :transitions} ; takes in fsm & event
-;;  :context
+;;           :state3 {:leave state3-leave
+;;                    :exit state3-exit}}
+;;  ; An atom table
+;;  :context {}}
 
 
 (fn set-current-state
@@ -34,12 +36,14 @@
 (fn signal
   [fsm action extra]
   "Based on the action and the fsm's current-state, set the new state and call
-  the all subscribers with the old state, new state, action, and extra"
+  all subscribers with the old state, new state, action, and extra"
   (let [current-state (atom.deref fsm.current-state)
         _ (log.wf "XXX Current state: %s" current-state) ;; DELETEME
+        context (atom.deref fsm.context)
+        tx-fn (. fsm.states current-state action)
         ; TODO: Better name? This is the map that contains old, new, effect, etc.
         ; TODO: Handle a signal with no handler
-        transition ((. fsm.states current-state action) (atom.deref  fsm.context) action extra)
+        transition (tx-fn context action extra)
         ;; _ (log.wf "XXX received transition info:\n%s" (hs.inspect transition)) ;; DELETEME
         next-state transition.current-state
         _ (log.wf "XXX next state: %s" next-state) ;; DELETEME
@@ -89,6 +93,11 @@
       (atom.reset! cleanup-ref
                    (call-when (. effect-map effect) context extra)))))
 
+; TODO: We could require the initial state be a key in the states map
+; TODO: If we preserve the initial context we can maybe fsm.reset, though that's
+; hard to do safely since it only restores state and context, not the state of
+; hammerspoon itself, e.g. keys bindings, that have been messed with with all
+; the signal handlers.
 (fn create-machine
   [states initial-state]
   {:current-state (atom.new initial-state)
@@ -140,18 +149,13 @@
                         :back up-menu
                         :select enter-menu}}
         :context {
-                  ; TODO: This would be filled based on config
+                  ; This would be structured based on config in the modal module
                   :menu-hierarchy {:a {}
                                    :b {}
                                    :c {}}
                   :current-menu nil
                   :menu-stack []}})
 
-; TODO: We could require the initial state be a key in the states map
-; TODO: If we preserve the initial context we can maybe fsm.reset, though that's
-; hard to do safely since it only restores state and context, not the state of
-; hammerspoon itself, e.g. keys bindings, that have been messed with with all
-; the signal handlers.
 (fn modal-opened-menu-handler
   [context extra]
   (log.wf "Modal opened menu handler called")
@@ -188,7 +192,7 @@
 (log.wf "FSM: %s" (hs.inspect modal-fsm)) ;; DELETEME
 (log.wf "Subs: %s" (hs.inspect (atom.deref modal-fsm.subscribers))) ;; DELETEME
 
-; Debuging bindings. Call it in config.fnl so it's not trampled
+; Debuging bindings. Call it in config.fnl so the bindings aren't not trampled
 (fn bind []
   (hs.hotkey.bind [:alt :cmd :ctrl] :v
                   (fn []
@@ -198,11 +202,11 @@
   (hs.hotkey.bind [:cmd] :u (fn [] (signal modal-fsm :back nil)))
   (hs.hotkey.bind [:cmd] :l (fn [] (signal modal-fsm :leave nil)))
   (hs.hotkey.bind [:cmd] :a (fn [] (signal modal-fsm :select :a)))
-  (hs.hotkey.bind [:cmd] :b (fn [] (signal modal-fsm :select :b)))
-  (hs.hotkey.bind [:cmd] :c (fn [] (signal modal-fsm :select :c))))
+  (hs.hotkey.bind [:cmd] :r (fn [] (signal modal-fsm :select :b)))
+  (hs.hotkey.bind [:cmd] :s (fn [] (signal modal-fsm :select :c))))
 
 {: signal
- : bind ;; DELETEME
- : modal-fsm  ;; DELETEME
+ : bind    ;; DELETEME
+ : modal-fsm ;; DELETEME
  : subscribe
  :new create-machine}
