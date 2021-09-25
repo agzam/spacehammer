@@ -23,6 +23,12 @@
 ;;           :state3 {:leave state3-leave
 ;;                    :exit state3-exit}}}
 
+; TODO: Handle a signal with no handler for the provided action. E.g. if a state
+; has a keyword instead of a function should we just create a new state from the
+; old one, setting the new current-state to the key? This would allow simple
+; transitions that don't change context, but still allow subscribers a chance to
+; run (though the 'effect' will be nil)
+
 ; TODO: Convert to method
 (fn update-state
   [fsm state]
@@ -37,16 +43,13 @@
 (fn signal
   [fsm action extra]
   "Based on the action and the fsm's current-state, set the new state and call
-  all subscribers with the old state, new state, action, and extra"
-  (let [old-state (atom.deref fsm.state)
-        _ (log.wf "XXX old state: %s" (hs.inspect old-state)) ;; DELETEME
-        {: current-state : context} old-state
+  all subscribers with the previous state, new state, action, and extra"
+  (let [state (atom.deref fsm.state)
+        {: current-state : context} state
         _ (log.wf "XXX Current state: %s" current-state) ;; DELETEME
         tx-fn (. fsm.states current-state action)
-        _ (log.wf "XXX TX func: %s" tx-fn) ;; DELETEME
-        ; TODO: Handle a signal with no handler for the provided action
         ; TODO: Should we pass the whole state (current state and context) or just context?
-        transition (tx-fn old-state action extra)
+        transition (tx-fn state action extra)
         ;; _ (log.wf "XXX received transition info:\n%s" (hs.inspect transition)) ;; DELETEME
         new-state transition.state
         _ (log.wf "XXX next state: %s" new-state.current-state) ;; DELETEME
@@ -57,9 +60,9 @@
 
     (update-state fsm new-state)
     ; Call all subscribers
-    (log.wf "XXX BLA %s" (hs.inspect {:prev-state old-state :next-state new-state : effect : extra}))
+    (log.wf "XXX BLA %s" (hs.inspect {:prev-state state :next-state new-state : effect : extra}))
     (each [_ sub (pairs (atom.deref fsm.subscribers))]
-      (sub {:prev-state old-state :next-state new-state : action : effect : extra}))))
+      (sub {:prev-state state :next-state new-state : action : effect : extra}))))
 
 ; TODO: Convert to method
 (fn subscribe
@@ -94,6 +97,7 @@
       (call-when (atom.deref cleanup-ref))
       ;; Get a new cleanup function or nil and update cleanup-ref atom
       (atom.reset! cleanup-ref
+                   ; TODO: Should we provide everything e.g. prev-state, action, effect?
                    (call-when (. effect-map effect) next-state extra)))))
 
 (fn create-machine
