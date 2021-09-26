@@ -219,6 +219,7 @@ Returns nil. This function causes side-effects.
                 :apps
                 :lib.bind
                 :lib.modal
+                :lib.new-modal
                 :lib.apps])
 
 (defadvice get-config-impl

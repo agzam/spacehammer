@@ -51,10 +51,12 @@
     (if-let [tx-fn (get-transition-function fsm current-state action)]
             (let [
                   ; TODO: Should we pass the whole state (current state and context) or just context?
+                  _ (log.wf "XXX SIGNAL: Calling tx fn from state %s for action %s" current-state action) ;; DELETEME
                   transition (tx-fn state action extra)
-                  new-state transition.state
-                  effect transition.effect]
-                  ; If next-state is nil, error: Means the action is not expected in this state
+                  ;; _ (log.wf "XXX SIGNAL: transition object %s" (hs.inspect transition)) ;; DELETEME
+                  ; TODO: Noop return nothing. Just keep the state the same, then
+                  new-state (if transition transition.state state)
+                  effect (if transition transition.effect nil)]
 
               (update-state fsm new-state)
               ; Call all subscribers
@@ -149,7 +151,7 @@
    :effect :modal-closed})
 
 ;; State machine
-(local modal-states
+(local modal-states-template
        {:state {:current-state :idle
                 :context {
                   ; This would be structured based on config in the modal module
@@ -192,7 +194,7 @@
   (fn [] (log.wf "Modal opened key handler CLEANUP called")))
 
 ; Create FSM
-(set modal-fsm (create-machine modal-states))
+(set modal-fsm (create-machine modal-states-template))
 
 ; Add subscribers
 (local unsub-menu-sub

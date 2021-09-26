@@ -538,4 +538,11 @@ switching menus in one place which is then powered by config.fnl.
 
 
 {:init           init
+ : modal-alert ;; DELETEME: Temporary for PR
+ : timeout ;; DELETEME: Temporary for PR
+ : by-key ;; DELETEME: Temporary for PR
+ : activate-modal ;; DELETEME: Temporary for PR
+ : deactivate-modal ;; DELETEME: Temporary for PR
+ : previous-modal ;; DELETEME: Temporary for PR
+ : proxy-app-action ;; DELETEME: Temporary for PR
  :activate-modal activate-modal}
