@@ -1,3 +1,43 @@
+"
+Provides the mechanism to generate a finite state machine.
+
+A finite state machine defines states and some way to transition between states.
+
+The 'new' function takes a template, which is a table with the following schema:
+{
+ :state {:current-state :state1
+         :context {}}
+ :states {:state1 {}
+          :state2 {}
+          :state3 {:leave transition-fn-leave
+                   :exit transition-fn-exit}}}
+
+* The CONTEXT is any table that can be updated by TRANSITION FUNCTIONS. This
+  allows the client to track their own state.
+* The STATES table is a map from ACTIONS to TRANSITION FUNCTIONS.
+* These functions must return a TRANSITION OBJECT containing the new
+  :state and the :effect.
+* The :state contains a (potentially changed) :current-state and a new :context,
+  which is updated in the state machine.
+* Functions can subscribe to all signals, and are provided a TRANSITION RECORD,
+  which contains:
+  * :prev-state
+  * :next-state
+  * :action
+  * :effect that was kicked off from the transition function
+* The subscribe method returns a function that can be called to unsubscribe.
+
+Additionally, we provide a helper function `effect-handler`, which is a
+higher-order function that returns a function suitable to be provided to
+subscribe. It takes a map of EFFECTs to handler functions. These handler
+functions should return their own cleanup. The effect-handler will automatically
+call this cleanup function after the next transition. For example, if you want
+to bind keys when a certain effect is kicked off, write a function that binds
+the keys and returns an unbind function. The unbind function will be called on
+the next transition.
+"
+
+
 (require-macros :lib.macros)
 (local atom (require :lib.atom))
 (local {: butlast
@@ -12,17 +52,6 @@
 
 ;; Finite state machine
 ;; Template schema
-;; {
-;;  ; The state is converted to an atom in the contructor
-;;  :state {:current-state :state1
-;;          :context {}}
-;;  ; States table: A map of state names to a map of actions to functions
-;;  ; These functions must return a map containing the new state keyword, the
-;;  ; effect, and a new context
-;;  :states {:state1 {}
-;;           :state2 {}
-;;           :state3 {:leave state3-leave
-;;                    :exit state3-exit}}}
 
 ; TODO: Handle a signal with no handler for the provided action. E.g. if a state
 ; has a keyword instead of a function should we just create a new state from the
@@ -116,108 +145,10 @@
     fsm))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Example
+;; Exports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(var modal-fsm nil)
-
-;; Transition functions
-(fn enter-menu
-  [state action extra]
-  {:state {:current-state :menu
-           :context (merge state.context {:menu-stack (conj state.context.menu-stack extra)
-                                          :current-menu :main})}
-   :effect :modal-opened})
-
-(fn up-menu
-  [state action extra]
-  "Go up a menu in the stack."
-  ; Pop the menu off the stack & calculate new state transition
-  (let [stack (butlast state.context.menu-stack)
-        depth (length stack)
-        target-state (if (= 0 depth) :idle :menu)
-        target-effect (if (= :idle target-state) :modal-closed :modal-opened)
-        new-menu (last stack)]
-    {:state {:current-state target-state
-             :context (merge state.context {:menu-stack stack
-                                            :current-menu new-menu})}
-     :effect target-effect}) )
-
-(fn leave-menu
-  [state action extra]
-  {:state {:current-state :idle
-           :context (merge state.context {:menu-stack state.context.menu-stack
-                                          :menu :main-menu})}
-   :effect :modal-closed})
-
-;; State machine
-(local modal-states-template
-       {:state {:current-state :idle
-                :context {
-                  ; This would be structured based on config in the modal module
-                  :menu-hierarchy {:a {}
-                                   :b {}
-                                   :c {}}
-                  :current-menu :nil
-                  :menu-stack []}}
-        :states {:idle {:leave :idle
-                        :open enter-menu}
-                 :menu {:leave leave-menu
-                        :back up-menu
-                        :select enter-menu}}
-        :log "modal FSM"})
-
-
-;; Effect handlers
-(fn modal-opened-menu-handler
-  [state extra]
-  (log.wf "Modal opened menu handler called")
-  (alert (string.format "MENU %s" extra))
-  ;; Return a cleanup func
-  (fn [] (log.wf "Modal opened menu handler CLEANUP called")))
-
-(fn modal-closed-menu-handler
-  [state extra]
-  (log.wf "Modal closed menu handler called")
-  (alert (string.format "MENU %s" extra))
-  ;; Return a cleanup func
-  (fn [] (log.wf "Modal closed menu handler CLEANUP called")))
-
-(fn modal-opened-key-handler
-  [state extra]
-  (log.wf "Modal opened key handler called")
-  ; TODO: Make this consider keys relative to its position in the hierarchy
-  (if (. state :context :menu-hierarchy extra)
-      (log.wf "Key in hierarchy")
-      (log.wf "Key NOT in hierarchy"))
-  ;; Return a cleanup func
-  (fn [] (log.wf "Modal opened key handler CLEANUP called")))
-
-; Create FSM
-(set modal-fsm (create-machine modal-states-template))
-
-; Add subscribers
-(local unsub-menu-sub
-       (subscribe modal-fsm (effect-handler {:modal-opened modal-opened-menu-handler
-                                             :modal-closed modal-closed-menu-handler})))
-(local unsub-key-sub
-       (subscribe modal-fsm (effect-handler {:modal-opened modal-opened-key-handler})))
-
-; Debuging bindings. Call it in config.fnl so the bindings aren't not trampled ;; DELETEME
-(fn bind [] ;; DELETEME
-  (hs.hotkey.bind [:alt :cmd :ctrl] :v ;; DELETEME
-                  (fn [] ;; DELETEME
-                    (log.wf "XXX Current stack: %s" ;; DELETEME
-                            (hs.inspect (. (atom.deref modal-fsm.state) :context :menu-stack))))) ;; DELETEME
-  (hs.hotkey.bind [:cmd] :o (fn [] (signal modal-fsm :open :main))) ;; DELETEME
-  (hs.hotkey.bind [:cmd] :u (fn [] (signal modal-fsm :back nil))) ;; DELETEME
-  (hs.hotkey.bind [:cmd] :l (fn [] (signal modal-fsm :leave nil))) ;; DELETEME
-  (hs.hotkey.bind [:cmd] :a (fn [] (signal modal-fsm :select :a))) ;; DELETEME
-  (hs.hotkey.bind [:cmd] :r (fn [] (signal modal-fsm :select :b))) ;; DELETEME
-  (hs.hotkey.bind [:cmd] :s (fn [] (signal modal-fsm :select :c)))) ;; DELETEME
 
 {: effect-handler
  : signal
- : bind ;; DELETEME
  : subscribe
  :new create-machine}
