@@ -545,4 +545,5 @@ switching menus in one place which is then powered by config.fnl.
  : deactivate-modal ;; DELETEME: Temporary for PR
  : previous-modal ;; DELETEME: Temporary for PR
  : proxy-app-action ;; DELETEME: Temporary for PR
+ : bind-menu-keys
  :activate-modal activate-modal}

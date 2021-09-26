@@ -38,101 +38,6 @@ switching menus in one place which is then powered by config.fnl.
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Set Key Bindings
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(fn create-action-trigger
-  [{:action action :repeatable repeatable :timeout timeout}]
-  "
-  Creates a function to dispatch an action associated with a menu item defined
-  by config.fnl.
-  Takes a table defining the following:
-
-  action :: function | string - Either a string like \"module:function-name\"
-                                or a fennel function to call.
-  repeatable :: bool | nil - If this action is repeatable like jumping between
-                             windows where we might wish to jump 2 windows
-                             left and it wouldn't want to re-enter the jump menu
-  timeout :: bool | nil - If a timeout should be started. Defaults to true when
-                          repeatable is true.
-
-  Returns a function to execute the action-fn async.
-  "
-  (let [action-fn (action->fn action)]
-    (fn []
-      (if (and repeatable (~= timeout false))
-          (om.start-modal-timeout)
-          (not repeatable)
-          (om.deactivate-modal))
-      ;; Delay the action-fn ever so slightly
-      ;; to speed up the closing of the menu
-      ;; This makes the UI feel slightly snappier
-      (hs.timer.doAfter 0.01 action-fn))))
-
-
-(fn create-menu-trigger
-  [{:key key}]
-  "
-  Takes a config menu option and returns a function to enter that submenu when
-  action is activated.
-  Returns a function to activate submenu.
-  "
-  (fn []
-    (om.activate-modal key)))
-
-
-(fn select-trigger
-  [item]
-  "
-  Transform a menu item into an action to either call a function or enter a
-  submenu.
-  Takes a menu item from config.fnl
-  Returns a function to perform the action associated with menu item.
-  "
-  (if (and item.action (= item.action :previous))
-      om.previous-modal
-      item.action
-      (create-action-trigger item)
-      item.items
-      (create-menu-trigger item)
-      (fn []
-        (log.w "No trigger could be found for item: "
-               (hs.inspect item)))))
-
-
-(fn bind-item
-  [item]
-  "
-  Create a bindspec to map modal menu items to actions and submenus.
-  Takes a menu item
-  Returns a table to create a hs key binding.
-  "
-  {:mods (or item.mods [])
-   :key item.key
-   :action (select-trigger item)})
-
-
-(fn bind-menu-keys
-  [items]
-  "
-  Binds all actions and submenu items within a menu to VenueBook.
-  Takes a list of modal menu items.
-  Returns a function to remove menu key bindings for easy cleanup.
-  "
-  (-> items
-      (->> (filter (fn [item]
-                     (or item.action
-                         item.items)))
-           (map bind-item))
-      (concat [{:key :ESCAPE
-                :action om.deactivate-modal}
-               {:mods [:ctrl]
-                :key "["
-                :action om.deactivate-modal}])
-      (bind-keys)))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Display Modals
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -146,7 +51,7 @@ switching menus in one place which is then powered by config.fnl.
   "
   (lifecycle.enter-menu context.menu)
   (om.modal-alert context.menu)
-  (let [unbind-keys (bind-menu-keys context.menu.items)
+  (let [unbind-keys (om.bind-menu-keys context.menu.items)
         stop-timeout context.stop-timeout]
     (fn []
       (hs.alert.closeAll 0)
