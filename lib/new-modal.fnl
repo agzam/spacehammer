@@ -137,20 +137,22 @@ switching menus in one place which is then powered by config.fnl.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn show-modal-menu
-  [{:menu menu}]
+  [context]
   "
   Main API to display a modal and run side-effects
     - Display the modal alert
   Takes current modal state from our modal statemachine
   Returns the function to cleanup everything it sets up
   "
-  (lifecycle.enter-menu menu)
-  (om.modal-alert menu)
-  (let [unbind-keys (bind-menu-keys menu.items)]
+  (lifecycle.enter-menu context.menu)
+  (om.modal-alert context.menu)
+  (let [unbind-keys (bind-menu-keys context.menu.items)
+        stop-timeout context.stop-timeout]
     (fn []
       (hs.alert.closeAll 0)
       (unbind-keys)
-      (lifecycle.exit-menu menu)
+      (call-when stop-timeout)
+      (lifecycle.exit-menu context.menu)
       )))
 
 
@@ -254,7 +256,7 @@ switching menus in one place which is then powered by config.fnl.
              :context (merge state.context {:menu menu})}
      :effect :open-submenu}))
 
-(fn active->timeout
+(fn add-timeout-transition
   [state action extra]
   "
   Transition from active to idle, but this transition only fires when the
@@ -266,8 +268,8 @@ switching menus in one place which is then powered by config.fnl.
   Takes the current modal state table.
   Returns a the old state with a :stop-timeout added
   "
-  (log.wf "TRANSITION: active->timeout") ;; DELETEME
-  {:state {:current-state :submenu
+  (log.wf "TRANSITION: add-timeout-transition") ;; DELETEME
+  {:state {:current-state state.context.current-state
            :context
            (merge state.context {:stop-timeout (om.timeout om.deactivate-modal)})}
    :effect :open-submenu})
@@ -308,13 +310,13 @@ switching menus in one place which is then powered by config.fnl.
                  :leave-app      noop}
         :active {:deactivate     active->idle
                  :activate       active->submenu
-                 :start-timeout  active->timeout
+                 :start-timeout  add-timeout-transition
                  :enter-app      active->enter-app
                  :leave-app      active->leave-app}
         :submenu {:deactivate    active->idle
                   :activate      active->submenu
                   :previous      submenu->previous
-                  :start-timeout active->timeout
+                  :start-timeout add-timeout-transition
                   :enter-app     noop
                   :leave-app     noop}})
 
