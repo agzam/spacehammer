@@ -78,7 +78,7 @@
                                   (merge {sub-key sub} subs)) sub)
     ; Return the unsub func
     (fn []
-      (atom.swap! fsm.subscribers (fn [subs key] (tset subs key nil)) sub-key))))
+      (atom.swap! fsm.subscribers (fn [subs key] (tset subs key nil) subs) sub-key))))
 
 (fn effect-handler
   [effect-map]
