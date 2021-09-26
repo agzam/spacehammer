@@ -214,7 +214,8 @@
   (hs.hotkey.bind [:cmd] :r (fn [] (signal modal-fsm :select :b))) ;; DELETEME
   (hs.hotkey.bind [:cmd] :s (fn [] (signal modal-fsm :select :c)))) ;; DELETEME
 
-{: signal
+{: effect-handler
+ : signal
  : bind ;; DELETEME
  : subscribe
  :new create-machine}
