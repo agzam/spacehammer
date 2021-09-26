@@ -34,8 +34,8 @@
        (fn []
          (let [fsm (make-fsm)]
            (is.eq? (type fsm.get-state) :function "No get-state method")
-           (is.eq? (type fsm.signal) :function "No get-state method")
-           (is.eq? (type fsm.subscribe) :function "No get-state method"))))
+           (is.eq? (type fsm.signal) :function "No signal method ")
+           (is.eq? (type fsm.subscribe) :function "No subscribe method"))))
 
    (it "Should transition to opened on toggle action"
        (fn []
@@ -99,13 +99,15 @@
        (fn []
          (let [fsm (make-fsm)
                effect-state (atom.new :unused)
-               unsub (fsm.subscribe (statemachine.effect-handler
-                                     {:opening (fn []
-                                                 (atom.swap! effect-state (fn [_ nv] nv) :opened)
-                                                 ; Returned cleanup func
-                                                 (fn []
-                                                   (atom.swap! effect-state (fn [_ nv] nv) :cleaned)
-                                                   ))}))]
+               effect-handler (statemachine.effect-handler
+                               {:opening (fn []
+                                           (atom.swap! effect-state
+                                                       (fn [_ nv] nv) :opened)
+                                           ; Returned cleanup func
+                                           (fn []
+                                             (atom.swap! effect-state
+                                                         (fn [_ nv] nv) :cleaned)))})
+               unsub (fsm.subscribe effect-handler)]
            (fsm.signal :toggle)
            (is.eq? (atom.deref effect-state) :opened "Effect handler should have been called")
            (fsm.signal :toggle)
