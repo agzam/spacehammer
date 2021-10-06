@@ -116,7 +116,7 @@
    (fn []
      (let [app     (hs.application.find :Emacs)
            windows (require :windows)
-           modal   (require :modal)]
+           modal   (require :lib.modal)]
        (when app
          (: app :activate)
          (windows.maximize-window-frame))))))
