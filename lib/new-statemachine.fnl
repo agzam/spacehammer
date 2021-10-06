@@ -48,10 +48,8 @@ the next transition.
         : merge
         : slice} (require :lib.functional))
 
-(local log (hs.logger.new "\tstatemachine.fnl\t" "debug"))
-
-;; Finite state machine
-;; Template schema
+(local log (hs.logger.new "\tstatemachine.fnl\t" "debug")) ;; DELETEME
+ ;; DELETEME
 
 (fn update-state
   [fsm state]
@@ -67,8 +65,10 @@ the next transition.
 
 (fn signal
   [fsm action extra]
-  "Based on the action and the fsm's current-state, set the new state and call
-  all subscribers with the previous state, new state, action, and extra"
+  "
+  Based on the action and the fsm's current-state, set the new state and call
+  all subscribers with the previous state, new state, action, and extra.
+  "
   (let [state (get-state fsm)
         {: current-state : context} state]
     (if-let [tx-fn (get-transition-function fsm current-state action)]
@@ -92,10 +92,11 @@ the next transition.
 
 (fn subscribe
   [fsm sub]
-  "Adds a subscriber to the provided fsm. Returns a function to unsubscribe"
-  ; Super naive: Returns a function that just removes the entry at the inserted
-  ; key, but doesn't allow the same function to subscribe more than once since
-  ; its keyed by the string of the function itself.
+  "
+  Adds a subscriber to the provided fsm. Returns a function to unsubscribe
+  Naive: Because each entry is keyed by the function address it doesn't allow
+  the same function to subscribe more than once.
+  "
   (let [sub-key (tostring sub)]
     (atom.swap! fsm.subscribers (fn [subs sub]
                                   (merge {sub-key sub} subs)) sub)
