@@ -53,12 +53,6 @@ the next transition.
 ;; Finite state machine
 ;; Template schema
 
-; TODO: Handle a signal with no handler for the provided action. E.g. if a state
-; has a keyword instead of a function should we just create a new state from the
-; old one, setting the new current-state to the key? This would allow simple
-; transitions that don't change context, but still allow subscribers a chance to
-; run (though the 'effect' will be nil)
-
 (fn update-state
   [fsm state]
   (atom.swap! fsm.state (fn [_ state] state) state))
@@ -79,7 +73,6 @@ the next transition.
         {: current-state : context} state]
     (if-let [tx-fn (get-transition-function fsm current-state action)]
             (let [
-                  ; TODO: Should we pass the whole state (current state and context) or just context?
                   _ (log.wf "XXX SIGNAL: Calling tx fn from state %s for action %s" current-state action) ;; DELETEME
                   transition (tx-fn state action extra)
                   ;; _ (log.wf "XXX SIGNAL: transition object %s" (hs.inspect transition)) ;; DELETEME
@@ -128,14 +121,12 @@ the next transition.
       (call-when (atom.deref cleanup-ref))
       ;; Get a new cleanup function or nil and update cleanup-ref atom
       (atom.reset! cleanup-ref
-                   ; TODO: Should we provide everything e.g. prev-state, action, effect?
                    (call-when (. effect-map effect) next-state extra)))))
 
 (fn create-machine
   [template]
   (let [fsm  {:state (atom.new {:current-state template.state.current-state :context template.state.context})
               :states template.states
-              ; TODO: Use something less naive for subscribers
               :subscribers (atom.new {})
               :log (if template.log (hs.logger.new template.log "info"))}]
     ; Add methods
