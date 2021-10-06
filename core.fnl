@@ -218,9 +218,8 @@ Returns nil. This function causes side-effects.
                 :windows
                 :apps
                 :lib.bind
-                :lib.modal
                 :lib.new-modal
-                :lib.apps])
+                :lib.new-apps])
 
 (defadvice get-config-impl
            []

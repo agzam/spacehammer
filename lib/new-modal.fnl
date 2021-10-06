@@ -11,7 +11,7 @@ switching menus in one place which is then powered by config.fnl.
 "
 (local atom (require :lib.atom))
 (local statemachine (require :lib.new-statemachine))
-(local apps (require :lib.apps))
+(local apps (require :lib.new-apps))
 (local {: butlast
         : call-when
         : concat
