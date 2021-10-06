@@ -76,7 +76,6 @@ the next transition.
                   _ (log.wf "XXX SIGNAL: Calling tx fn from state %s for action %s" current-state action) ;; DELETEME
                   transition (tx-fn state action extra)
                   ;; _ (log.wf "XXX SIGNAL: transition object %s" (hs.inspect transition)) ;; DELETEME
-                  ; TODO: Noop return nothing. Just keep the state the same, then
                   new-state (if transition transition.state state)
                   effect (if transition transition.effect nil)]
 
