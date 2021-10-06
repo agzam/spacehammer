@@ -395,7 +395,7 @@ switching menus in one place which is then powered by config.fnl.
   Returns a the old state with a :stop-timeout added
   "
   (log.wf "TRANSITION: add-timeout-transition") ;; DELETEME
-  {:state {:current-state state.context.current-state
+  {:state {:current-state state.current-state
            :context
            (merge state.context {:stop-timeout (timeout deactivate-modal)})}
    :effect :open-submenu})
