@@ -22,8 +22,7 @@ switching menus in one place which is then powered by config.fnl.
         : identity
         : join
         : map
-        : merge
-        : noop}
+        : merge}
        (require :lib.functional))
 (local {:align-columns align-columns}
        (require :lib.text))
@@ -325,7 +324,7 @@ switching menus in one place which is then powered by config.fnl.
    :effect :close-modal-menu})
 
 
-(fn active->enter-app
+(fn ->enter-app
   [state action extra]
   "
   Transition our modal state machine the main menu to an app menu
@@ -334,7 +333,7 @@ switching menus in one place which is then powered by config.fnl.
   menu otherwise results in no operation
   Returns new modal state
   "
-  (log.df "TRANSITION: active->enter-app action %s extra %s" action extra) ;; DELETEME
+  (log.df "TRANSITION: ->enter-app action %s extra %s" action extra) ;; DELETEME
   (let [{:config config
          :menu prev-menu} state.context
         app-menu (apps.get-app)
@@ -431,20 +430,16 @@ switching menus in one place which is then powered by config.fnl.
 ;; These transition functions return transition objects that contain the new
 ;; state key and context.
 (local states
-       {:idle   {:activate       idle->active
-                 :enter-app      noop
-                 :leave-app      noop}
+       {:idle   {:activate       idle->active}
         :active {:deactivate     active->idle
                  :activate       active->submenu
                  :start-timeout  add-timeout-transition
-                 :enter-app      active->enter-app
-                 :leave-app      active->leave-app}
+                 :enter-app      ->enter-app}
         :submenu {:deactivate    active->idle
                   :activate      active->submenu
                   :previous      submenu->previous
                   :start-timeout add-timeout-transition
-                  :enter-app     noop
-                  :leave-app     noop}})
+                  :enter-app     ->enter-app}})
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -526,5 +521,5 @@ switching menus in one place which is then powered by config.fnl.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-{:init           init
+{: init
  : activate-modal}

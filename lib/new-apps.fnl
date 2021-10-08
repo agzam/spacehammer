@@ -300,21 +300,18 @@ Assign some simple keywords for each hs.application.watcher event type.
      [state]
      (log.df "app is now: %s" (and state.context.app state.context.app.key)))))
 
-(fn proxy-actions
-  [fsm]
+(fn action-watcher
+  [{: prev-state : next-state : action : effect : extra}]
   "
   Internal API function to emit app-specific state machine events and transitions to
   other state machines. Like telling our modal state machine the user has
   entered into emacs so display the emacs-specific menu modal.
-  Takes the apps finite state machine instance.
-  Performs a side-effect to watch the finite-state-machine and log each action
-  to a list of actions other FSMs can subscribe to like a stream.
+  Subscribes to the apps state machine.
+  Takes a transition record from the FSM.
   Returns nil.
   "
-  (atom.add-watch fsm.state :actions
-                  (fn action-watcher
-                    [state]
-                    (emit state.action state.app))))
+  (log.df "PROXY action %s effect %s extra %s app %s" action effect extra (and next-state.context.app next-state.context.app.key)) ; DELETEME
+  (emit action next-state.context.app))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -447,7 +444,7 @@ Assign some simple keywords for each hs.application.watcher event type.
     (set fsm (statemachine.new template))
     (fsm.subscribe apps-effect)
     (start-logger fsm)
-    (proxy-actions fsm)
+    (fsm.subscribe action-watcher)
     (enter active-app)
     (: app-watcher :start)
     (fn cleanup []
