@@ -334,7 +334,7 @@ Assign some simple keywords for each hs.application.watcher event type.
   "
   (when fsm
     (let [state (atom.deref fsm.state)]
-      state.app)))
+      state.context.app)))
 
 (fn subscribe
   [f]
