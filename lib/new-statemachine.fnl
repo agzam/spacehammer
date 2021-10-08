@@ -73,9 +73,9 @@ the next transition.
         {: current-state : context} state]
     (if-let [tx-fn (get-transition-function fsm current-state action)]
             (let [
-                  _ (log.wf "SIGNAL: Calling tx fn from state %s for action %s" current-state action) ;; DELETEME
+                  _ (log.df "SIGNAL: Calling tx fn from state %s for action %s" current-state action) ;; DELETEME
                   transition (tx-fn state action extra)
-                  ;; _ (log.wf "SIGNAL: transition object %s" (hs.inspect transition)) ;; DELETEME
+                  ;; _ (log.df "SIGNAL: transition object %s" (hs.inspect transition)) ;; DELETEME
                   new-state (if transition transition.state state)
                   effect (if transition transition.effect nil)]
 
@@ -86,7 +86,7 @@ the next transition.
               true)
             (do
               (if fsm.log
-                  (fsm.log.wf "Action :%s does not have a transition function in state :%s"
+                  (fsm.log.df "Action :%s does not have a transition function in state :%s"
                               action current-state))
               false))))
 

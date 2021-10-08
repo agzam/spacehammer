@@ -172,7 +172,7 @@ This module works mechanically similar to lib/modal.fnl.
   Kicks off an effect to run leave-app effects and unbind the old app's keys
   Returns the old state.
   "
-  (log.wf "TRANSITION: in-app->leave app %s" app-name) ;; DELETEME
+  (log.df "TRANSITION: in-app->leave app %s" app-name) ;; DELETEME
   {:state state
    :effect :leave-app-effect})
 
@@ -207,7 +207,7 @@ This module works mechanically similar to lib/modal.fnl.
   Kicks off an effect to bind app-specific keys
   Returns the old state
   "
-  (log.wf "TRANSITION: ->close app app-name %s" app-name) ;; DELETEME
+  (log.df "TRANSITION: ->close app app-name %s" app-name) ;; DELETEME
   {:state state
    :effect :close-app-effect})
 
@@ -267,7 +267,7 @@ Assign some simple keywords for each hs.application.watcher event type.
   Returns nil. Relies on side-effects.
   "
   (let [event-type (. app-events event)]
-    (log.wf "Got watch-apps event %s" event-type) ;; DELETEME
+    (log.df "Got watch-apps event %s" event-type) ;; DELETEME
     (if (= event-type :activated)
         (enter app-name)
         (= event-type :deactivated)
@@ -395,12 +395,12 @@ Assign some simple keywords for each hs.application.watcher event type.
     (fn [{: prev-state : next-state : action : effect : extra}]
       ;; Whenever a transition occurs, call the cleanup function for that
       ;; particular app, if set
-      (log.wf "EFFECTS HANDLER for effect %s on app %s" effect extra) ;; DELETEME
+      (log.df "EFFECTS HANDLER for effect %s on app %s" effect extra) ;; DELETEME
       ;; Call the cleanup function for this app if it's set
       (call-when (.  (atom.deref cleanup-ref) extra))
       (let [cleanup-map (atom.deref cleanup-ref)
             effect-func (. effect-map effect)]
-        (log.wf "Cleanup map: %s" (hs.inspect cleanup-map)) ;; DELETEME
+        (log.df "Cleanup map: %s" (hs.inspect cleanup-map)) ;; DELETEME
         ;; Update the cleanup entry for this app with a new func or nil
         (atom.reset! cleanup-ref
                      (merge cleanup-map
@@ -409,17 +409,17 @@ Assign some simple keywords for each hs.application.watcher event type.
 (local apps-effect
        (my-effect-handler
          {:enter-app-effect (fn [state extra]
-                              (log.wf "EFFECT: enter-app") ;; DELETEME
+                              (log.df "EFFECT: enter-app") ;; DELETEME
                               (enter-app-effect state.context))
           :leave-app-effect (fn [state extra]
-                              (log.wf "EFFECT: leave-app") ;; DELETEME
+                              (log.df "EFFECT: leave-app") ;; DELETEME
                               (lifecycle.deactivate-app state.context.app)
                               nil)
           :launch-app-effect (fn [state extra]
-                               (log.wf "EFFECT: launch-app") ;; DELETEME
+                               (log.df "EFFECT: launch-app") ;; DELETEME
                                (launch-app-effect state.context))
           :close-app-effect (fn [state extra]
-                              (log.wf "EFFECT: close-app") ;; DELETEME
+                              (log.df "EFFECT: close-app") ;; DELETEME
                               (lifecycle.close-app state.context.app)
                               nil)}))
 
