@@ -48,7 +48,7 @@ the next transition.
         : merge
         : slice} (require :lib.functional))
 
-(local log (hs.logger.new "\tstatemachine.fnl\t" "debug")) ;; DELETEME
+(local log (hs.logger.new "new-statemachine.fnl" "debug")) ;; DELETEME
  ;; DELETEME
 
 (fn update-state

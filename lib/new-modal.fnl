@@ -31,7 +31,7 @@ switching menus in one place which is then powered by config.fnl.
        (require :lib.bind))
 (local lifecycle (require :lib.lifecycle))
 
-(local log (hs.logger.new "\tmodal.fnl\t" "debug"))
+(local log (hs.logger.new "new-modal.fnl" "debug"))
 (var fsm nil)
 
 
@@ -484,6 +484,7 @@ switching menus in one place which is then powered by config.fnl.
   Executes a side-effect
   Returns nil
   "
+  (log.df "PROXY FROM APPS action %s data %s" action data) ; DELETEME
   (fsm.dispatch action data))
 
 
