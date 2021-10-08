@@ -152,13 +152,12 @@ This module works mechanically similar to lib/modal.fnl.
   (let [{: apps
          : app} state.context
         next-app (find (by-key app-name) apps)]
-    (log.wf "TRANSITION: ->enter app %s prev %s next %s" app-name app next-app ) ;; DELETEME
-    (when next-app
-      {:state {:current-state :in-app
-               :context {:apps apps
-                         :app next-app
-                         :prev-app app}}
-       :effect :enter-app-effect})))
+    (log.df "TRANSITION: ->enter app %s prev %s next %s" app-name app next-app ) ;; DELETEME
+    {:state {:current-state :in-app
+             :context {:apps apps
+                       :app next-app
+                       :prev-app app}}
+     :effect :enter-app-effect}))
 
 
 (fn in-app->leave
@@ -190,13 +189,12 @@ This module works mechanically similar to lib/modal.fnl.
   (let [{: apps
          : app} state
         next-app (find (by-key app-name) apps)]
-    (log.wf "TRANSITION: ->enter app %s prev %s next %s" app-name app next-app ) ;; DELETEME
-    (when next-app
-      {:state {:current-state :in-app
-               :context {:apps apps
-                         :app next-app
-                         :prev-app app}}
-       :effect :launch-app-effect})))
+    (log.df "TRANSITION: ->enter app %s prev %s next %s" app-name app next-app ) ;; DELETEME
+    {:state {:current-state :in-app
+             :context {:apps apps
+                       :app next-app
+                       :prev-app app}}
+     :effect :launch-app-effect}))
 
 (fn ->close
   [state action app-name]
@@ -357,12 +355,13 @@ Assign some simple keywords for each hs.application.watcher event type.
   Bind keys and lifecycle for the new current app.
   Return a cleanup function to cleanup these bindings.
   "
-  (lifecycle.activate-app context.app)
-  (let [unbind-keys (bind-app-keys context.app.keys)]
-    (log.wf "Returning cleanup for %s" context.app.key) ;; DELETEME
-    (fn []
-      (log.wf "Calling unbind keys for %s" context.app.key) ;; DELETEME
-      (unbind-keys))))
+  (when context.app
+    (lifecycle.activate-app context.app)
+    (let [unbind-keys (bind-app-keys context.app.keys)]
+      (log.df "Returning cleanup for %s" context.app.key) ;; DELETEME
+      (fn []
+        (log.df "Calling unbind keys for %s" context.app.key) ;; DELETEME
+        (unbind-keys)))))
 
 (fn launch-app-effect
   [context]
@@ -370,12 +369,13 @@ Assign some simple keywords for each hs.application.watcher event type.
   Bind keys and lifecycle for the next current app.
   Return a cleanup function to cleanup these bindings.
   "
-  (lifecycle.launch-app context.app)
-  (let [unbind-keys (bind-app-keys context.app.keys)]
-    (log.wf "Returning cleanup for %s" context.app.key) ;; DELETEME
-    (fn []
-      (log.wf "Calling unbind keys for %s" context.app.key) ;; DELETEME
-      (unbind-keys))))
+  (when context.app
+    (lifecycle.launch-app context.app)
+    (let [unbind-keys (bind-app-keys context.app.keys)]
+      (log.df "Returning cleanup for %s" context.app.key) ;; DELETEME
+      (fn []
+        (log.df "Calling unbind keys for %s" context.app.key) ;; DELETEME
+        (unbind-keys)))))
 
 (fn my-effect-handler
   [effect-map]
