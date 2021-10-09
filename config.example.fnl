@@ -247,13 +247,13 @@
          :action (activator "Firefox")}
         {:key :i
          :title "iTerm"
-         :action (activator "iTerm2")}
+         :action (activator "iterm")}
         {:key :s
          :title "Slack"
          :action (activator "Slack")}
         {:key :b
          :title "Brave"
-         :action (activator "Brave")}
+         :action (activator "brave browser")}
         {:key :m
          :title music-app
          :action (activator music-app)}])
