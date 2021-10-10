@@ -485,7 +485,7 @@ switching menus in one place which is then powered by config.fnl.
   Returns nil
   "
   (log.df "PROXY FROM APPS action %s data %s" action data) ; DELETEME
-  (fsm.dispatch action data))
+  (fsm.signal action data))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -510,7 +510,6 @@ switching menus in one place which is then powered by config.fnl.
                   :log "modal"}
         unsubscribe (apps.subscribe proxy-app-action)]
     (set fsm (statemachine.new template))
-    (tset fsm :dispatch fsm.signal) ; DELETEME: TEMP: Monkey patch dispatch to show dispatchers haven't changed
     (fsm.subscribe modal-effect)
     (start-logger fsm)
     (fn cleanup []
