@@ -1,5 +1,4 @@
 (local atom (require :lib.atom))
-(local hyper (require :lib.hyper))
 (local {: call-when
         : contains?
         : eq?
@@ -27,9 +26,6 @@ TODO: Create another state machine system to support key chords for bindings
         endlessly enter recursive submenus
 "
 
-;; Debug
-(local hyper (require :lib.hyper))
-
 (var fsm nil)
 
 ;; Box shapes for displaying current mode
@@ -51,7 +47,7 @@ TODO: Create another state machine system to support key chords for bindings
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Actions
+;; Action signalers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn disable
@@ -318,8 +314,7 @@ TODO: Create another state machine system to support key chords for bindings
         {:enter-normal-mode enter-normal-mode
          :enter-insert-mode enter-insert-mode
          :enter-visual-mode enter-visual-mode
-         :disable-vim-mode disable-vim-mode
-         }))
+         :disable-vim-mode disable-vim-mode}))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
