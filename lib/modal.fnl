@@ -300,7 +300,6 @@ switching menus in one place which is then powered by config.fnl.
         menu (if (and app-menu (has-some? app-menu.items))
                  app-menu
                  config)]
-    (log.df "TRANSITION: idle->active app-menu %s menu %s config %s" (and app-menu app-menu.key) menu config) ;; DELETEME
     {:state {:current-state :active
              :context (merge state.context {:menu menu
                                             :history (if state.history
@@ -317,7 +316,6 @@ switching menus in one place which is then powered by config.fnl.
   Kicks off an effect to close the modal, stop the timeout, and unbind keys
   Returns updated modal state machine state table.
   "
-  (log.df "TRANSITION: active->idle") ;; DELETEME
   {:state  {:current-state :idle
             :context (merge state.context {:menu :nil
                                            :history []})}
@@ -333,7 +331,6 @@ switching menus in one place which is then powered by config.fnl.
   menu otherwise results in no operation
   Returns new modal state
   "
-  (log.df "TRANSITION: ->enter-app action %s extra %s" action extra) ;; DELETEME
   (let [{:config config
          :menu prev-menu} state.context
         app-menu (apps.get-app)
@@ -356,7 +353,6 @@ switching menus in one place which is then powered by config.fnl.
   Takes the current modal state table.
   Returns new updated modal state if we are leaving the current app.
   "
-  (log.df "TRANSITION: active->leave-app") ;; DELETEME
   (let [{:config config
         :menu prev-menu} state.context]
     (if (= prev-menu.key config.key)
@@ -376,7 +372,6 @@ switching menus in one place which is then powered by config.fnl.
         menu (if menu-key
                  (find (by-key menu-key) prev-menu.items)
                  config)]
-    (log.df "TRANSITION: active->submenu with menu-key %s menu %s" menu-key menu) ;; DELETEME
     {:state {:current-state :submenu
              :context (merge state.context {:menu menu})}
      :effect :open-submenu}))
@@ -393,7 +388,6 @@ switching menus in one place which is then powered by config.fnl.
   Takes the current modal state table.
   Returns a the old state with a :stop-timeout added
   "
-  (log.df "TRANSITION: add-timeout-transition") ;; DELETEME
   {:state {:current-state state.current-state
            :context
            (merge state.context {:stop-timeout (timeout deactivate-modal)})}
@@ -412,7 +406,6 @@ switching menus in one place which is then powered by config.fnl.
          :history hist
          :menu menu} state.context
         prev-menu (. hist (- (length hist) 1))]
-    (log.df "TRANSITION: submenu->previous") ;; DELETEME
     (if prev-menu
         {:state {:current-state :submenu
                  :context (merge state.context {:menu prev-menu
@@ -459,7 +452,6 @@ switching menus in one place which is then powered by config.fnl.
    fsm.state :log-state
    (fn log-state
      [state]
-     (log.df "state is now: %s" state.current-state) ;; DELETEME
      (when state.context.history
        (log.df (hs.inspect (map #(. $1 :title) state.context.history)))))))
 
@@ -468,10 +460,8 @@ switching menus in one place which is then powered by config.fnl.
 (local modal-effect
        (statemachine.effect-handler
         {:show-modal-menu (fn [state extra]
-                            (log.df "Effect: show modal") ;; DELETEME
                             (show-modal-menu state.context))
          :open-submenu (fn [state extra]
-                         (log.df "Effect: Open submenu with extra %s" extra) ;; DELETEME
                          (show-modal-menu state.context))}))
 
 (fn proxy-app-action
@@ -484,7 +474,6 @@ switching menus in one place which is then powered by config.fnl.
   Executes a side-effect
   Returns nil
   "
-  (log.df "PROXY FROM APPS action %s data %s" action data) ; DELETEME
   (fsm.signal action data))
 
 

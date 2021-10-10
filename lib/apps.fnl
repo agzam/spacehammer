@@ -152,12 +152,12 @@ This module works mechanically similar to lib/modal.fnl.
   (let [{: apps
          : app} state.context
         next-app (find (by-key app-name) apps)]
-    (log.df "TRANSITION: ->enter app %s prev %s next %s" app-name app next-app ) ;; DELETEME
-    {:state {:current-state :in-app
-             :context {:apps apps
-                       :app next-app
-                       :prev-app app}}
-     :effect :enter-app-effect}))
+    (when next-app
+      {:state {:current-state :in-app
+               :context {:apps apps
+                         :app next-app
+                         :prev-app app}}
+       :effect :enter-app-effect})))
 
 
 (fn in-app->leave
@@ -172,7 +172,6 @@ This module works mechanically similar to lib/modal.fnl.
   Kicks off an effect to run leave-app effects and unbind the old app's keys
   Returns the old state.
   "
-  (log.df "TRANSITION: in-app->leave app %s" app-name) ;; DELETEME
   {:state state
    :effect :leave-app-effect})
 
@@ -189,12 +188,12 @@ This module works mechanically similar to lib/modal.fnl.
   (let [{: apps
          : app} state
         next-app (find (by-key app-name) apps)]
-    (log.df "TRANSITION: ->enter app %s prev %s next %s" app-name app next-app ) ;; DELETEME
-    {:state {:current-state :in-app
-             :context {:apps apps
-                       :app next-app
-                       :prev-app app}}
-     :effect :launch-app-effect}))
+    (when next-app
+      {:state {:current-state :in-app
+               :context {:apps apps
+                         :app next-app
+                         :prev-app app}}
+       :effect :launch-app-effect})))
 
 (fn ->close
   [state action app-name]
@@ -207,7 +206,6 @@ This module works mechanically similar to lib/modal.fnl.
   Kicks off an effect to bind app-specific keys
   Returns the old state
   "
-  (log.df "TRANSITION: ->close app app-name %s" app-name) ;; DELETEME
   {:state state
    :effect :close-app-effect})
 
@@ -267,7 +265,6 @@ Assign some simple keywords for each hs.application.watcher event type.
   Returns nil. Relies on side-effects.
   "
   (let [event-type (. app-events event)]
-    (log.df "Got watch-apps event %s" event-type) ;; DELETEME
     (if (= event-type :activated)
         (enter app-name)
         (= event-type :deactivated)
@@ -310,7 +307,6 @@ Assign some simple keywords for each hs.application.watcher event type.
   Takes a transition record from the FSM.
   Returns nil.
   "
-  (log.df "PROXY action %s effect %s extra %s app %s" action effect extra (and next-state.context.app next-state.context.app.key)) ; DELETEME
   (emit action next-state.context.app))
 
 
@@ -352,13 +348,10 @@ Assign some simple keywords for each hs.application.watcher event type.
   Bind keys and lifecycle for the new current app.
   Return a cleanup function to cleanup these bindings.
   "
-  (when context.app
-    (lifecycle.activate-app context.app)
-    (let [unbind-keys (bind-app-keys context.app.keys)]
-      (log.df "Returning cleanup for %s" context.app.key) ;; DELETEME
-      (fn []
-        (log.df "Calling unbind keys for %s" context.app.key) ;; DELETEME
-        (unbind-keys)))))
+  (lifecycle.activate-app context.app)
+  (let [unbind-keys (bind-app-keys context.app.keys)]
+    (fn []
+      (unbind-keys))))
 
 (fn launch-app-effect
   [context]
@@ -366,13 +359,10 @@ Assign some simple keywords for each hs.application.watcher event type.
   Bind keys and lifecycle for the next current app.
   Return a cleanup function to cleanup these bindings.
   "
-  (when context.app
-    (lifecycle.launch-app context.app)
-    (let [unbind-keys (bind-app-keys context.app.keys)]
-      (log.df "Returning cleanup for %s" context.app.key) ;; DELETEME
-      (fn []
-        (log.df "Calling unbind keys for %s" context.app.key) ;; DELETEME
-        (unbind-keys)))))
+  (lifecycle.launch-app context.app)
+  (let [unbind-keys (bind-app-keys context.app.keys)]
+    (fn []
+      (unbind-keys))))
 
 (fn my-effect-handler
   [effect-map]
@@ -392,12 +382,10 @@ Assign some simple keywords for each hs.application.watcher event type.
     (fn [{: prev-state : next-state : action : effect : extra}]
       ;; Whenever a transition occurs, call the cleanup function for that
       ;; particular app, if set
-      (log.df "EFFECTS HANDLER for effect %s on app %s" effect extra) ;; DELETEME
       ;; Call the cleanup function for this app if it's set
       (call-when (.  (atom.deref cleanup-ref) extra))
       (let [cleanup-map (atom.deref cleanup-ref)
             effect-func (. effect-map effect)]
-        (log.df "Cleanup map: %s" (hs.inspect cleanup-map)) ;; DELETEME
         ;; Update the cleanup entry for this app with a new func or nil
         (atom.reset! cleanup-ref
                      (merge cleanup-map
@@ -406,17 +394,13 @@ Assign some simple keywords for each hs.application.watcher event type.
 (local apps-effect
        (my-effect-handler
          {:enter-app-effect (fn [state extra]
-                              (log.df "EFFECT: enter-app") ;; DELETEME
                               (enter-app-effect state.context))
           :leave-app-effect (fn [state extra]
-                              (log.df "EFFECT: leave-app") ;; DELETEME
                               (lifecycle.deactivate-app state.context.app)
                               nil)
           :launch-app-effect (fn [state extra]
-                               (log.df "EFFECT: launch-app") ;; DELETEME
                                (launch-app-effect state.context))
           :close-app-effect (fn [state extra]
-                              (log.df "EFFECT: close-app") ;; DELETEME
                               (lifecycle.close-app state.context.app)
                               nil)}))
 
