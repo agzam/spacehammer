@@ -247,22 +247,22 @@ switching menus in one place which is then powered by config.fnl.
            99999)))
 
 (fn show-modal-menu
-  [context]
+  [state]
   "
   Main API to display a modal and run side-effects
     - Display the modal alert
   Takes current modal state from our modal statemachine
   Returns the function to cleanup everything it sets up
   "
-  (lifecycle.enter-menu context.menu)
-  (modal-alert context.menu)
-  (let [unbind-keys (bind-menu-keys context.menu.items)
-        stop-timeout context.stop-timeout]
+  (lifecycle.enter-menu state.context.menu)
+  (modal-alert state.context.menu)
+  (let [unbind-keys (bind-menu-keys state.context.menu.items)
+        stop-timeout state.context.stop-timeout]
     (fn []
       (hs.alert.closeAll 0)
       (unbind-keys)
       (call-when stop-timeout)
-      (lifecycle.exit-menu context.menu)
+      (lifecycle.exit-menu state.context.menu)
       )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -455,14 +455,10 @@ switching menus in one place which is then powered by config.fnl.
      (when state.context.history
        (log.df (hs.inspect (map #(. $1 :title) state.context.history)))))))
 
-; TODO: Bind show-modal-menu direct
-; TODO: Do we only need one effect?
 (local modal-effect
        (statemachine.effect-handler
-        {:show-modal-menu (fn [state extra]
-                            (show-modal-menu state.context))
-         :open-submenu (fn [state extra]
-                         (show-modal-menu state.context))}))
+        {:show-modal-menu show-modal-menu
+         :open-submenu show-modal-menu}))
 
 (fn proxy-app-action
   [[action data]]
