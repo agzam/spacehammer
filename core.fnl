@@ -216,10 +216,9 @@ Returns nil. This function causes side-effects.
 (local modules [:lib.hyper
                 :vim
                 :windows
-                :apps
                 :lib.bind
-                :lib.new-modal
-                :lib.new-apps])
+                :lib.modal
+                :lib.apps])
 
 (defadvice get-config-impl
            []
