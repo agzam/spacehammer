@@ -393,8 +393,8 @@ TODO: Create another state machine system to support key chords for bindings
 (fn watch-screen
   [fsm active-screen-changed]
   (let [state (atom.deref fsm.state)]
-    (when (~= state.mode :disabled)
-      (state-box state.mode))))
+    (when (~= state.current-state :disabled)
+      (state-box state.current-state))))
 
 ;; (fn log-key
 ;;   [event]
