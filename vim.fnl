@@ -1,15 +1,16 @@
 (local atom (require :lib.atom))
 (local hyper (require :lib.hyper))
-(local {:call-when call-when
-        :contains? contains?
-        :eq?       eq?
-        :filter    filter
-        :find      find
-        :get-in    get-in
-        :has-some? has-some?
-        :map       map
-        :some      some} (require :lib.functional))
-(local machine (require :lib.statemachine))
+(local {: call-when
+        : contains?
+        : eq?
+        : filter
+        : find
+        : get-in
+        : has-some?
+        : map
+        : noop
+        : some} (require :lib.functional))
+(local statemachine (require :lib.statemachine))
 (local {:bind-keys bind-keys} (require :lib.bind))
 (local log (hs.logger.new "vim.fnl" "debug"))
 
@@ -56,29 +57,27 @@ TODO: Create another state machine system to support key chords for bindings
 (fn disable
   []
   (when fsm
-    (: box :hide)
-    (: text :hide)
-    (fsm.dispatch :disable)))
+    (fsm.signal :disable)))
 
 (fn enable
   []
   (when fsm
-    (fsm.dispatch :enable)))
+    (fsm.signal :enable)))
 
 (fn normal
   []
   (when fsm
-    (fsm.dispatch :normal)))
+    (fsm.signal :normal)))
 
 (fn visual
   []
   (when fsm
-    (fsm.dispatch :visual)))
+    (fsm.signal :visual)))
 
 (fn insert
   []
   (when fsm
-    (fsm.dispatch :insert)))
+    (fsm.signal :insert)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -290,23 +289,37 @@ TODO: Create another state machine system to support key chords for bindings
 ;; Side Effects
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(fn normal-mode
-  [state]
+(fn enter-normal-mode
+  [state extra]
+  (log.df "enter-normal-mode effect") ;; DELETEME
   (state-box "Normal")
-  (call-when state.unbind-keys)
-  {:mode :normal
-   :unbind-keys (bind-keys bindings.normal)
-   })
+  (bind-keys bindings.normal))
 
-(fn insert-mode
-  []
+(fn enter-insert-mode
+  [state extra]
+  (log.df "enter-insert-mode effect") ;; DELETEME
   (state-box "Insert")
   (bind-keys bindings.insert))
 
-(fn visual-mode
-  []
+(fn enter-visual-mode
+  [state extra]
+  (log.df "enter-visual-mode effect") ;; DELETEME
   (state-box "Visual")
   (bind-keys bindings.visual))
+
+(fn disable-vim-mode
+  [state extra]
+  (log.df "enter-disable-mode effect") ;; DELETEME
+  (: box :hide)
+  (: text :hide))
+
+(local vim-effect
+       (statemachine.effect-handler
+        {:enter-normal-mode enter-normal-mode
+         :enter-insert-mode enter-insert-mode
+         :enter-visual-mode enter-visual-mode
+         :disable-vim-mode disable-vim-mode
+         }))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -315,37 +328,46 @@ TODO: Create another state machine system to support key chords for bindings
 
 (fn disabled->normal
   [state data]
-  (when (get-in [:config :vim :enabled] state)
-    (normal-mode state)))
+  (log.df "disabled->normal") ;; DELETEME
+  (when (get-in [:context :config :vim :enabled] state)
+    {:state {:current-state :normal
+             :context state.context}
+     :effect :enter-normal-mode}))
 
 (fn normal->insert
   [state data]
-  (call-when state.unbind-keys)
-  (call-when state.untap)
-  {:mode :insert
-   :unbind-keys (insert-mode)})
+  (log.df "normal->insert") ;; DELETEME
+  {:state {:current-state :insert
+           :context state.context}
+   :effect :enter-insert-mode})
 
 (fn normal->visual
   [state data]
-  (call-when state.unbind-keys)
-  (call-when state.untap)
-  {:mode :visual
-   :unbind-keys (visual-mode)})
+  (log.df "normal-visual") ;; DELETEME
+  {:state {:current-state :visual
+           :context state.context}
+   :effect :enter-visual-mode})
 
 (fn ->disabled
   [state data]
-  (call-when state.unbind-keys)
-  (call-when state.untap)
-  {:mode :disabled
-   :unbind-keys :nil})
+  (log.df "->disabled") ;; DELETEME
+  {:state {:current-state :disabled
+           :context state.context}
+   :effect :disable-vim-mode})
 
 (fn insert->normal
   [state data]
-  (normal-mode state))
+  (log.df "insert->normal") ;; DELETEME
+  {:state {:current-state :normal
+           :context state.context}
+   :effect :enter-normal-mode})
 
 (fn visual->normal
   [state data]
-  (normal-mode state))
+  (log.df "visual->normal") ;; DELETEME
+  {:state {:current-state :normal
+           :context state.context}
+   :effect :enter-normal-mode})
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -371,7 +393,7 @@ TODO: Create another state machine system to support key chords for bindings
   [fsm]
   (atom.add-watch fsm.state :logger
                   (fn [state]
-                    (log.f "Vim mode: %s" state.mode))))
+                    (log.f "Vim mode: %s" state.current-state))))
 
 (fn watch-screen
   [fsm active-screen-changed]
@@ -407,13 +429,14 @@ TODO: Create another state machine system to support key chords for bindings
     screen.
   Returns function to cleanup watcher resources
   "
-  (let [initial {:config      config
-                 :mode        :disabled
-                 :unbind-keys nil}
-        state-machine (machine.new states initial :mode)
+  (let [template {:state {:current-state :disabled
+                          :context {:config config}}
+                  :states states}
+        _fsm (statemachine.new template)
         stop-screen-watcher (create-screen-watcher
-                             (partial watch-screen state-machine))]
-    (set fsm state-machine)
+                             (partial watch-screen _fsm))]
+    (set fsm _fsm)
+    (fsm.subscribe vim-effect)
     (log-updates fsm)
     (when (get-in [:vim :enabled] config)
       (enable))
@@ -425,6 +448,6 @@ TODO: Create another state machine system to support key chords for bindings
 ;; Exports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-{:init    init
- :disable disable
- :enable  enable}
+{: init
+ : disable
+ : enable}
