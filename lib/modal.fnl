@@ -3,7 +3,7 @@ Displays the menu modals, sub-menus, and application-specific modals if set
 in config.fnl.
 
 We define a state machine, which uses our local states to determine states, and
-transitions. Then we can signal events that may transition between specific
+transitions. Then we can send actions that may transition between specific
 states defined in the table.
 
 Allows us to create the machinery for displaying, entering, exiting, and
@@ -54,7 +54,7 @@ switching menus in one place which is then powered by config.fnl.
         nil))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Event Dispatchers
+;; Action senders
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn activate-modal
@@ -68,7 +68,7 @@ switching menus in one place which is then powered by config.fnl.
   specific menu key.
   Side effectful
   "
-  (fsm.signal :activate menu-key))
+  (fsm.send :activate menu-key))
 
 
 (fn deactivate-modal
@@ -78,7 +78,7 @@ switching menus in one place which is then powered by config.fnl.
   Takes no arguments.
   Side effectful
   "
-  (fsm.signal :deactivate))
+  (fsm.send :deactivate))
 
 
 (fn previous-modal
@@ -87,7 +87,7 @@ switching menus in one place which is then powered by config.fnl.
   API to transition to the previous modal in our history. Useful for returning
   to the main menu when in the window modal for instance.
   "
-  (fsm.signal :previous))
+  (fsm.send :previous))
 
 
 (fn start-modal-timeout
@@ -101,7 +101,7 @@ switching menus in one place which is then powered by config.fnl.
   Takes no arguments.
   Side effectful
   "
-  (fsm.signal :start-timeout))
+  (fsm.send :start-timeout))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -470,7 +470,7 @@ switching menus in one place which is then powered by config.fnl.
   Executes a side-effect
   Returns nil
   "
-  (fsm.signal action data))
+  (fsm.send action data))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

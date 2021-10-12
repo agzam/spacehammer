@@ -59,7 +59,7 @@ This module works mechanically similar to lib/modal.fnl.
   (atom.swap! actions (fn [] [action data])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Action signalers
+;; Action senders
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn enter
@@ -72,7 +72,7 @@ This module works mechanically similar to lib/modal.fnl.
   Transitions to the entered finite-state-machine state.
   Returns nil.
   "
-  (fsm.signal :enter-app app-name))
+  (fsm.send :enter-app app-name))
 
 (fn leave
   [app-name]
@@ -82,7 +82,7 @@ This module works mechanically similar to lib/modal.fnl.
   Transition the state machine to idle from active app state.
   Returns nil.
   "
-  (fsm.signal :leave-app app-name))
+  (fsm.send :leave-app app-name))
 
 (fn launch
   [app-name]
@@ -92,7 +92,7 @@ This module works mechanically similar to lib/modal.fnl.
   Calls the launch lifecycle method defined for an app in config.fnl
   Returns nil.
   "
-  (fsm.signal :launch-app app-name))
+  (fsm.send :launch-app app-name))
 
 (fn close
   [app-name]
@@ -102,7 +102,7 @@ This module works mechanically similar to lib/modal.fnl.
   Calls the exit lifecycle method defined for an app in config.fnl
   Returns nil.
   "
-  (fsm.signal :close-app app-name))
+  (fsm.send :close-app app-name))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

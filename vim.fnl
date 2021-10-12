@@ -47,33 +47,33 @@ TODO: Create another state machine system to support key chords for bindings
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Action signalers
+;; Action senders
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn disable
   []
   (when fsm
-    (fsm.signal :disable)))
+    (fsm.send :disable)))
 
 (fn enable
   []
   (when fsm
-    (fsm.signal :enable)))
+    (fsm.send :enable)))
 
 (fn normal
   []
   (when fsm
-    (fsm.signal :normal)))
+    (fsm.send :normal)))
 
 (fn visual
   []
   (when fsm
-    (fsm.signal :visual)))
+    (fsm.send :visual)))
 
 (fn insert
   []
   (when fsm
-    (fsm.signal :insert)))
+    (fsm.send :insert)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

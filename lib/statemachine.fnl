@@ -19,8 +19,8 @@ The 'new' function takes a template, which is a table with the following schema:
   :state and the :effect.
 * The :state contains a (potentially changed) :current-state and a new :context,
   which is updated in the state machine.
-* Functions can subscribe to all signals, and are provided a TRANSITION RECORD,
-  which contains:
+* Functions can subscribe to all transitions, and are provided a TRANSITION
+  RECORD, which contains:
   * :prev-state
   * :next-state
   * :action
@@ -63,7 +63,7 @@ the next transition.
   [fsm]
   (atom.deref fsm.state))
 
-(fn signal
+(fn send
   [fsm action extra]
   "
   Based on the action and the fsm's current-state, set the new state and call
@@ -73,9 +73,9 @@ the next transition.
         {: current-state : context} state]
     (if-let [tx-fn (get-transition-function fsm current-state action)]
             (let [
-                  _ (log.df "SIGNAL: Calling tx fn from state %s for action %s" current-state action) ;; DELETEME
+                  _ (log.df "SEND Calling tx fn from state %s for action %s" current-state action) ;; DELETEME
                   transition (tx-fn state action extra)
-                  ;; _ (log.df "SIGNAL: transition object %s" (hs.inspect transition)) ;; DELETEME
+                  ;; _ (log.df "SEND transition object %s" (hs.inspect transition)) ;; DELETEME
                   new-state (if transition transition.state state)
                   effect (if transition transition.effect nil)]
 
@@ -131,7 +131,7 @@ the next transition.
               :log (if template.log (hs.logger.new template.log "info"))}]
     ; Add methods
     (tset fsm :get-state (partial get-state fsm))
-    (tset fsm :signal (partial signal fsm))
+    (tset fsm :send (partial send fsm))
     (tset fsm :subscribe (partial subscribe fsm))
     fsm))
 
@@ -140,6 +140,6 @@ the next transition.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 {: effect-handler
- : signal
+ : send
  : subscribe
  :new create-machine}
