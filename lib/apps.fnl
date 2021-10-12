@@ -349,9 +349,7 @@ Assign some simple keywords for each hs.application.watcher event type.
   (when context.app
     (lifecycle.activate-app context.app)
     (let [unbind-keys (bind-app-keys context.app.keys)]
-      (log.df "Returning cleanup for %s" context.app.key) ;; DELETEME
       (fn []
-        (log.df "Calling unbind keys for %s" context.app.key) ;; DELETEME
         (unbind-keys)))))
 
 (fn launch-app-effect
@@ -363,9 +361,7 @@ Assign some simple keywords for each hs.application.watcher event type.
   (when context.app
     (lifecycle.launch-app context.app)
     (let [unbind-keys (bind-app-keys context.app.keys)]
-      (log.df "Returning cleanup for %s" context.app.key) ;; DELETEME
       (fn []
-        (log.df "Calling unbind keys for %s" context.app.key) ;; DELETEME
         (unbind-keys)))))
 
 (fn my-effect-handler
@@ -398,19 +394,15 @@ Assign some simple keywords for each hs.application.watcher event type.
 (local apps-effect
        (my-effect-handler
          {:enter-app-effect (fn [state extra]
-                              (log.df "EFFECT: enter-app") ;; DELETEME
                               (enter-app-effect state.context))
           :leave-app-effect (fn [state extra]
                               (when state.context.prev-app
-                                (log.df "EFFECT: leave-app extra %s" extra) ;; DELETEME
                                 (lifecycle.deactivate-app state.context.prev-app))
                               nil)
           :launch-app-effect (fn [state extra]
-                               (log.df "EFFECT: launch-app") ;; DELETEME
                                (launch-app-effect state.context))
           :close-app-effect (fn [state extra]
                               (when state.context.prev-app
-                                (log.df "EFFECT: close-app") ;; DELETEME
                                 (lifecycle.close-app state.context.prev-app))
                               nil)}))
 

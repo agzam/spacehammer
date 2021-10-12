@@ -48,8 +48,6 @@ the next transition.
         : merge
         : slice} (require :lib.functional))
 
-(local log (hs.logger.new "statemachine.fnl" "debug")) ;; DELETEME
- ;; DELETEME
 
 (fn update-state
   [fsm state]
@@ -73,9 +71,7 @@ the next transition.
         {: current-state : context} state]
     (if-let [tx-fn (get-transition-function fsm current-state action)]
             (let [
-                  _ (log.df "SEND Calling tx fn from state %s for action %s" current-state action) ;; DELETEME
                   transition (tx-fn state action extra)
-                  ;; _ (log.df "SEND transition object %s" (hs.inspect transition)) ;; DELETEME
                   new-state (if transition transition.state state)
                   effect (if transition transition.effect nil)]
 

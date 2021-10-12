@@ -287,25 +287,21 @@ TODO: Create another state machine system to support key chords for bindings
 
 (fn enter-normal-mode
   [state extra]
-  (log.df "enter-normal-mode effect") ;; DELETEME
   (state-box "Normal")
   (bind-keys bindings.normal))
 
 (fn enter-insert-mode
   [state extra]
-  (log.df "enter-insert-mode effect") ;; DELETEME
   (state-box "Insert")
   (bind-keys bindings.insert))
 
 (fn enter-visual-mode
   [state extra]
-  (log.df "enter-visual-mode effect") ;; DELETEME
   (state-box "Visual")
   (bind-keys bindings.visual))
 
 (fn disable-vim-mode
   [state extra]
-  (log.df "enter-disable-mode effect") ;; DELETEME
   (: box :hide)
   (: text :hide))
 
@@ -323,7 +319,6 @@ TODO: Create another state machine system to support key chords for bindings
 
 (fn disabled->normal
   [state data]
-  (log.df "disabled->normal") ;; DELETEME
   (when (get-in [:context :config :vim :enabled] state)
     {:state {:current-state :normal
              :context state.context}
@@ -331,35 +326,30 @@ TODO: Create another state machine system to support key chords for bindings
 
 (fn normal->insert
   [state data]
-  (log.df "normal->insert") ;; DELETEME
   {:state {:current-state :insert
            :context state.context}
    :effect :enter-insert-mode})
 
 (fn normal->visual
   [state data]
-  (log.df "normal-visual") ;; DELETEME
   {:state {:current-state :visual
            :context state.context}
    :effect :enter-visual-mode})
 
 (fn ->disabled
   [state data]
-  (log.df "->disabled") ;; DELETEME
   {:state {:current-state :disabled
            :context state.context}
    :effect :disable-vim-mode})
 
 (fn insert->normal
   [state data]
-  (log.df "insert->normal") ;; DELETEME
   {:state {:current-state :normal
            :context state.context}
    :effect :enter-normal-mode})
 
 (fn visual->normal
   [state data]
-  (log.df "visual->normal") ;; DELETEME
   {:state {:current-state :normal
            :context state.context}
    :effect :enter-normal-mode})
