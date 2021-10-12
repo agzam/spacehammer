@@ -380,8 +380,6 @@ Assign some simple keywords for each hs.application.watcher event type.
   (let [cleanup-ref (atom.new {})]
     ;; Return a subscriber function
     (fn [{: prev-state : next-state : action : effect : extra}]
-      ;; Whenever a transition occurs, call the cleanup function for that
-      ;; particular app, if set
       ;; Call the cleanup function for this app if it's set
       (call-when (.  (atom.deref cleanup-ref) extra))
       (let [cleanup-map (atom.deref cleanup-ref)
