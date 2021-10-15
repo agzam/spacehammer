@@ -34,34 +34,34 @@
        (fn []
          (let [fsm (make-fsm)]
            (is.eq? (type fsm.get-state) :function "No get-state method")
-           (is.eq? (type fsm.signal) :function "No signal method ")
+           (is.eq? (type fsm.send) :function "No send method ")
            (is.eq? (type fsm.subscribe) :function "No subscribe method"))))
 
    (it "Should transition to opened on toggle action"
        (fn []
          (let [fsm (make-fsm)]
-           (is.eq? (fsm.signal :toggle) true "Dispatch did not return true for handled event")
+           (is.eq? (fsm.send :toggle) true "Dispatch did not return true for handled event")
            (is.eq? (. (atom.deref fsm.state) :current-state) :opened "State did not transition to opened"))))
 
    (it "Should transition from closed -> opened -> closed"
        (fn []
          (let [fsm (make-fsm)]
-           (fsm.signal :toggle)
-           (fsm.signal :toggle)
+           (fsm.send :toggle)
+           (fsm.send :toggle)
            (is.eq? (. (atom.deref fsm.state) :current-state) :closed "State did not transition back to closed")
            (is.eq? (. (atom.deref fsm.state) :context :i) 2  "context.i should be 2 from 2 transitions"))))
 
    (it "Should not explode when dispatching an unhandled event"
        (fn []
          (let [fsm (make-fsm)]
-           (is.eq? (fsm.signal :fail nil) false "The FSM exploded from dispatching a :fail event"))))
+           (is.eq? (fsm.send :fail nil) false "The FSM exploded from dispatching a :fail event"))))
 
    (it "Subscribers should be called on events"
        (fn []
          (let [fsm (make-fsm)
                i (atom.new 0)]
            (fsm.subscribe (fn [] (atom.swap! i (fn [v] (+ v 1)))))
-           (fsm.signal :toggle)
+           (fsm.send :toggle)
            (is.eq? (atom.deref i) 1 "The subscriber was not called"))))
 
    (it "Subscribers should be provided old and new context, action, effect, and extra"
@@ -78,7 +78,7 @@
                             (atom.swap! _action (fn [_ nv] nv) action)
                             (atom.swap! _effect (fn [_ nv] nv) effect)
                             (atom.swap! _extra (fn [_ nv] nv) extra)))
-           (fsm.signal :toggle :extra)
+           (fsm.send :toggle :extra)
            (is.not-eq? (. (atom.deref _old) :context :i)
                        (. (atom.deref _new) :context :i) "Subscriber did not get old and new state")
            (is.eq? (atom.deref _action) :toggle "Subscriber did not get correct action")
@@ -90,9 +90,9 @@
          (let [fsm (make-fsm)]
            (let [i (atom.new 0)
                  unsub (fsm.subscribe (fn [] (atom.swap! i (fn [v] (+ v 1)))))]
-             (fsm.signal :toggle)
+             (fsm.send :toggle)
              (unsub)
-             (fsm.signal :toggle)
+             (fsm.send :toggle)
              (is.eq? (atom.deref i) 1 "The subscriber was called after unsubscribing")))))
 
    (it "Effect handler should maintain cleanup function"
@@ -108,8 +108,8 @@
                                              (atom.swap! effect-state
                                                          (fn [_ nv] nv) :cleaned)))})
                unsub (fsm.subscribe effect-handler)]
-           (fsm.signal :toggle)
+           (fsm.send :toggle)
            (is.eq? (atom.deref effect-state) :opened "Effect handler should have been called")
-           (fsm.signal :toggle)
+           (fsm.send :toggle)
            (is.eq? (atom.deref effect-state) :cleaned "Cleanup function should have been called")
            )))))
