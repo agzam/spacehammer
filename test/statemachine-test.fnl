@@ -66,24 +66,14 @@
 
    (it "Subscribers should be provided old and new context, action, effect, and extra"
        (fn []
-         (let [fsm (make-fsm)
-               _old (atom.new nil)
-               _new (atom.new nil)
-               _action (atom.new nil)
-               _effect (atom.new nil)
-               _extra (atom.new nil)]
+         (let [fsm (make-fsm)]
            (fsm.subscribe (fn [{: prev-state : next-state : action : effect : extra}]
-                            (atom.swap! _old (fn [_ nv] nv) prev-state)
-                            (atom.swap! _new (fn [_ nv] nv) next-state)
-                            (atom.swap! _action (fn [_ nv] nv) action)
-                            (atom.swap! _effect (fn [_ nv] nv) effect)
-                            (atom.swap! _extra (fn [_ nv] nv) extra)))
-           (fsm.send :toggle :extra)
-           (is.not-eq? (. (atom.deref _old) :context :i)
-                       (. (atom.deref _new) :context :i) "Subscriber did not get old and new state")
-           (is.eq? (atom.deref _action) :toggle "Subscriber did not get correct action")
-           (is.eq? (atom.deref _effect) :opening "Subscriber did not get correct effect")
-           (is.eq? (atom.deref _extra) :extra "Subscriber did not get correct extra"))))
+                            (is.not-eq? prev-state.context.i
+                                        next-state.context.i "Subscriber did not get old and new state")
+                            (is.eq? action :toggle "Subscriber did not get correct action")
+                            (is.eq? effect :opening "Subscriber did not get correct effect")
+                            (is.eq? extra :extra "Subscriber did not get correct extra")))
+           (fsm.send :toggle :extra))))
 
    (it "Subscribers should be able to unsubscribe"
        (fn []
