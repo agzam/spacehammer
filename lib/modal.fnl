@@ -2,9 +2,9 @@
 Displays the menu modals, sub-menus, and application-specific modals if set
 in config.fnl.
 
-We define a state machine, which uses our local states to determine states,
-and transitions. Then we can dispatch events that attempt to transition
-between specific states defined in the table.
+We define a state machine, which uses our local states to determine states, and
+transitions. Then we can send actions that may transition between specific
+states defined in the table.
 
 Allows us to create the machinery for displaying, entering, exiting, and
 switching menus in one place which is then powered by config.fnl.
@@ -12,17 +12,17 @@ switching menus in one place which is then powered by config.fnl.
 (local atom (require :lib.atom))
 (local statemachine (require :lib.statemachine))
 (local apps (require :lib.apps))
-(local {: call-when
+(local {: butlast
+        : call-when
         : concat
+        : conj
         : find
         : filter
         : has-some?
         : identity
         : join
         : map
-        : merge
-        : noop
-        : slice}
+        : merge}
        (require :lib.functional))
 (local {:align-columns align-columns}
        (require :lib.text))
@@ -31,7 +31,7 @@ switching menus in one place which is then powered by config.fnl.
        (require :lib.bind))
 (local lifecycle (require :lib.lifecycle))
 
-(local log (hs.logger.new "\tmodal.fnl\t" "debug"))
+(local log (hs.logger.new "modal.fnl" "debug"))
 (var fsm nil)
 
 
@@ -54,7 +54,7 @@ switching menus in one place which is then powered by config.fnl.
         nil))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Event Dispatchers
+;; Action dispatch functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn activate-modal
@@ -68,7 +68,7 @@ switching menus in one place which is then powered by config.fnl.
   specific menu key.
   Side effectful
   "
-  (fsm.dispatch :activate menu-key))
+  (fsm.send :activate menu-key))
 
 
 (fn deactivate-modal
@@ -78,7 +78,7 @@ switching menus in one place which is then powered by config.fnl.
   Takes no arguments.
   Side effectful
   "
-  (fsm.dispatch :deactivate))
+  (fsm.send :deactivate))
 
 
 (fn previous-modal
@@ -87,7 +87,7 @@ switching menus in one place which is then powered by config.fnl.
   API to transition to the previous modal in our history. Useful for returning
   to the main menu when in the window modal for instance.
   "
-  (fsm.dispatch :previous))
+  (fsm.send :previous))
 
 
 (fn start-modal-timeout
@@ -101,7 +101,7 @@ switching menus in one place which is then powered by config.fnl.
   Takes no arguments.
   Side effectful
   "
-  (fsm.dispatch :start-timeout))
+  (fsm.send :start-timeout))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -246,35 +246,24 @@ switching menus in one place which is then powered by config.fnl.
             :strokeWidth 0}
            99999)))
 
-
 (fn show-modal-menu
-  [{:menu menu
-    :prev-menu prev-menu
-    :unbind-keys unbind-keys
-    :stop-timeout stop-timeout
-    :history history}]
+  [state]
   "
   Main API to display a modal and run side-effects
-    - Unbind keys of previous modal if set
-    - Stop modal timeout that closes the modal after inactivity
-    - Call the exit-menu lifecycle method on previous menu if set
-    - Call the enter-menu lifecycle method on new menu if set
     - Display the modal alert
   Takes current modal state from our modal statemachine
-  Returns updated modal state to store in the modal statemachine
+  Returns the function to cleanup everything it sets up
   "
-  (call-when unbind-keys)
-  (call-when stop-timeout)
-  (lifecycle.exit-menu prev-menu)
-  (lifecycle.enter-menu menu)
-  (modal-alert menu)
-  {:menu menu
-   :stop-timeout :nil
-   :unbind-keys (bind-menu-keys menu.items)
-   :history (if history
-                (concat [] history [menu])
-                [menu])})
-
+  (lifecycle.enter-menu state.context.menu)
+  (modal-alert state.context.menu)
+  (let [unbind-keys (bind-menu-keys state.context.menu.items)
+        stop-timeout state.context.stop-timeout]
+    (fn []
+      (hs.alert.closeAll 0)
+      (unbind-keys)
+      (call-when stop-timeout)
+      (lifecycle.exit-menu state.context.menu)
+      )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Menus, & Config Navigation
@@ -293,82 +282,71 @@ switching menus in one place which is then powered by config.fnl.
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; State Transitions
+;; State Transition Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (fn idle->active
-  [state data]
+  [state action extra]
   "
   Transition our modal statemachine from the idle state to active where a menu
   modal is displayed to the user.
   Takes the current modal state table plus the key of the menu if submenu
-  Displays the modal or local app menu if specified
+  Kicks off an effect to display the modal or local app menu
   Returns updated modal state machine state table.
   "
-  (let [{:config config
-         :stop-timeout stop-timeout
-         :unbind-keys unbind-keys} state
+  (let [config state.context.config
         app-menu (apps.get-app)
         menu (if (and app-menu (has-some? app-menu.items))
                  app-menu
                  config)]
-    (merge {:status :active}
-           (show-modal-menu {:menu menu
-                             :stop-timeout stop-timeout
-                             :unbind-keys unbind-keys}))))
+    {:state {:current-state :active
+             :context (merge state.context {:menu menu
+                                            :history (if state.history
+                                                         (conj history menu)
+                                                         [menu])})}
+     :effect :show-modal-menu}))
 
 
 (fn active->idle
-  [state _]
+  [state action extra]
   "
-  Transition our modal state machine from the active, open state to idle by
-  closing the modal.
+  Transition our modal state machine from the active, open state to idle.
   Takes the current modal state table.
-  Closes the modal, stops the close timeout, and unbinds modal keys
-  Returns new modal state
+  Kicks off an effect to close the modal, stop the timeout, and unbind keys
+  Returns updated modal state machine state table.
   "
-  (let [{:menu prev-menu} state]
-    (hs.alert.closeAll 0)
-    (call-when state.stop-timeout)
-    (call-when state.unbind-keys)
-    (lifecycle.exit-menu prev-menu)
-    {:status :idle
-     :menu :nil
-     :stop-timeout :nil
-     :history []
-     :unbind-keys :nil}))
+  {:state  {:current-state :idle
+            :context (merge state.context {:menu :nil
+                                           :history []})}
+   :effect :close-modal-menu})
 
 
-(fn active->enter-app
-  [state app-menu]
+(fn ->enter-app
+  [state action extra]
   "
-  Transition our modal state machine that is already open to an app menu
+  Transition our modal state machine the main menu to an app menu
   Takes the current modal state table and the app menu table.
   Displays updated modal menu if the current menu is different than the previous
   menu otherwise results in no operation
   Returns new modal state
   "
   (let [{:config config
-         :menu prev-menu
-         :stop-timeout stop-timeout
-         :unbind-keys unbind-keys
-         :history history} state
+         :menu prev-menu} state.context
+        app-menu (apps.get-app)
         menu (if (and app-menu (has-some? app-menu.items))
                  app-menu
                  config)]
     (if (= menu.key prev-menu.key)
+        ; nil transition object means keep all state
         nil
-        (merge {:history [menu]}
-               (show-modal-menu
-                {:stop-timeout stop-timeout
-                 :unbind-keys  unbind-keys
-                 :menu         menu
-                 :history      history})))))
+        {:state {:current-state :submenu
+                 :context (merge state.context {:menu menu})}
+         :effect :open-submenu})))
 
 
 (fn active->leave-app
-  [state]
+  [state action extra]
   "
   Transition to the regular menu when user removes focus (blurs) another app.
   If the leave event was fired for the app we are already in, do nothing.
@@ -376,37 +354,30 @@ switching menus in one place which is then powered by config.fnl.
   Returns new updated modal state if we are leaving the current app.
   "
   (let [{:config config
-        :menu prev-menu} state]
+        :menu prev-menu} state.context]
     (if (= prev-menu.key config.key)
         nil
-        (idle->active state))))
+        (idle->active state action extra))))
 
 
 (fn active->submenu
-  [state menu-key]
+  [state action menu-key]
   "
   Enter a submenu like entering into the Window menu from the default main menu.
-  Takes the current menu state table and the submenu ke.
+  Takes the current menu state table and the submenu key as 'extra'.
   Returns updated menu state
   "
   (let [{:config config
-         :menu prev-menu
-         :stop-timeout stop-timeout
-         :unbind-keys unbind-keys
-         :history history} state
+         :menu prev-menu} state.context
         menu (if menu-key
                  (find (by-key menu-key) prev-menu.items)
                  config)]
-    (when menu
-        (merge {:status :submenu}
-               (show-modal-menu {:stop-timeout stop-timeout
-                                 :unbind-keys  unbind-keys
-                                 :prev-menu    prev-menu
-                                 :menu         menu
-                                 :history      history})))))
+    {:state {:current-state :submenu
+             :context (merge state.context {:menu menu})}
+     :effect :open-submenu}))
 
-(fn active->timeout
-  [state]
+(fn add-timeout-transition
+  [state action extra]
   "
   Transition from active to idle, but this transition only fires when the
   timeout occurs. The timeout is only started after firing a repeatable action.
@@ -415,13 +386,15 @@ switching menus in one place which is then powered by config.fnl.
   more modal keypresses until the timeout triggers which will deactivate the
   modal.
   Takes the current modal state table.
-  Returns a partial modal state table to merge into the modal state.
+  Returns a the old state with a :stop-timeout added
   "
-  (call-when state.stop-timeout)
-  {:stop-timeout (timeout deactivate-modal)})
+  {:state {:current-state state.current-state
+           :context
+           (merge state.context {:stop-timeout (timeout deactivate-modal)})}
+   :effect :open-submenu})
 
 (fn submenu->previous
-  [state]
+  [state action extra]
   "
   Transition to the previous submenu. Like if you went into the window menu
   and wanted to go back to the main menu.
@@ -430,15 +403,14 @@ switching menus in one place which is then powered by config.fnl.
   Dynamically calls another transition depending on history.
   "
   (let [{:config config
-         :history history
-         :menu menu} state
-        prev-menu (. history (- (length history) 1))]
+         :history hist
+         :menu menu} state.context
+        prev-menu (. hist (- (length hist) 1))]
     (if prev-menu
-        (merge state
-               (show-modal-menu (merge state
-                                       {:menu prev-menu
-                                        :prev-menu menu}))
-               {:history (slice 1 -1 history)})
+        {:state {:current-state :submenu
+                 :context (merge state.context {:menu prev-menu
+                                                :history (butlast hist)})}
+         :effect :open-submenu}
         (idle->active state))))
 
 
@@ -448,26 +420,19 @@ switching menus in one place which is then powered by config.fnl.
 
 
 ;; State machine states table. Maps states to actions to transition functions.
-;; Our state machine implementation is a bit naive in that the transition can
-;; return the new state that it's in by updating the status.
-;;
-;; We can make it more rigid if necessary but can be helpful when navigating
-;; submenus or leaving apps.
+;; These transition functions return transition objects that contain the new
+;; state key and context.
 (local states
-       {:idle   {:activate       idle->active
-                 :enter-app      noop
-                 :leave-app      noop}
+       {:idle   {:activate       idle->active}
         :active {:deactivate     active->idle
                  :activate       active->submenu
-                 :start-timeout  active->timeout
-                 :enter-app      active->enter-app
-                 :leave-app      active->leave-app}
+                 :start-timeout  add-timeout-transition
+                 :enter-app      ->enter-app}
         :submenu {:deactivate    active->idle
                   :activate      active->submenu
                   :previous      submenu->previous
-                  :start-timeout active->timeout
-                  :enter-app     noop
-                  :leave-app     noop}})
+                  :start-timeout add-timeout-transition
+                  :enter-app     ->enter-app}})
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -487,9 +452,13 @@ switching menus in one place which is then powered by config.fnl.
    fsm.state :log-state
    (fn log-state
      [state]
-     (log.df "state is now: %s" state.status)
-     (when state.history
-       (log.df (hs.inspect (map #(. $1 :title) state.history)))))))
+     (when state.context.history
+       (log.df (hs.inspect (map #(. $1 :title) state.context.history)))))))
+
+(local modal-effect
+       (statemachine.effect-handler
+        {:show-modal-menu show-modal-menu
+         :open-submenu show-modal-menu}))
 
 (fn proxy-app-action
   [[action data]]
@@ -501,7 +470,7 @@ switching menus in one place which is then powered by config.fnl.
   Executes a side-effect
   Returns nil
   "
-  (fsm.dispatch action data))
+  (fsm.send action data))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -517,14 +486,16 @@ switching menus in one place which is then powered by config.fnl.
   Causes side effects to start the state machine, show the modal, and logging.
   Returns a function to unsubscribe from the app state machine.
   "
-  (let [initial-state {:config config
-                       :history []
-                       :menu nil
-                       :status :idle
-                       :stop-timeout nil
-                       :unbind-keys nil}
+  (let [initial-context {:config config
+                         :history []
+                         :menu :nil}
+        template {:state {:current-state :idle
+                          :context initial-context}
+                  :states states
+                  :log "modal"}
         unsubscribe (apps.subscribe proxy-app-action)]
-    (set fsm (statemachine.new states initial-state :status))
+    (set fsm (statemachine.new template))
+    (fsm.subscribe modal-effect)
     (start-logger fsm)
     (fn cleanup []
       (unsubscribe))))
@@ -535,5 +506,5 @@ switching menus in one place which is then powered by config.fnl.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-{:init           init
- :activate-modal activate-modal}
+{: init
+ : activate-modal}

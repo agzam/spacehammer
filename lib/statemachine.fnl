@@ -1,121 +1,141 @@
+"
+Provides the mechanism to generate a finite state machine.
+
+A finite state machine defines states and some way to transition between states.
+
+The 'new' function takes a template, which is a table with the following schema:
+{
+ :state {:current-state :state1
+         :context {}}
+ :states {:state1 {}
+          :state2 {}
+          :state3 {:leave transition-fn-leave
+                   :exit transition-fn-exit}}}
+
+* The CONTEXT is any table that can be updated by TRANSITION FUNCTIONS. This
+  allows the client to track their own state.
+* The STATES table is a map from ACTIONS to TRANSITION FUNCTIONS.
+* These functions must return a TRANSITION OBJECT containing the new
+  :state and the :effect.
+* The :state contains a (potentially changed) :current-state and a new :context,
+  which is updated in the state machine.
+* Functions can subscribe to all transitions, and are provided a TRANSITION
+  RECORD, which contains:
+  * :prev-state
+  * :next-state
+  * :action
+  * :effect that was kicked off from the transition function
+* The subscribe method returns a function that can be called to unsubscribe.
+
+Additionally, we provide a helper function `effect-handler`, which is a
+higher-order function that returns a function suitable to be provided to
+subscribe. It takes a map of EFFECTs to handler functions. These handler
+functions should return their own cleanup. The effect-handler will automatically
+call this cleanup function after the next transition. For example, if you want
+to bind keys when a certain effect is kicked off, write a function that binds
+the keys and returns an unbind function. The unbind function will be called on
+the next transition.
+"
+
+
+(require-macros :lib.macros)
 (local atom (require :lib.atom))
-(local {: filter
-        : map
-        : merge} (require :lib.functional))
-
-(local log (hs.logger.new "\tstatemachine.fnl\t" "debug"))
-
-"
-Transition
-Takes an action fn, state, and extra action data
-Returns updated state
-"
-(fn transition
-  [action-fn state data]
-  (action-fn state data))
+(local {: butlast
+        : call-when
+        : concat
+        : conj
+        : last
+        : merge
+        : slice} (require :lib.functional))
 
 
-"
-Remove Nils
-Takes a dest table and an update.
-For each key in update set to :nil, it is removed from the tbl.
-Returns a mutated tbl with :nil keys removed.
-"
-(fn remove-nils
-  [tbl update]
-  (let [keys (->> update
-               (map (fn [v k] [v k]))
-               (filter (fn [[v _]]
-                         (= v :nil)))
-               (map (fn [[_ k]] k)))]
-    (each [_ k (ipairs keys)]
-      (tset tbl k nil))
-    tbl))
-
-"
-Update State
-Takes a state atom and an update table to merge
-Updates the state-atom by merging the update table into previous state.
-Returns the state-atom.
-"
 (fn update-state
-  [state-atom update]
-  (when update
-    (atom.swap!
-     state-atom
-     (fn [state]
-       (-> {}
-           (merge state update)
-           (remove-nils update))))))
+  [fsm state]
+  (atom.swap! fsm.state (fn [_ state] state) state))
 
-"
-Dispatch Error
-Prints an error explaining that we are not able to perform the target
-action while in the current state.
-"
-(fn dispatch-error
-  [current-state-key action-name]
-  (log.wf "Could not %s from %s state"
-          action-name
-          current-state-key))
+(fn get-transition-function
+  [fsm current-state action]
+  (. fsm.states current-state action))
 
-"
-Creates Dispatcher
-Creates a dispatcher function to update the machine state atom.
-If an update cannot be performed an error is printed to console.
+(fn get-state
+  [fsm]
+  (atom.deref fsm.state))
 
-Takes a table of states, a state-atom, and a state-key used to store the current
-state keyword/string.
-Returns a function that can be used as a method of the fsm to transition to
-another state.
-"
-(fn create-dispatcher
-  [states state-atom state-key]
-  (fn dispatch
-    [action data]
-    (let [state (atom.deref state-atom)
-          key (. state state-key)
-          action-fn (-?> states
-                         (. key)
-                         (. action))]
-      (if action-fn
-          (do
-            (update-state state-atom (transition action-fn state data))
-            true)
-          (do
-            (dispatch-error key action)
-            false)))))
+(fn send
+  [fsm action extra]
+  "
+  Based on the action and the fsm's current-state, set the new state and call
+  all subscribers with the previous state, new state, action, and extra.
+  "
+  (let [state (get-state fsm)
+        {: current-state : context} state]
+    (if-let [tx-fn (get-transition-function fsm current-state action)]
+            (let [
+                  transition (tx-fn state action extra)
+                  new-state (if transition transition.state state)
+                  effect (if transition transition.effect nil)]
 
+              (update-state fsm new-state)
+              ; Call all subscribers
+              (each [_ sub (pairs (atom.deref fsm.subscribers))]
+                (sub {:prev-state state :next-state new-state : action : effect : extra}))
+              true)
+            (do
+              (if fsm.log
+                  (fsm.log.df "Action :%s does not have a transition function in state :%s"
+                              action current-state))
+              false))))
 
-"
-Create Machine
-Creates a finite-state-machine based on the table of given states.
-Takes a map-table of states and actions, an initial state table, and a key
-to specify which key stores the current state string.
-Returns an fsm table that manages state and can dispatch actions.
+(fn subscribe
+  [fsm sub]
+  "
+  Adds a subscriber to the provided fsm. Returns a function to unsubscribe
+  Naive: Because each entry is keyed by the function address it doesn't allow
+  the same function to subscribe more than once.
+  "
+  (let [sub-key (tostring sub)]
+    (atom.swap! fsm.subscribers (fn [subs sub]
+                                  (merge {sub-key sub} subs)) sub)
+    ; Return the unsub func
+    (fn []
+      (atom.swap! fsm.subscribers (fn [subs key] (tset subs key nil) subs) sub-key))))
 
-Example:
+(fn effect-handler
+  [effect-map]
+  "
+  Takes a map of effect->function and returns a function that handles these
+  effects by calling the mapped-to function, and then calls that function's
+  return value (a cleanup function) and calls it on the next transition.
 
-(local states
-       {:idle   {:activate   idle->active
-                 :enter-app  idle->in-app}
-        :active {:deactivate active->idle-or-in-app
-                 :activate   active->active
-                 :enter-app  active->active
-                 :leave-app  active->active}
-        :in-app {:activate   in-app->active
-                 :enter-app  in-app->in-app
-                 :leave-app  in-app->idle}})
+  These functions must return their own cleanup function or nil.
+  "
+  ;; Create a one-time atom used to store the cleanup function
+  (let [cleanup-ref (atom.new nil)]
+    ;; Return a subscriber function
+    (fn [{: prev-state : next-state : action : effect : extra}]
+      ;; Whenever a transition occurs, call the cleanup function, if set
+      (call-when (atom.deref cleanup-ref))
+      ;; Get a new cleanup function or nil and update cleanup-ref atom
+      (atom.reset! cleanup-ref
+                   (call-when (. effect-map effect) next-state extra)))))
 
-(local fsm (create-machine states {:state :idle} :state))
-(fsm.dispatch :activate {:extra :data})
-(print \"current-state: \" (hs.inspect (atom.deref (fsm.state))))
-"
 (fn create-machine
-  [states initial-state state-key]
-  (let [machine-state (atom.new initial-state)]
-    {:dispatch (create-dispatcher states machine-state state-key)
-     :states states
-     :state machine-state}))
+  [template]
+  (let [fsm  {:state (atom.new {:current-state template.state.current-state :context template.state.context})
+              :states template.states
+              :subscribers (atom.new {})
+              :log (if template.log (hs.logger.new template.log "info"))}]
+    ; Add methods
+    (tset fsm :get-state (partial get-state fsm))
+    (tset fsm :send (partial send fsm))
+    (tset fsm :subscribe (partial subscribe fsm))
+    fsm))
 
-{:new create-machine}
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Exports
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+{: effect-handler
+ : send
+ : subscribe
+ :new create-machine}

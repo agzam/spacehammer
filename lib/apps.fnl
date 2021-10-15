@@ -12,6 +12,7 @@ This module works mechanically similar to lib/modal.fnl.
 (local os (require :os))
 (local {: call-when
         : find
+        : merge
         : noop
         : tap}
        (require :lib.functional))
@@ -57,9 +58,8 @@ This module works mechanically similar to lib/modal.fnl.
   "
   (atom.swap! actions (fn [] [action data])))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Event Dispatchers
+;; Action dispatch functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn enter
@@ -72,7 +72,7 @@ This module works mechanically similar to lib/modal.fnl.
   Transitions to the entered finite-state-machine state.
   Returns nil.
   "
-  (fsm.dispatch :enter-app app-name))
+  (fsm.send :enter-app app-name))
 
 (fn leave
   [app-name]
@@ -82,7 +82,7 @@ This module works mechanically similar to lib/modal.fnl.
   Transition the state machine to idle from active app state.
   Returns nil.
   "
-  (fsm.dispatch :leave-app app-name))
+  (fsm.send :leave-app app-name))
 
 (fn launch
   [app-name]
@@ -92,7 +92,7 @@ This module works mechanically similar to lib/modal.fnl.
   Calls the launch lifecycle method defined for an app in config.fnl
   Returns nil.
   "
-  (fsm.dispatch :launch-app app-name))
+  (fsm.send :launch-app app-name))
 
 (fn close
   [app-name]
@@ -102,7 +102,8 @@ This module works mechanically similar to lib/modal.fnl.
   Calls the exit lifecycle method defined for an app in config.fnl
   Returns nil.
   "
-  (fsm.dispatch :close-app app-name))
+  (fsm.send :close-app app-name))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Set Key Bindings
@@ -140,113 +141,71 @@ This module works mechanically similar to lib/modal.fnl.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn ->enter
-  [state app-name]
+  [state action app-name]
   "
   Transition the app state machine from the general, shared key bindings to an
   app we have local keybindings for.
-  Runs the following side-effects
-  - Unbinds the previous app local keys if there were any set
-  - Calls the :deactivate method of previous app config.fnl table lifecycle
-    precautionary in case it was set by a previous app in use
-  - Calls the :activate method of the current app config.fnl table if config
-    exists for current app
+  Kicks off an effect to bind app-specific keys.
   Takes the current app state machine state table
-  Returns the next app state machine state table
+  Returns update modal state machine state table.
   "
-  (let [{:apps apps
-         :app prev-app
-         :unbind-keys unbind-keys} state
+  (let [{: apps
+         : app} state.context
         next-app (find (by-key app-name) apps)]
-    (when next-app
-      (call-when unbind-keys)
-      (lifecycle.deactivate-app prev-app)
-      (lifecycle.activate-app next-app)
-      {:status :in-app
-       :app next-app
-       :unbind-keys (bind-app-keys next-app.keys)
-       :action :enter-app})))
+    {:state {:current-state :in-app
+             :context {:apps apps
+                       :app next-app
+                       :prev-app app}}
+     :effect :enter-app-effect}))
 
-(fn in-app->enter
-  [state app-name]
-  "
-  Transition the app state machine from an app the user was using with local keybindings
-  to another app that may or may not have local keybindings.
-  Runs the following side-effects
-  - Unbinds the previous app local keys
-  - Calls the :deactivate method of previous app config.fnl table lifecycle
-  - Calls the :activate method of the current app config.fnl table for the new app
-    that we are activating
-  Takes the current app state machine state table
-  Returns the next app state machine state table
-  "
-  (let [{:apps apps
-         :app prev-app
-         :unbind-keys unbind-keys} state
-        next-app (find (by-key app-name) apps)]
-    (when next-app
-      (call-when unbind-keys)
-      (lifecycle.deactivate-app prev-app)
-      (lifecycle.activate-app next-app)
-      {:status :in-app
-       :app next-app
-       :unbind-keys (bind-app-keys next-app.keys)
-       :action :enter-app})))
 
 (fn in-app->leave
-  [state app-name]
+  [state action app-name]
   "
-  Transition the app state machine from an app the user was using with local keybindings
-  to another app that may or may not have local keybindings.
-  Runs the following side-effects
-  - Unbinds the previous app local keys
-  - Calls the :deactivate method of previous app config.fnl table lifecycle
-  - Calls the :activate method of the current app config.fnl table for the new app
-    that we are activating
-  Takes the current app state machine state table
-  Returns the next app state machine state table
+  Transition the app state machine from an app the user was using with local
+  keybindings to another app that may or may not have local keybindings.
+  Because a 'enter (new) app' action is fired before a 'leave (old) app', we
+  know that this will be called AFTER the enter transition has updated the
+  state, so we should not update the state.
+  Takes the current app state machine state table,
+  Kicks off an effect to run leave-app effects and unbind the old app's keys
+  Returns the old state.
   "
-  (let [{:apps         apps
-         :app          current-app
-         :unbind-keys  unbind-keys} state]
-    (if (= current-app.key app-name)
-        (do
-          (call-when unbind-keys)
-          (lifecycle.deactivate-app current-app)
-          {:status :general-app
-           :app :nil
-           :unbind-keys :nil
-           :action :leave-app})
-        nil)))
+  {:state state
+   :effect :leave-app-effect})
 
-(fn ->launch
-  [state app-name]
+(fn launch-app
+  [state action app-name]
   "
-  Using the state machine we also react to launching apps by calling the :launch lifecycle method
-  on apps defined in a user's config.fnl. This way they can run hammerspoon functions when an app
-  is opened like say resizing emacs on launch.
-  Takes the current app state machine state table
-  Calls the lifecycle method on the given app config defined in config.fnl
-  Returns nil which tells the statemachine that no state updates have ocurred.
+  Using the state machine we also react to launching apps by calling the :launch
+  lifecycle method on apps defined in a user's config.fnl. This way they can run
+  hammerspoon functions when an app is opened like say resizing emacs on launch.
+  Takes the current app state machine state table.
+  Kicks off an effect to bind app-specific keys & fire launch app lifecycle
+  Returns a new state.
   "
-  (let [{:apps apps} state
-        app-menu (find (by-key app-name) apps)]
-    (lifecycle.launch-app app-menu)
-    nil))
+  (let [{: apps
+         : app} state
+        next-app (find (by-key app-name) apps)]
+    {:state {:current-state :in-app
+             :context {:apps apps
+                       :app next-app
+                       :prev-app app}}
+     :effect :launch-app-effect}))
 
 (fn ->close
-  [state app-name]
+  [state action app-name]
   "
-  Using the state machine we also react to launching apps by calling the :close lifecycle method
-  on apps defined in a user's config.fnl. This way they can run hammerspoon functions when an app
-  is closed. For instance re-enabling vim mode when an app is closed that was incompatible
+  Using the state machine we also react to launching apps by calling the :close
+  lifecycle method on apps defined in a user's config.fnl. This way they can run
+  hammerspoon functions when an app is closed. For instance re-enabling vim mode
+  when an app is closed that was incompatible
   Takes the current app state machine state table
-  Calls the lifecycle method on the given app config defined in config.fnl
-  Returns nil which tells the statemachine that no state updates have ocurred.
+  Kicks off an effect to bind app-specific keys
+  Returns the old state
   "
-  (let [{:apps apps} state
-        app-menu (find (by-key app-name) apps)]
-    (lifecycle.close-app app-menu)
-    nil))
+  {:state state
+   :effect :close-app-effect})
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -261,22 +220,17 @@ Defines the two states our app state machine can be in:
    modal menu items, or lifecycle methods to trigger other hammerspoon functions
 Maps each state to a table of actions mapped to handlers responsible for
 returning the next state the statemachine is in.
-
-TODO: Currently each handler function is responsible for performing transition
-      side effects like cleaning up previous key bindings and lifecycle methods
-      as well as returning the next statemachine state.
-      In the near future we can likely separate those responsibilities out more
-      akin to something like ClojureScript's re-frame or JS's redux.
 "
+
 (local states
-       {:general-app {:enter-app  ->enter
-                      :leave-app  noop
-                      :launch-app ->launch
-                      :close-app  ->close}
-        :in-app      {:enter-app  in-app->enter
-                      :leave-app  in-app->leave
-                      :launch-app ->launch
-                      :close-app  ->close}})
+       {:general-app {:enter-app ->enter
+                      :leave-app noop
+                      :launch-app launch-app
+                      :close-app ->close}
+        :in-app {:enter-app ->enter
+                 :leave-app in-app->leave
+                 :launch-app launch-app
+                 :close-app ->close}})
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -339,23 +293,19 @@ Assign some simple keywords for each hs.application.watcher event type.
    fsm.state :log-state
    (fn log-state
      [state]
-     (log.df "app is now: %s" (and state.app state.app.key)))))
+     (log.df "app is now: %s" (and state.context.app state.context.app.key)))))
 
-(fn proxy-actions
-  [fsm]
+(fn watch-actions
+  [{: prev-state : next-state : action : effect : extra}]
   "
   Internal API function to emit app-specific state machine events and transitions to
   other state machines. Like telling our modal state machine the user has
   entered into emacs so display the emacs-specific menu modal.
-  Takes the apps finite state machine instance.
-  Performs a side-effect to watch the finite-state-machine and log each action
-  to a list of actions other FSMs can subscribe to like a stream.
+  Subscribes to the apps state machine.
+  Takes a transition record from the FSM.
   Returns nil.
   "
-  (atom.add-watch fsm.state :actions
-                  (fn action-watcher
-                    [state]
-                    (emit state.action state.app))))
+  (emit action next-state.context.app))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -373,7 +323,7 @@ Assign some simple keywords for each hs.application.watcher event type.
   "
   (when fsm
     (let [state (atom.deref fsm.state)]
-      state.app)))
+      state.context.app)))
 
 (fn subscribe
   [f]
@@ -390,6 +340,70 @@ Assign some simple keywords for each hs.application.watcher event type.
       []
       (atom.remove-watch actions key))))
 
+(fn enter-app-effect
+  [context]
+  "
+  Bind keys and lifecycle for the new current app.
+  Return a cleanup function to cleanup these bindings.
+  "
+  (when context.app
+    (lifecycle.activate-app context.app)
+    (let [unbind-keys (bind-app-keys context.app.keys)]
+      (fn []
+        (unbind-keys)))))
+
+(fn launch-app-effect
+  [context]
+  "
+  Bind keys and lifecycle for the next current app.
+  Return a cleanup function to cleanup these bindings.
+  "
+  (when context.app
+    (lifecycle.launch-app context.app)
+    (let [unbind-keys (bind-app-keys context.app.keys)]
+      (fn []
+        (unbind-keys)))))
+
+(fn app-effect-handler
+  [effect-map]
+  "
+  Takes a map of effect->function and returns a function that handles these
+  effects by calling the mapped-to function, and then calls that function's
+  return value (a cleanup function) and calls it on the next transition.
+
+  Unlike the fsm's effect-handler, these are app-aware and only call the cleanup
+  function for that particular app.
+
+  These functions must return their own cleanup function or nil.
+  "
+  ;; Create a one-time atom used to store the cleanup function map
+  (let [cleanup-ref (atom.new {})]
+    ;; Return a subscriber function
+    (fn [{: prev-state : next-state : action : effect : extra}]
+      ;; Call the cleanup function for this app if it's set
+      (call-when (.  (atom.deref cleanup-ref) extra))
+      (let [cleanup-map (atom.deref cleanup-ref)
+            effect-func (. effect-map effect)]
+        ;; Update the cleanup entry for this app with a new func or nil
+        (atom.reset! cleanup-ref
+                     (merge cleanup-map
+                            {extra (call-when effect-func next-state extra)}))))))
+
+(local apps-effect
+       (app-effect-handler
+         {:enter-app-effect (fn [state extra]
+                              (enter-app-effect state.context))
+          :leave-app-effect (fn [state extra]
+                              (when state.context.prev-app
+                                (lifecycle.deactivate-app state.context.prev-app))
+                              nil)
+          :launch-app-effect (fn [state extra]
+                               (launch-app-effect state.context))
+          :close-app-effect (fn [state extra]
+                              (when state.context.prev-app
+                                (lifecycle.close-app state.context.prev-app))
+                              nil)}))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initialization
@@ -404,15 +418,17 @@ Assign some simple keywords for each hs.application.watcher event type.
   Returns a function to cleanup the hs.application.watcher.
   "
   (let [active-app (active-app-name)
-        initial-state {:apps config.apps
-                       :app nil
-                       :status :general-app
-                       :unbind-keys nil
-                       :action nil}
+        initial-context {:apps config.apps
+                         :app nil}
+        template {:state {:current-state :general-app
+                          :context initial-context}
+                  :states states
+                  :log "apps"}
         app-watcher (hs.application.watcher.new watch-apps)]
-    (set fsm (statemachine.new states initial-state :status))
+    (set fsm (statemachine.new template))
+    (fsm.subscribe apps-effect)
     (start-logger fsm)
-    (proxy-actions fsm)
+    (fsm.subscribe watch-actions)
     (enter active-app)
     (: app-watcher :start)
     (fn cleanup []
@@ -424,6 +440,6 @@ Assign some simple keywords for each hs.application.watcher event type.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-{:init init
- :get-app get-app
- :subscribe subscribe}
+{: init
+ : get-app
+ : subscribe}

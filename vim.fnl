@@ -1,15 +1,15 @@
 (local atom (require :lib.atom))
-(local hyper (require :lib.hyper))
-(local {:call-when call-when
-        :contains? contains?
-        :eq?       eq?
-        :filter    filter
-        :find      find
-        :get-in    get-in
-        :has-some? has-some?
-        :map       map
-        :some      some} (require :lib.functional))
-(local machine (require :lib.statemachine))
+(local {: call-when
+        : contains?
+        : eq?
+        : filter
+        : find
+        : get-in
+        : has-some?
+        : map
+        : noop
+        : some} (require :lib.functional))
+(local statemachine (require :lib.statemachine))
 (local {:bind-keys bind-keys} (require :lib.bind))
 (local log (hs.logger.new "vim.fnl" "debug"))
 
@@ -25,9 +25,6 @@ TODO: Create another state machine system to support key chords for bindings
       - Should work a lot like the menu modal state machine where you can
         endlessly enter recursive submenus
 "
-
-;; Debug
-(local hyper (require :lib.hyper))
 
 (var fsm nil)
 
@@ -50,35 +47,33 @@ TODO: Create another state machine system to support key chords for bindings
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Actions
+;; Action dispatch functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn disable
   []
   (when fsm
-    (: box :hide)
-    (: text :hide)
-    (fsm.dispatch :disable)))
+    (fsm.send :disable)))
 
 (fn enable
   []
   (when fsm
-    (fsm.dispatch :enable)))
+    (fsm.send :enable)))
 
 (fn normal
   []
   (when fsm
-    (fsm.dispatch :normal)))
+    (fsm.send :normal)))
 
 (fn visual
   []
   (when fsm
-    (fsm.dispatch :visual)))
+    (fsm.send :visual)))
 
 (fn insert
   []
   (when fsm
-    (fsm.dispatch :insert)))
+    (fsm.send :insert)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -290,23 +285,32 @@ TODO: Create another state machine system to support key chords for bindings
 ;; Side Effects
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(fn normal-mode
-  [state]
+(fn enter-normal-mode
+  [state extra]
   (state-box "Normal")
-  (call-when state.unbind-keys)
-  {:mode :normal
-   :unbind-keys (bind-keys bindings.normal)
-   })
+  (bind-keys bindings.normal))
 
-(fn insert-mode
-  []
+(fn enter-insert-mode
+  [state extra]
   (state-box "Insert")
   (bind-keys bindings.insert))
 
-(fn visual-mode
-  []
+(fn enter-visual-mode
+  [state extra]
   (state-box "Visual")
   (bind-keys bindings.visual))
+
+(fn disable-vim-mode
+  [state extra]
+  (: box :hide)
+  (: text :hide))
+
+(local vim-effect
+       (statemachine.effect-handler
+        {:enter-normal-mode enter-normal-mode
+         :enter-insert-mode enter-insert-mode
+         :enter-visual-mode enter-visual-mode
+         :disable-vim-mode disable-vim-mode}))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -315,37 +319,40 @@ TODO: Create another state machine system to support key chords for bindings
 
 (fn disabled->normal
   [state data]
-  (when (get-in [:config :vim :enabled] state)
-    (normal-mode state)))
+  (when (get-in [:context :config :vim :enabled] state)
+    {:state {:current-state :normal
+             :context state.context}
+     :effect :enter-normal-mode}))
 
 (fn normal->insert
   [state data]
-  (call-when state.unbind-keys)
-  (call-when state.untap)
-  {:mode :insert
-   :unbind-keys (insert-mode)})
+  {:state {:current-state :insert
+           :context state.context}
+   :effect :enter-insert-mode})
 
 (fn normal->visual
   [state data]
-  (call-when state.unbind-keys)
-  (call-when state.untap)
-  {:mode :visual
-   :unbind-keys (visual-mode)})
+  {:state {:current-state :visual
+           :context state.context}
+   :effect :enter-visual-mode})
 
 (fn ->disabled
   [state data]
-  (call-when state.unbind-keys)
-  (call-when state.untap)
-  {:mode :disabled
-   :unbind-keys :nil})
+  {:state {:current-state :disabled
+           :context state.context}
+   :effect :disable-vim-mode})
 
 (fn insert->normal
   [state data]
-  (normal-mode state))
+  {:state {:current-state :normal
+           :context state.context}
+   :effect :enter-normal-mode})
 
 (fn visual->normal
   [state data]
-  (normal-mode state))
+  {:state {:current-state :normal
+           :context state.context}
+   :effect :enter-normal-mode})
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -371,13 +378,13 @@ TODO: Create another state machine system to support key chords for bindings
   [fsm]
   (atom.add-watch fsm.state :logger
                   (fn [state]
-                    (log.f "Vim mode: %s" state.mode))))
+                    (log.f "Vim mode: %s" state.current-state))))
 
 (fn watch-screen
   [fsm active-screen-changed]
   (let [state (atom.deref fsm.state)]
-    (when (~= state.mode :disabled)
-      (state-box state.mode))))
+    (when (~= state.current-state :disabled)
+      (state-box state.current-state))))
 
 ;; (fn log-key
 ;;   [event]
@@ -407,13 +414,14 @@ TODO: Create another state machine system to support key chords for bindings
     screen.
   Returns function to cleanup watcher resources
   "
-  (let [initial {:config      config
-                 :mode        :disabled
-                 :unbind-keys nil}
-        state-machine (machine.new states initial :mode)
+  (let [template {:state {:current-state :disabled
+                          :context {:config config}}
+                  :states states}
+        _fsm (statemachine.new template)
         stop-screen-watcher (create-screen-watcher
-                             (partial watch-screen state-machine))]
-    (set fsm state-machine)
+                             (partial watch-screen _fsm))]
+    (set fsm _fsm)
+    (fsm.subscribe vim-effect)
     (log-updates fsm)
     (when (get-in [:vim :enabled] config)
       (enable))
@@ -425,6 +433,6 @@ TODO: Create another state machine system to support key chords for bindings
 ;; Exports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-{:init    init
- :disable disable
- :enable  enable}
+{: init
+ : disable
+ : enable}
