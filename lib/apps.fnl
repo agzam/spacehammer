@@ -295,7 +295,7 @@ Assign some simple keywords for each hs.application.watcher event type.
      [state]
      (log.df "app is now: %s" (and state.context.app state.context.app.key)))))
 
-(fn action-watcher
+(fn watch-actions
   [{: prev-state : next-state : action : effect : extra}]
   "
   Internal API function to emit app-specific state machine events and transitions to
@@ -364,7 +364,7 @@ Assign some simple keywords for each hs.application.watcher event type.
       (fn []
         (unbind-keys)))))
 
-(fn my-effect-handler
+(fn app-effect-handler
   [effect-map]
   "
   Takes a map of effect->function and returns a function that handles these
@@ -390,7 +390,7 @@ Assign some simple keywords for each hs.application.watcher event type.
                             {extra (call-when effect-func next-state extra)}))))))
 
 (local apps-effect
-       (my-effect-handler
+       (app-effect-handler
          {:enter-app-effect (fn [state extra]
                               (enter-app-effect state.context))
           :leave-app-effect (fn [state extra]
@@ -428,7 +428,7 @@ Assign some simple keywords for each hs.application.watcher event type.
     (set fsm (statemachine.new template))
     (fsm.subscribe apps-effect)
     (start-logger fsm)
-    (fsm.subscribe action-watcher)
+    (fsm.subscribe watch-actions)
     (enter active-app)
     (: app-watcher :start)
     (fn cleanup []
