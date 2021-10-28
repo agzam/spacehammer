@@ -26,15 +26,15 @@
   self refers to history table instance
   "
   (let [win (hs.window.focusedWindow)
-        id (: win :id)
+        id (when win (win:id))
         tbl (. self id)]
     (when win
       (when (= (type tbl) :nil)
         (tset self id []))
       (when tbl
         (let [last-el (. tbl (length tbl))]
-          (when (~= last-el (: win :frame))
-            (table.insert tbl (: win :frame))))))))
+          (when (~= last-el (win:frame))
+            (table.insert tbl (win:frame))))))))
 
 (fn history.pop
   [self]
@@ -43,14 +43,14 @@
   self refers to history table instance
   "
   (let [win (hs.window.focusedWindow)
-        id (: win :id)
+        id (when win (win:id))
         tbl (. self id)]
     (when (and win tbl)
       (let [el (table.remove tbl)
             num-of-undos (length tbl)]
         (if el
             (do
-              (: win :setFrame el)
+              (win:setFrame el)
               (when (< 0 num-of-undos)
                 (alert (.. num-of-undos " undo steps available"))))
             (alert "nothing to undo"))))))
