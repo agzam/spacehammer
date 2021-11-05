@@ -340,7 +340,7 @@ switching menus in one place which is then powered by config.fnl.
     (if (= menu.key prev-menu.key)
         ; nil transition object means keep all state
         nil
-        {:state {:current-state :submenu
+        {:state {:current-state :active
                  :context (merge state.context {:menu menu})}
          :effect :open-submenu})))
 
@@ -360,7 +360,7 @@ switching menus in one place which is then powered by config.fnl.
         (idle->active state action extra))))
 
 
-(fn active->submenu
+(fn active->active
   [state action menu-key]
   "
   Enter a submenu like entering into the Window menu from the default main menu.
@@ -372,7 +372,7 @@ switching menus in one place which is then powered by config.fnl.
         menu (if menu-key
                  (find (by-key menu-key) prev-menu.items)
                  config)]
-    {:state {:current-state :submenu
+    {:state {:current-state :active
              :context (merge state.context {:menu menu})}
      :effect :open-submenu}))
 
@@ -393,7 +393,7 @@ switching menus in one place which is then powered by config.fnl.
            (merge state.context {:stop-timeout (timeout deactivate-modal)})}
    :effect :open-submenu})
 
-(fn submenu->previous
+(fn ->previous
   [state action extra]
   "
   Transition to the previous submenu. Like if you went into the window menu
@@ -407,7 +407,7 @@ switching menus in one place which is then powered by config.fnl.
          :menu menu} state.context
         prev-menu (. hist (- (length hist) 1))]
     (if prev-menu
-        {:state {:current-state :submenu
+        {:state {:current-state :active
                  :context (merge state.context {:menu prev-menu
                                                 :history (butlast hist)})}
          :effect :open-submenu}
@@ -425,14 +425,10 @@ switching menus in one place which is then powered by config.fnl.
 (local states
        {:idle   {:activate       idle->active}
         :active {:deactivate     active->idle
-                 :activate       active->submenu
+                 :activate       active->active
                  :start-timeout  add-timeout-transition
-                 :enter-app      ->enter-app}
-        :submenu {:deactivate    active->idle
-                  :activate      active->submenu
-                  :previous      submenu->previous
-                  :start-timeout add-timeout-transition
-                  :enter-app     ->enter-app}})
+                 :previous       ->previous
+                 :enter-app      ->enter-app}})
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
