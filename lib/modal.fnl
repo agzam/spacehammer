@@ -304,7 +304,7 @@ switching menus in one place which is then powered by config.fnl.
                      config))]
     {:state {:current-state :active
              :context (merge state.context {:menu menu})}
-     :effect :open-submenu}))
+     :effect :open-menu}))
 
 
 (fn active->idle
@@ -341,7 +341,7 @@ switching menus in one place which is then powered by config.fnl.
         nil
         {:state {:current-state :active
                  :context (merge state.context {:menu menu})}
-         :effect :open-submenu})))
+         :effect :open-menu})))
 
 
 (fn active->leave-app
@@ -374,7 +374,7 @@ switching menus in one place which is then powered by config.fnl.
   {:state {:current-state state.current-state
            :context
            (merge state.context {:stop-timeout (timeout deactivate-modal)})}
-   :effect :open-submenu})
+   :effect :open-menu})
 
 (fn ->previous
   [state action extra]
@@ -393,7 +393,7 @@ switching menus in one place which is then powered by config.fnl.
         {:state {:current-state :active
                  :context (merge state.context {:menu prev-menu
                                                 :history (butlast hist)})}
-         :effect :open-submenu}
+         :effect :open-menu}
         (->menu state))))
 
 
@@ -408,7 +408,7 @@ switching menus in one place which is then powered by config.fnl.
 (local states
        {:idle   {:activate       ->menu}
         :active {:deactivate     active->idle
-                 :activate          ->menu
+                 :activate       ->menu
                  :start-timeout  add-timeout-transition
                  :previous       ->previous
                  :enter-app      ->enter-app}})
@@ -436,8 +436,7 @@ switching menus in one place which is then powered by config.fnl.
 
 (local modal-effect
        (statemachine.effect-handler
-        {:show-modal-menu show-modal-menu
-         :open-submenu show-modal-menu}))
+        {:open-menu show-modal-menu}))
 
 (fn proxy-app-action
   [[action data]]
