@@ -162,9 +162,8 @@
   Returns nil
   "
   (let [dir {:h "West" :j "South" :k "North" :l "East"}
-        space (. (hs.window.focusedWindow) :filter :defaultCurrentSpace)
         fn-name (.. :focusWindow (. dir arrow))]
-    (: space fn-name nil true true)
+    (: (hs.window.focusedWindow) fn-name nil true true)
     (highlight-active-window)))
 
 (fn jump-window-left
