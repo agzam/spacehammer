@@ -286,26 +286,25 @@ switching menus in one place which is then powered by config.fnl.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(fn idle->active
-  [state action extra]
+(fn ->menu
+  [state action menu-key]
   "
-  Transition our modal statemachine from the idle state to active where a menu
-  modal is displayed to the user.
-  Takes the current modal state table plus the key of the menu if submenu
-  Kicks off an effect to display the modal or local app menu
-  Returns updated modal state machine state table.
+  Enter a menu like entering into the Window menu from the default main menu.
+  Enters the main menu when called from the idle state.
+  Takes the current menu state table and the submenu key as 'extra'.
+  Returns updated menu state
   "
-  (let [config state.context.config
+  (let [{:config config
+         :menu prev-menu} state.context
         app-menu (apps.get-app)
-        menu (if (and app-menu (has-some? app-menu.items))
-                 app-menu
-                 config)]
+        menu (if menu-key
+                 (find (by-key menu-key) prev-menu.items)
+                 (if (and app-menu (has-some? app-menu.items))
+                     app-menu
+                     config))]
     {:state {:current-state :active
-             :context (merge state.context {:menu menu
-                                            :history (if state.history
-                                                         (conj history menu)
-                                                         [menu])})}
-     :effect :show-modal-menu}))
+             :context (merge state.context {:menu menu})}
+     :effect :open-submenu}))
 
 
 (fn active->idle
@@ -357,24 +356,8 @@ switching menus in one place which is then powered by config.fnl.
         :menu prev-menu} state.context]
     (if (= prev-menu.key config.key)
         nil
-        (idle->active state action extra))))
+        (->menu state))))
 
-
-(fn active->active
-  [state action menu-key]
-  "
-  Enter a submenu like entering into the Window menu from the default main menu.
-  Takes the current menu state table and the submenu key as 'extra'.
-  Returns updated menu state
-  "
-  (let [{:config config
-         :menu prev-menu} state.context
-        menu (if menu-key
-                 (find (by-key menu-key) prev-menu.items)
-                 config)]
-    {:state {:current-state :active
-             :context (merge state.context {:menu menu})}
-     :effect :open-submenu}))
 
 (fn add-timeout-transition
   [state action extra]
@@ -411,7 +394,7 @@ switching menus in one place which is then powered by config.fnl.
                  :context (merge state.context {:menu prev-menu
                                                 :history (butlast hist)})}
          :effect :open-submenu}
-        (idle->active state))))
+        (->menu state))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -423,9 +406,9 @@ switching menus in one place which is then powered by config.fnl.
 ;; These transition functions return transition objects that contain the new
 ;; state key and context.
 (local states
-       {:idle   {:activate       idle->active}
+       {:idle   {:activate       ->menu}
         :active {:deactivate     active->idle
-                 :activate       active->active
+                 :activate          ->menu
                  :start-timeout  add-timeout-transition
                  :previous       ->previous
                  :enter-app      ->enter-app}})
