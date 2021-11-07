@@ -60,6 +60,15 @@ switching menus in one place which is then powered by config.fnl.
 (fn activate-modal
   [menu-key]
   "
+  API to enter the main menu. Only effective when in the idle state (with no
+  modal on screen)
+  Side effectful
+  "
+  (fsm.send :activate menu-key))
+
+(fn enter-modal
+  [menu-key]
+  "
   API to transition to the active state of our modal finite state machine
   It is called by a trigger set on the outside world and provided relevant
   context to determine which menu modal to activate.
@@ -68,7 +77,7 @@ switching menus in one place which is then powered by config.fnl.
   specific menu key.
   Side effectful
   "
-  (fsm.send :activate menu-key))
+  (fsm.send :enter menu-key))
 
 
 (fn deactivate-modal
@@ -145,7 +154,7 @@ switching menus in one place which is then powered by config.fnl.
   Returns a function to activate submenu.
   "
   (fn []
-    (activate-modal key)))
+    (enter-modal key)))
 
 
 (fn select-trigger
@@ -408,7 +417,7 @@ switching menus in one place which is then powered by config.fnl.
 (local states
        {:idle   {:activate       ->menu}
         :active {:deactivate     active->idle
-                 :activate       ->menu
+                 :enter          ->menu
                  :start-timeout  add-timeout-transition
                  :previous       ->previous
                  :enter-app      ->enter-app}})
