@@ -185,7 +185,7 @@ This module works mechanically similar to lib/modal.fnl.
   Returns a new state.
   "
   (let [{: apps
-         : app} state
+         : app} state.context
         next-app (find (by-key app-name) apps)]
     {:state {:current-state :in-app
              :context {:apps apps
