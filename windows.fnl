@@ -29,12 +29,11 @@
         id (when win (win:id))
         tbl (. self id)]
     (when win
-      (when (= (type tbl) :nil)
-        (tset self id []))
-      (when tbl
-        (let [last-el (. tbl (length tbl))]
-          (when (~= last-el (win:frame))
-            (table.insert tbl (win:frame))))))))
+      (if (= (type tbl) :nil)
+          (tset self id [(win:frame)])
+          (let [last-el (. tbl (length tbl))]
+            (when (~= last-el (win:frame))
+              (table.insert tbl (win:frame))))))))
 
 (fn history.pop
   [self]
