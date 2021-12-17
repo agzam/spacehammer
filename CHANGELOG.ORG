@@ -1,6 +1,6 @@
 * [2021-09-16 Thu]
 ** Added
-- [[docs/advice/org][Advising system]]
+- [[docs/advice.org][Advising system]]
 - [[repl.fnl][REPL support]]
 - [[./docs/testing.org][Basic unit testing]]
 * [2020-09-20 Sun]
