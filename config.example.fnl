@@ -1,6 +1,7 @@
 (require-macros :lib.macros)
 (require-macros :lib.advice.macros)
 (local windows (require :windows))
+(local tiling (require :tiling))
 (local emacs (require :emacs))
 (local slack (require :slack))
 (local vim (require :vim))
@@ -164,6 +165,16 @@
          :action "windows:resize-inc-right"
          :repeatable true}])
 
+(local window-swaps
+       [{:key :h
+         :action "tiling:swap-window-left"}
+        {:key :j
+         :action "tiling:swap-window-above"}
+        {:key :k
+         :action "tiling:swap-window-below"}
+        {:key :l
+         :action "tiling:swap-window-right"}])
+
 (local window-resize
        [{:mods [:shift]
          :key "hjkl"
@@ -217,7 +228,10 @@
         window-increments
         window-resize
         window-move-screens
-        [{:key :m
+        [{:key :s
+          :title "Swap"
+          :items window-swaps}
+         {:key :m
           :title "Maximize"
           :action "windows:maximize-window-frame"}
          {:key :c
