@@ -16,7 +16,7 @@
 
    Note that Emacs *has to be running in daemon mode*, [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Emacs-Server.html][see documentation]].
 
-   After Spacehammer invokes ~emacsclient~ , it invokes emacs-lisp function(s). Those functions are in the =~./hammerspoon/spacehammer.el= Emacs package. That package needs to be pre-loaded into Emacs.
+   After Spacehammer invokes ~emacsclient~ , it invokes emacs-lisp function(s). Those functions are in the =~/.hammerspoon/spacehammer.el= Emacs package. That package needs to be pre-loaded into Emacs.
 
 *** Package installation
 
