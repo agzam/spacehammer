@@ -30,6 +30,18 @@
   (swap-window :l))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Resize layout
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(fn resize-layout-left
+  []
+  (hhtwm.resizeLayout "thinner"))
+
+(fn resize-layout-right
+  []
+  (hhtwm.resizeLayout "wider"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spaces
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -102,6 +114,8 @@
  : swap-window-below
  : swap-window-left
  : swap-window-right
+ : resize-layout-left
+ : resize-layout-right
  : init
  ;; : throw-window1
  ;; : throw-window2
