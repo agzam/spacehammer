@@ -23,12 +23,14 @@
     #+begin_src bash
       brew cask install hammerspoon
     #+end_src
-*** Install Fennel
+*** Install Fennel >= v1.0.0
     #+begin_src bash
       brew install luarocks
 
       luarocks install fennel
     #+end_src
+
+    Older versions of Fennel are incompatible with Spacehammer.
 *** Clone Spacehammer
     #+begin_src bash
       git clone https://github.com/agzam/spacehammer ~/.hammerspoon
