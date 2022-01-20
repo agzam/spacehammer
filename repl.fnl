@@ -1,7 +1,6 @@
 (local coroutine (require :coroutine))
 (local fennel (require :fennel))
 (local jeejah (require :jeejah))
-(local view (require :fennelview))
 (local {:merge merge} (require :lib.functional))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
