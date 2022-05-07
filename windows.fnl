@@ -211,8 +211,8 @@
 (fn grid
   [method direction]
   "
-  Moves, expands, or shrinks a the active window by the next grid dimension
-  Grid settings are specified in config.fnl.
+  Moves, expands, or shrinks the active window by the next grid dimension. Grid
+  settings are specified in config.fnl.
   "
   (let [fn-name (.. method direction)
         f (. hs.grid fn-name)]
@@ -339,6 +339,14 @@
   []
   (resize-window :l))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Resize to grid preset
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(fn resize-to-grid
+  [grid]
+  (: history :push)
+  (hs.grid.set (hs.window.focusedWindow) grid))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Move to screen directions
@@ -550,6 +558,7 @@
  : resize-left
  : resize-right
  : resize-up
+ : resize-to-grid
  : set-mouse-cursor-at
  : show-display-numbers
  : show-grid
