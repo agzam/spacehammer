@@ -1,3 +1,10 @@
+(fn emacsclient-exe []
+  "Locate emacsclient executable."
+  (-> "Emacs"
+      hs.application.find
+      (: :path)
+      (: :gsub "Emacs.app" "bin/emacsclient")))
+
 (fn capture [is-note]
   "Activates org-capture"
   (let [key         (if is-note "\"z\"" "")
@@ -5,7 +12,7 @@
         pid         (.. "\"" (: current-app :pid) "\" ")
         title       (.. "\"" (: current-app :title) "\" ")
         run-str     (..
-                     "/usr/local/bin/emacsclient"
+                     (emacsclient-exe)
                      " -c -F '(quote (name . \"capture\"))'"
                      " -e '(spacehammer-activate-capture-frame "
                      pid title key " )' &")
@@ -20,7 +27,7 @@
         title       (.. "\"" (: current-app :title) "\"")
         screen      (.. "\"" (: (hs.screen.mainScreen) :id) "\"")
         run-str     (..
-                     "/usr/local/bin/emacsclient"
+                     (emacsclient-exe)
                      ;; " -c -F '(quote (name . \"edit\"))' "
                      " -e '(spacehammer-edit-with-emacs "
                      pid " " title " " screen " )' &")
@@ -40,7 +47,7 @@
   "Executes given elisp function in emacsclient. If args table present, passes
    them into the function."
   (let [args-lst (when args (.. " '" (table.concat args " '")))
-        run-str  (.. "/usr/local/bin/emacsclient"
+        run-str  (.. (emacsclient-exe)
                      " -e \"(funcall '" elisp-fn
                      (if args-lst args-lst " &")
                      ")\" &")]
