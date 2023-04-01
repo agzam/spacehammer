@@ -34,7 +34,7 @@ Example:
 (fn atom
   [initial]
   "
-  Create an atom instance
+  Creates an atom instance
   Takes an initial value
   Returns atom table instance
 

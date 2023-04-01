@@ -37,7 +37,7 @@ This module works mechanically similar to lib/modal.fnl.
 (fn gen-key
   []
   "
-  Generate a unique, random, base64 encoded string 7 chars long.
+  Generates a unique, random, base64 encoded string 7 chars long.
   Takes no arguments.
   Side effectful.
   Returns unique 7 char, randomized string.
@@ -50,8 +50,7 @@ This module works mechanically similar to lib/modal.fnl.
 (fn emit
   [action data]
   "
-  When an action occurs in our state machine we want to broadcast it for systems
-  like modals to transition.
+  Broadcasts an action from our state machine so modals can transition.
   Takes action name and data to transition another finite state machine.
   Side-effect: Updates the actions atom.
   Returns nil.
@@ -77,7 +76,7 @@ This module works mechanically similar to lib/modal.fnl.
 (fn leave
   [app-name]
   "
-  The user has deactivated\blurred an app we have config defined.
+  The user has deactivated/blurred an app we have config defined.
   Takes the name of the app the user deactivated.
   Transition the state machine to idle from active app state.
   Returns nil.
@@ -112,7 +111,7 @@ This module works mechanically similar to lib/modal.fnl.
 (fn bind-app-keys
   [items]
   "
-  Bind config.fnl app keys  to actions
+  Binds config.fnl app keys to actions
   Takes a list of local app bindings
   Returns a function to call without arguments to remove bindings.
   "
@@ -143,7 +142,7 @@ This module works mechanically similar to lib/modal.fnl.
 (fn ->enter
   [state action app-name]
   "
-  Transition the app state machine from the general, shared key bindings to an
+  Transitions the app state machine from the general, shared key bindings to an
   app we have local keybindings for.
   Kicks off an effect to bind app-specific keys.
   Takes the current app state machine state table
@@ -162,7 +161,7 @@ This module works mechanically similar to lib/modal.fnl.
 (fn in-app->leave
   [state action app-name]
   "
-  Transition the app state machine from an app the user was using with local
+  Transitions the app state machine from an app the user was using with local
   keybindings to another app that may or may not have local keybindings.
   Because a 'enter (new) app' action is fired before a 'leave (old) app', we
   know that this will be called AFTER the enter transition has updated the
@@ -343,8 +342,8 @@ Assign some simple keywords for each hs.application.watcher event type.
 (fn enter-app-effect
   [context]
   "
-  Bind keys and lifecycle for the new current app.
-  Return a cleanup function to cleanup these bindings.
+  Binds keys and lifecycle for the new current app.
+  Returns a cleanup function to cleanup these bindings.
   "
   (when context.app
     (lifecycle.activate-app context.app)
@@ -355,8 +354,8 @@ Assign some simple keywords for each hs.application.watcher event type.
 (fn launch-app-effect
   [context]
   "
-  Bind keys and lifecycle for the next current app.
-  Return a cleanup function to cleanup these bindings.
+  Binds keys and lifecycle for the next current app.
+  Returns a cleanup function to cleanup these bindings.
   "
   (when context.app
     (lifecycle.launch-app context.app)
