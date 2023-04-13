@@ -33,6 +33,11 @@ switching menus in one place which is then powered by config.fnl.
 
 (local log (hs.logger.new "modal.fnl" "debug"))
 (var fsm nil)
+(local default-style {:textFont "Menlo"
+                      :textSize 16
+                      :radius 0
+                      :strokeWidth 0})
+(var style {})
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -249,10 +254,7 @@ switching menus in one place which is then powered by config.fnl.
         text (join "\n" items)]
     (hs.alert.closeAll)
     (alert text
-           {:textFont "Menlo"
-            :textSize 16
-            :radius 0
-            :strokeWidth 0}
+           style
            99999)))
 
 (fn show-modal-menu
@@ -481,6 +483,7 @@ switching menus in one place which is then powered by config.fnl.
                   :states states
                   :log "modal"}
         unsubscribe (apps.subscribe proxy-app-action)]
+    (set style (merge default-style (?. config :modal-style)))
     (set fsm (statemachine.new template))
     (fsm.subscribe modal-effect)
     (start-logger fsm)
