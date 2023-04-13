@@ -10,7 +10,7 @@ action are all vertically aligned based on the longest value of each column.
 (fn max-length
   [items]
   "
-  Finds the max length of each  value in a column
+  Finds the max length of each value in a column
   Takes a list of key value pair lists
   Returns the maximum length in characters.
   "
@@ -38,10 +38,10 @@ action are all vertically aligned based on the longest value of each column.
 (fn align-columns
   [items]
   "
-  Align the key column of the menu items by padding out each
+  Aligns the key column of the menu items by padding out each
   key string with a space to match the longest item key string.
   Takes a list of modal menu items
-  Returns a list of veritcally aligned row strings
+  Returns a list of vertically aligned row strings
   "
   (let [max (max-length items)]
     (map

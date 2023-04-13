@@ -28,7 +28,9 @@
 
 (fn find
   [f tbl]
-  "Execute a function across a table and return the first element where that function returns true."
+  "Executes a function across a table and return the first element where that
+  function returns true.
+  "
   (fu.find tbl f))
 
 (fn get
@@ -105,7 +107,7 @@
 
 (fn split
   [separator str]
-  "Using specified separator, convert string to an array of strings."
+  "Converts string to an array of strings using specified separator."
   (fu.split str separator))
 
 (fn tap
