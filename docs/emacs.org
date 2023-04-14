@@ -104,20 +104,29 @@ That's where you would tweak your editing experience, use hooks, etc. Here's an 
 
 ;;;###autoload
 (defun spacehammer-edit-with-emacs-h (buffer-name pid title)
+  ;; in this example, we're tying the Edit buffer to a file, so LSP works properly
   (with-current-buffer (get-buffer buffer-name)
-    ;; need to set a filename, otherwise lsp in that buffer won't work
+    ;; need to set a filename, LSP can't work otherwise
     (set-visited-file-name (format "/tmp/%s_%s_%s" buffer-name pid title))
+
+    ;; set it as unmodified, so it doesn't complain about unsaved file
     (set-buffer-modified-p nil)
+
+    ;; you can use any mode, even set a different mode for each app, based on its `title'
     (markdown-mode)
+
+    ;; changing major mode usually blows all buffer local vars, and we need them, so it
+    ;; keeps working properly with multiple apps
     (setq-local spacehammer--caller-pid pid)
+
+    ;; if you're using Evil, you probably want to start typing right away
     (evil-insert +1)))
 
 
 ;;;###autoload
 (defun spacehammer-before-finish-edit-with-emacs-h (bufname pid)
-  ;; if you set a visitited file, e.g., for lsp to work, it's probably good idea to do
-  ;; this, so you're not annoyed with a prompt that you're closing a buffer with unsaved
-  ;; content.
+  ;; since we tied the buffer to a file (for lsp), let's make sure it doesn't complain
+  ;; about unsaved content when we're done editing
   (with-current-buffer bufname
     (set-buffer-modified-p nil)))
 
