@@ -49,19 +49,22 @@
 
 (defvar spacehammer-edit-with-emacs-hook nil
   "Hook for when edit-with-emacs buffer gets activated.
+
 Hook function must accept arguments:
 - `buffer-name' - the name of the edit buffer
 - `pid'         - PID of the app that invoked Edit-with-Emacs
 - `title'       - title of the app that invoked Edit-with-Emacs")
 
 (defvar spacehammer-before-finish-edit-with-emacs-hook nil
-  "`edit-with-emacs' finished and dedicated buffer and frame about to get deleted.
+  "Fires when editing is done and the dedicated buffer is about be killed.
+
 Hook function must accept arguments:
 - `buffer-name' - the name of the edit buffer
 - `pid'         - PID of the app that invoked Edit-with-Emacs")
 
 (defvar spacehammer-before-cancel-edit-with-emacs-hook nil
-  "`edit-with-emacs' canceled and dedicated buffer and frame about to get deleted.
+  "Fires when editing is canceled and the dedicated buffer is about to be killed.
+
 Hook function must accept arguments:
 - `buffer-name' - the name of the edit buffer
 - `pid'         - PID of the app that invoked Edit-with-Emacs")
@@ -97,7 +100,7 @@ www.hammerspoon.org/docs/hs.screen.html."
     (run-hook-with-args 'spacehammer-edit-with-emacs-hook buf-name pid title)))
 
 (defun spacehammer-finish-edit-with-emacs ()
-  "When done editing."
+  "Invoke this command when done editing."
   (interactive)
   (when (boundp 'spacehammer--caller-pid)
     (let ((pid (buffer-local-value 'spacehammer--caller-pid (current-buffer))))
@@ -113,7 +116,7 @@ www.hammerspoon.org/docs/hs.screen.html."
        (concat "require(\"emacs\").switchToAppAndPasteFromClipboard (\"" pid "\")")))))
 
 (defun spacehammer-cancel-edit-with-emacs ()
-  "Burn the useless."
+  "Invoke it to cancel previous editing session."
   (interactive)
   (when (boundp 'spacehammer--caller-pid)
     (let ((pid (buffer-local-value 'spacehammer--caller-pid (current-buffer))))

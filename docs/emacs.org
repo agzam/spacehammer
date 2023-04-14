@@ -2,7 +2,7 @@
 
   [[./edit-with-emacs-demo.gif/]]
 
-  Any text, in just any app can be edited using Emacs. The idea is simple - you press a dedicated key-combo (default: =Cmd+Ctrl+O=), Spacehammer copies the existing text & calls ~emacsclient~, which invokes a function that opens a buffer and pastes the text into it. Once you finish editing, you press =C-c C-c=, Emacs grabs the text, switches back to where you were before and pastes the new text in there. It works surprisingly well.
+  Any text, in just about any app can be edited using Emacs. The idea is simple - you press a dedicated key-combo (default: =Cmd+Ctrl+O=), Spacehammer copies the existing text & calls ~emacsclient~, which invokes a function that opens a buffer and pastes the text into it. Once you finish editing, you press =C-c C-c=, Emacs grabs the text, switches back to where you were before and pastes the new text in there. It works surprisingly well.
 
   You can for example:
   - open Browser's Dev Tools;
@@ -39,7 +39,7 @@ There are two options:
 #+end_src
 
 ***** Or symlink to the folder:
-Since you already have the package file in ~/.hammerspoon/, instead of loading it from GitHub, you may choose to load it directly.
+Since you already have the package file in ~/.hammerspoon/, instead of loading it from GitHub, you may choose to load it directly. This is also a preferred method since it ensures that the elisp code always remains compatible with any changes made to the fennel/lua code.
 
 If you're adding it as part of your custom module, you just need to symlink it:
 

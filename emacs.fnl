@@ -28,7 +28,6 @@
         screen      (.. "\"" (: (hs.screen.mainScreen) :id) "\"")
         run-str     (..
                      (emacsclient-exe)
-                     ;; " -c -F '(quote (name . \"edit\"))' "
                      " -e '(spacehammer-edit-with-emacs "
                      pid " " title " " screen " )' &")
         co          (coroutine.create (fn [run-str]
