@@ -41,20 +41,31 @@ There are two options:
 ***** Or symlink to the folder:
 Since you already have the package file in ~/.hammerspoon/, instead of loading it from GitHub, you may choose to load it directly. This is also a preferred method since it ensures that the elisp code always remains compatible with any changes made to the fennel/lua code.
 
-If you're adding it as part of your custom module, you just need to symlink it:
+If you're adding it as part of your custom module that you load in =~/.doom/init.el= (for example) like this:
+
+#+begin_src elisp
+(doom!
+   :custom
+   my-module)
+#+end_src
+then you just need to symlink it:
 
 #+begin_src sh
-ln -s ~/.hammerspoon/ ~/.doom.d/modules/my-module
+mkdir -p ~/.doom.d/modules/custom/my-module/spacehammer
+ln -s ~/.hammerspoon/spacehammer.el ~/.doom.d/modules/custom/my-module/spacehammer/spacehammer.el
 #+end_src
 
 Here's how the dir structure would look like:
 
  #+begin_src
- ├── my-module
-     └── spacehammer
-     │   └── spacehammer.el -> (symlinked to ~/.hammerspoon/spacehammer.el)
-     └── packages.el
-     └── config.el
+ ~/.doom.d
+   └── modules
+       └── custom
+           └── my-module
+               └── spacehammer
+               │   └── spacehammer.el -> (symlinked to ~/.hammerspoon/spacehammer.el)
+               └── packages.el
+               └── config.el
  #+end_src
 
 And the packages.el would be like this:
