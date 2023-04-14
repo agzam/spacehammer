@@ -17,6 +17,8 @@
 ;;
 ;;; Code:
 
+(require 'cl-seq)
+
 (defun spacehammer-switch-to-app (pid)
   "Switch to app with the given PID."
   (when (and pid (eq system-type 'darwin))
@@ -64,6 +66,13 @@ Hook function must accept arguments:
 - `buffer-name' - the name of the edit buffer
 - `pid'         - PID of the app that invoked Edit-with-Emacs")
 
+(defun spacehammer--find-buffer-by-name-prefix (prefix)
+  "Find the first buffer with a name that starts with PREFIX."
+  (let ((buffer-list (buffer-list)))
+    (cl-find-if (lambda (buffer)
+                  (string-prefix-p prefix (buffer-name buffer)))
+                buffer-list)))
+
 (defun spacehammer-edit-with-emacs (&optional pid title screen)
   "Edit anything with Emacs.
 The caller is responsible for setting up the arguments.
@@ -72,7 +81,11 @@ TITLE - title of the window.
 SCREEN - the display from which the call initiates, see:
 www.hammerspoon.org/docs/hs.screen.html."
   (let* ((buf-name (concat "* spacehammer-edit " title " *"))
-         (buffer (get-buffer-create buf-name)))
+         ;; hook functions later could modify the buffer name, you can't expect to always
+         ;; find the buffer originating from the same app using its full-name, but prefix
+         ;; search would work
+         (buffer (or (spacehammer--find-buffer-by-name-prefix buf-name)
+                     (get-buffer-create buf-name ))))
     (unless (bound-and-true-p spacehammer-global-edit-with-emacs-mode)
       (spacehammer-global-edit-with-emacs-mode +1))
     (with-current-buffer buffer
