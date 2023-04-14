@@ -105,7 +105,9 @@ www.hammerspoon.org/docs/hs.screen.html."
        'spacehammer-before-finish-edit-with-emacs-hook
        (buffer-name (current-buffer)) pid)
       (clipboard-kill-ring-save (point-min) (point-max))
-      (kill-buffer-and-window)
+      (if (one-window-p)
+          (kill-buffer)
+        (kill-buffer-and-window))
       (call-process
        (executable-find "hs") nil 0 nil "-c"
        (concat "require(\"emacs\").switchToAppAndPasteFromClipboard (\"" pid "\")")))))
