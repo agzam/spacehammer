@@ -1,3 +1,6 @@
+* [2023-04-13 Thu]
+** Improved
+- Edit-with-Emacs. Simplified and fixed various bugs. Now works with multiple apps.
 * [2021-09-16 Thu]
 ** Added
 - [[docs/advice.org][Advising system]]

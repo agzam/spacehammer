@@ -1,3 +1,10 @@
+(fn emacsclient-exe []
+  "Locate emacsclient executable."
+  (-> "Emacs"
+      hs.application.find
+      (: :path)
+      (: :gsub "Emacs.app" "bin/emacsclient")))
+
 (fn capture [is-note]
   "Activates org-capture"
   (let [key         (if is-note "\"z\"" "")
@@ -5,9 +12,9 @@
         pid         (.. "\"" (: current-app :pid) "\" ")
         title       (.. "\"" (: current-app :title) "\" ")
         run-str     (..
-                     "/usr/local/bin/emacsclient"
+                     (emacsclient-exe)
                      " -c -F '(quote (name . \"capture\"))'"
-                     " -e '(spacehammer/activate-capture-frame "
+                     " -e '(spacehammer-activate-capture-frame "
                      pid title key " )' &")
         timer       (hs.timer.delayed.new .1 (fn [] (io.popen run-str)))]
     (: timer :start)))
@@ -20,9 +27,8 @@
         title       (.. "\"" (: current-app :title) "\"")
         screen      (.. "\"" (: (hs.screen.mainScreen) :id) "\"")
         run-str     (..
-                     "/usr/local/bin/emacsclient"
-                     " -c -F '(quote (name . \"edit\"))' "
-                     " -e '(spacehammer/edit-with-emacs "
+                     (emacsclient-exe)
+                     " -e '(spacehammer-edit-with-emacs "
                      pid " " title " " screen " )' &")
         co          (coroutine.create (fn [run-str]
                                         (io.popen run-str)))
@@ -30,28 +36,17 @@
         _           (hs.eventtap.keyStroke [:cmd] :c)
         next        (hs.pasteboard.changeCount)]
     (when (= prev next)         ; Pasteboard was not updated so no text was selected
-      (hs.eventtap.keyStroke [:cmd] :a)  ; select all
-      (hs.eventtap.keyStroke [:cmd] :c)  ; copy
-      )
-    (coroutine.resume co run-str)))
-
-(fn edit-with-emacs-callback [pid title screen]
-  "Don't remove! - this is callable from Emacs
-   See: `spacehammer/edit-with-emacs` in spacehammer.el"
-  (let [emacs-app   (hs.application.find :Emacs)
-        edit-window (: emacs-app :findWindow :edit)
-        scr         (hs.screen.find (tonumber screen))
-        windows     (require :windows)]
-    (when (and edit-window scr)
-      (: edit-window :moveToScreen scr)
-      (: windows :center-window-frame))))
+      (hs.eventtap.keyStroke [:cmd] :a)  ; select all and then copy
+      (hs.eventtap.keyStroke [:cmd] :c))
+    (coroutine.resume co run-str)
+    (hs.application.open :Emacs)))
 
 (fn run-emacs-fn
   [elisp-fn args]
   "Executes given elisp function in emacsclient. If args table present, passes
    them into the function."
   (let [args-lst (when args (.. " '" (table.concat args " '")))
-        run-str  (.. "/usr/local/bin/emacsclient"
+        run-str  (.. (emacsclient-exe)
                      " -e \"(funcall '" elisp-fn
                      (if args-lst args-lst " &")
                      ")\" &")]
@@ -123,10 +118,10 @@
 
 {:capture                          capture
  :edit-with-emacs                  edit-with-emacs
- :editWithEmacsCallback            edit-with-emacs-callback
  :full-screen                      full-screen
  :maximize                         maximize
  :note                             (fn [] (capture true))
  :switchToApp                      switch-to-app
  :switchToAppAndPasteFromClipboard switch-to-app-and-paste-from-clipboard
- :vertical-split-with-emacs        vertical-split-with-emacs}
+ :vertical-split-with-emacs        vertical-split-with-emacs
+ :run-emacs-fn                     run-emacs-fn}
