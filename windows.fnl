@@ -109,7 +109,7 @@
   (let [win (hs.window.focusedWindow)
         prev-duration hs.window.animationDuration
         config (get-config)
-        ratio  (or config.modules.windows.center-ratio "80:50")
+        ratio  (or (?. config :modules :windows :center-ratio) "80:50")
         screen (hs.screen.primaryScreen)]
     (tset hs.window :animationDuration 0)
     (position-window-center ratio win screen)
