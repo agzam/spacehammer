@@ -21,6 +21,8 @@
 
 (defun spacehammer-switch-to-app (pid)
   "Switch to app with the given PID."
+  (unless (executable-find "hs")
+    (user-error "Hammerspoon IPC command line (hs) not found."))
   (when (and pid (eq system-type 'darwin))
     (call-process (executable-find "hs") nil 0 nil "-c"
                   (concat "require(\"emacs\").switchToApp (\"" pid "\")"))))
@@ -102,6 +104,8 @@ www.hammerspoon.org/docs/hs.screen.html."
 (defun spacehammer-finish-edit-with-emacs ()
   "Invoke this command when done editing."
   (interactive)
+  (unless (executable-find "hs")
+    (user-error "Hammerspoon IPC command line (hs) not found."))
   (when (boundp 'spacehammer--caller-pid)
     (let ((pid (buffer-local-value 'spacehammer--caller-pid (current-buffer))))
       (run-hook-with-args

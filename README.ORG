@@ -21,7 +21,7 @@
 *** Install Hammerspoon
     You can use [[https://brew.sh/][brew]]:
     #+begin_src bash
-      brew cask install hammerspoon
+      brew --cask install hammerspoon
     #+end_src
 *** Install Fennel >= v1.0.0
     #+begin_src bash
