@@ -11,6 +11,13 @@
   - write some javascript;
   - finish editing, press =C-c C-c=
     and it would paste that code back into the Dev Tools console.
+** Prerequisites
+The Hammerspoon IPC utility *must be installed and available in the $PATH.*
+Spacehammer should automatically install it. However, for various reasons (usually related to permissions), sometimes, it may fail to do so. If that's the case, after starting Hammerspoon, pull up its console (click on the 🔨 icon in the menu), then run the cliInstall command, giving it a folder to which the user has access. If Hammerspoon is installed via Homebrew, it is typically the "/opt/homebrew" directory.
+
+```
+hs.ipc.cliInstall("/opt/homebrew")
+~```~
 
 ** Setup and customization
 
