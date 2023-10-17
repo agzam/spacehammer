@@ -1,6 +1,6 @@
 (hs.ipc.cliInstall) ; ensure CLI installed
 
-(local fennel (require :fennel))
+(local fennel (require :spacehammer.vendor.fennel))
 (require :spacehammer.lib.globals)
 (local {:contains? contains?
         :for-each  for-each
@@ -155,6 +155,7 @@ Returns nil. This function causes side-effects.
   Returns nil
   "
   (when (some source-updated? files)
+    (hs.alert "Spacehammer reloaded")
     (hs.console.clearConsole)
     (hs.reload)))
 
@@ -213,13 +214,13 @@ Returns nil. This function causes side-effects.
 (local config (require :config))
 
 ;; Initialize our modules that depend on config
-(local modules [:lib.hyper
-                :vim
-                :windows
-                :apps
-                :lib.bind
-                :lib.modal
-                :lib.apps])
+(local modules [:spacehammer.lib.hyper
+                :spacehammer.vim
+                :spacehammer.windows
+                :spacehammer.apps
+                :spacehammer.lib.bind
+                :spacehammer.lib.modal
+                :spacehammer.lib.apps])
 
 (defadvice get-config-impl
            []
