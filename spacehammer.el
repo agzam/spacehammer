@@ -71,6 +71,10 @@ Hook function must accept arguments:
 - `buffer-name' - the name of the edit buffer
 - `pid'         - PID of the app that invoked Edit-with-Emacs")
 
+(defvar spacehammer--caller-pid nil
+  "Buffer local var to store the process id of the app that invoked
+the edit buffer")
+
 (defun spacehammer--find-buffer-by-name-prefix (prefix)
   "Find the first buffer with a name that starts with PREFIX."
   (let ((buffer-list (buffer-list)))
@@ -94,6 +98,7 @@ www.hammerspoon.org/docs/hs.screen.html."
     (unless (bound-and-true-p spacehammer-global-edit-with-emacs-mode)
       (spacehammer-global-edit-with-emacs-mode +1))
     (with-current-buffer buffer
+      (put 'spacehammer--caller-pid 'permanent-local t)
       (setq-local spacehammer--caller-pid pid)
       (clipboard-yank)
       (deactivate-mark)

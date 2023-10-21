@@ -13,11 +13,9 @@
     and it would paste that code back into the Dev Tools console.
 ** Prerequisites
 The Hammerspoon IPC utility *must be installed and available in the $PATH.*
-Spacehammer should automatically install it. However, for various reasons (usually related to permissions), sometimes, it may fail to do so. If that's the case, after starting Hammerspoon, pull up its console (click on the 🔨 icon in the menu), then run the cliInstall command, giving it a folder to which the user has access. If Hammerspoon is installed via Homebrew, it is typically the "/opt/homebrew" directory.
+Spacehammer should automatically install it. However, for various reasons (usually related to permissions), sometimes, it may fail to do so. If that's the case, after starting Hammerspoon, pull up its console (click on the 🔨 icon in the menu), then run the cliInstall command, giving it a folder to which the user has access, and *important!* is in $PATH. If Hammerspoon is installed via Homebrew, it is typically the "/opt/homebrew" directory.
 
-```
-hs.ipc.cliInstall("/opt/homebrew")
-~```~
+~hs.ipc.cliInstall("/opt/homebrew")~
 
 ** Setup and customization
 
@@ -27,6 +25,9 @@ hs.ipc.cliInstall("/opt/homebrew")
 
 *** Package installation
 The package currently is not published on MELPA or other repositories, so you'd have to use your preferred package manager or whichever way you usually utilize to load things into Emacs.
+
+*** Vanilla Emacs
+Simply load the package either directly from GitHub (see the recipe below), or load =~/.hammerspoon/spacehammer.el= locally. Exact syntax may differ and depends on the package manager used.
 
 *** Doom
 Doom Emacs users can either:
@@ -46,7 +47,7 @@ There are two options:
 #+end_src
 
 ***** Or symlink to the folder:
-Since you already have the package file in ~/.hammerspoon/, instead of loading it from GitHub, you may choose to load it directly. This is also a preferred method since it ensures that the elisp code always remains compatible with any changes made to the fennel/lua code.
+Since you already have the package file in =~/.hammerspoon/=, instead of loading it from GitHub, you may choose to load it directly. This is also a preferred method since it ensures that the elisp code always remains compatible with any changes made to the fennel/lua code.
 
 If you're adding it as part of your custom module that you load in =~/.doom/init.el= (for example) like this:
 
@@ -55,11 +56,13 @@ If you're adding it as part of your custom module that you load in =~/.doom/init
    :custom
    my-module)
 #+end_src
-then you just need to symlink it:
+then you just need to symlink to it:
 
 #+begin_src sh
 mkdir -p ~/.doom.d/modules/custom/my-module/spacehammer
-ln -s ~/.hammerspoon/spacehammer.el ~/.doom.d/modules/custom/my-module/spacehammer/spacehammer.el
+
+ln -s ~/.hammerspoon/spacehammer.el \
+    ~/.doom.d/modules/custom/my-module/spacehammer/spacehammer.el
 #+end_src
 
 Here's how the dir structure would look like:
@@ -79,12 +82,14 @@ And the packages.el would be like this:
 
 #+begin_src elisp
 (when (eq system-type 'darwin)
-  (package! spacehammer :recipe (:local-repo "spacehammer" :files ("*.el"))))
+  (package! spacehammer
+    :recipe (:local-repo "spacehammer" :files ("*.el"))))
 #+end_src
 
 If you don't want to add it to a custom module, everything above can be applied at the level of =~/doom.d=, instead of =my-module=
+
 **** config.el
-That's where you would tweak your editing experience, use hooks, etc. Here's an example config:
+That's where you would tweak your editing experience, use hooks provided by ~spacehammer.el~, etc. Here's an example config:
 
 #+begin_src elisp
 
