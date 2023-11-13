@@ -30,15 +30,13 @@
                      (emacsclient-exe)
                      " -e '(spacehammer-edit-with-emacs "
                      pid " " title " " screen " )' &")
-        co          (coroutine.create (fn [run-str]
-                                        (io.popen run-str)))
         prev        (hs.pasteboard.changeCount)
         _           (hs.eventtap.keyStroke [:cmd] :c)
         next        (hs.pasteboard.changeCount)]
     (when (= prev next)         ; Pasteboard was not updated so no text was selected
       (hs.eventtap.keyStroke [:cmd] :a)  ; select all and then copy
       (hs.eventtap.keyStroke [:cmd] :c))
-    (coroutine.resume co run-str)
+    (io.popen run-str)
     (hs.application.open :Emacs)))
 
 (fn run-emacs-fn
