@@ -88,11 +88,12 @@
   - Binds the config.hyper key to enter hyper mode on press and exit upon
     release.
   "
-  (let [h (or config.hyper {})]
-    (hs.hotkey.bind (or h.mods [])
-                    h.key
-                    enter-hyper-mode
-                    exit-hyper-mode)))
+  (let [h config.hyper]
+    (when h
+       (hs.hotkey.bind (or h.mods [])
+                       h.key
+                       enter-hyper-mode
+                       exit-hyper-mode))))
 
 (fn enabled?
   []
