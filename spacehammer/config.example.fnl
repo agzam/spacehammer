@@ -325,7 +325,7 @@
 (local common-keys
        [{:mods [:alt]
          :key :space
-         :action "lib.modal:activate-modal"}
+         :action "spacehammer.lib.modal:activate-modal"}
         {:mods [:alt]
          :key :n
          :action "apps:next-app"}
