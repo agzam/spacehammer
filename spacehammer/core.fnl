@@ -1,4 +1,10 @@
-(hs.ipc.cliInstall) ; ensure CLI installed
+;; ensure CLI installed
+(let [homebrew-silicon-prefix "/opt/homebrew"]
+  ;; check package.path for the homebrew's fallpack path to unbreak CLI installs on arm64
+  ;; hardware. See https://github.com/Hammerspoon/hammerspoon/pull/3082 for more info.
+  (if (string.find homebrew-silicon-prefix package.path)
+      (hs.ipc.cliInstall homebrew-silicon-prefix)
+      (hs.ipc.cliInstall)))
 
 (local fennel (require :spacehammer.vendor.fennel))
 (require :spacehammer.lib.globals)
