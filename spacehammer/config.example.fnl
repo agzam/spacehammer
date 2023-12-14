@@ -9,15 +9,6 @@
         :logf logf} (require :spacehammer.lib.functional))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; WARNING
-;; Make sure you are customizing ~/.spacehammer/config.fnl and not
-;; ~/.hammerspoon/config.fnl
-;; Otherwise you will lose your customizations on upstream changes.
-;; A copy of this file should already exist in your ~/.spacehammer directory.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Table of Contents
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -91,9 +82,6 @@
 ;; General
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; If you would like to customize this we recommend copying this file to
-;; ~/.spacehammer/config.fnl. That will be used in place of the default
-;; and will not be overwritten by upstream changes when spacehammer is updated.
 (local music-app "Spotify")
 
 (local return
