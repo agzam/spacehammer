@@ -51,19 +51,26 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; create custom config file if it doesn't exist
+;; create custom config and/or init files if either doesn't exist
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;; If ~/.spacehammer/config.fnl does not exist
 ;; - Create ~/.spacehammer dir
 ;; - Copy default config.example.fnl to ~/.spacehammer/config.fnl
-(let [example-path (hs.spoons.resourcePath "config.example.fnl")
-      target-path (.. customdir "/config.fnl")]
-  (when (not (file-exists? target-path))
-    (log.d (.. "Copying " example-path " to " target-path))
+;; If ~/.spacehammer/init.fnl does not exist
+;; - Copy default init.example.fnl to ~/.spacehammer/init.fnl
+(let [example-config-path (hs.spoons.resourcePath "config.example.fnl")
+      example-init-path (hs.spoons.resourcePath "init.example.fnl")
+      target-config-path (.. customdir "/config.fnl")
+      target-init-path (.. customdir "/init.fnl")]
+  (when (not (file-exists? target-config-path))
+    (log.d (.. "Copying " example-config-path " to " target-config-path))
     (hs.fs.mkdir customdir)
-    (copy-file example-path target-path)))
+    (copy-file example-config-path target-config-path))
+  (when (not (file-exists? target-init-path))
+    (log.d (.. "Copying " example-init-path " to " target-init-path))
+    (copy-file example-init-path target-init-path)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -76,21 +83,6 @@
 (when (file-exists? (.. customdir "/config.fnl"))
   (global custom-files-watcher (watch-files customdir)))
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Set utility keybindings
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;; toggle hs.console with Ctrl+Cmd+~
-(hs.hotkey.bind
- [:ctrl :cmd] "`" nil
- (fn []
-   (if-let
-    [console (hs.console.hswindow)]
-    (when (= console (hs.console.hswindow))
-      (hs.closeConsole))
-    (hs.openConsole))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load custom init.fnl file (if it exists)
