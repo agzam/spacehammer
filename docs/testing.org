@@ -8,7 +8,7 @@ running scripts against the hammerspoon CLI =hs=.
 Run tests by invoking the following shell command within the =~/.hammerspoon= directory:
 
 #+begin_src bash :dir ..
-./run-test test/*.fnl
+./run-test spacehammer/test/*.fnl
 #+end_src
 
 Which will output something like the following:
@@ -275,4 +275,4 @@ Run the following command, will only work if Node is installed:
 #+begin_src bash
 npm install nodemon
 #+end_src
-
+test
