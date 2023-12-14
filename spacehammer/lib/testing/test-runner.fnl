@@ -1,5 +1,4 @@
 (local fennel (require :spacehammer.vendor.fennel))
-(print "Imported fennel")
 (require :spacehammer.lib.globals)
 (local {: map
         : slice
