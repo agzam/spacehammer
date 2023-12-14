@@ -17,7 +17,7 @@
 (fn copy-file
   [source dest]
   "
-  Copies the contents of a source file to a destination file.
+  Copy the contents of a source file to a destination file.
   Takes a source file path and a destination file path.
   Returns nil
   "
@@ -63,9 +63,8 @@
 (fn config-reloader
   [files]
   "
-  If the list of files contains some hammerspoon or spacehammer source files:
-  reload hammerspoon
-  Takes a list of files from our config file watcher.
+  Reload hammerspoon if the list of files contains some hammerspoon or spacehammer source files
+  Takes a list of files (intended for use with our config file watcher).
   Performs side effect of reloading hammerspoon.
   Returns nil
   "
@@ -77,8 +76,7 @@
 (fn watch-files
   [dir]
   "
-  Watches hammerspoon or spacehammer source files. When a file updates we reload
-  hammerspoon.
+  Watch a directory of source files. When a file updates we reload hammerspoon.
   Takes a directory to watch.
   Returns a function to stop the watcher.
   "
