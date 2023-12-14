@@ -17,7 +17,5 @@ fennel["macro-path"] = scriptPath .. "?.fnl;" .. scriptPath .. "?/init-macros.fn
 
 table.insert(package.loaders or package.searchers, fennel.searcher)
 
-print("Loading test-runner")
 local testRunner = require("spacehammer.lib.testing.test-runner")
--- TODO: Knock off the first arg, which is the base script path
 testRunner["load-tests"](_cli.args)
