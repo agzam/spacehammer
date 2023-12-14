@@ -41,29 +41,6 @@
 (set hs.hints.fontSize 30)
 (set hs.window.animationDuration 0.2)
 
-"
-alert :: str, { style }, seconds -> nil
-Shortcut for showing an alert on the primary screen for a specified duration
-Takes a message string, a style table, and the number of seconds to show alert
-Returns nil. This function causes side-effects.
-"
-(global alert
-        (afn
-         alert
-         [str style seconds]
-         "
-         Global alert function used for spacehammer modals and reload
-         alerts after config reloads
-         "
-         (hs.alert.show str
-                        style
-                        (hs.screen.primaryScreen)
-                        seconds)))
-
-(global fw hs.window.focusedWindow)
-
-(global pprint (fn [x] (print (fennel.view x))))
-
 (global get-config
         (afn get-config
           []
