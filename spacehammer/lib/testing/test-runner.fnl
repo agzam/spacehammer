@@ -5,12 +5,15 @@
         : pprint}  (require :spacehammer.lib.functional))
 
 ;; Setup some globals for test files and debugging
+
+
 (global {: after
          : before
          : describe
          : it} (require :spacehammer.lib.testing))
 
 ;; Pull in some locals from the testing library as well
+
 (local {: init
         : collect-tests
         : run-all-tests} (require :spacehammer.lib.testing))
@@ -29,7 +32,10 @@
         (print "Running tests for" test-file-path)
         (fennel.dofile test-file-path))))
 
+
+
   (collect-tests)
   (run-all-tests))
+
 
 {: load-tests}
