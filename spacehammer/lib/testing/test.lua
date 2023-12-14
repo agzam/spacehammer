@@ -33,4 +33,3 @@ local testRunner = require("spacehammer.lib.testing.test-runner")
 print(testRunner) -- DELETEME
 -- TODO: Knock off the first arg, which is the base script path
 testRunner["load-tests"](_cli.args)
-return {}
