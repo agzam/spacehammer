@@ -4,24 +4,19 @@
         : slice
         : pprint}  (require :spacehammer.lib.functional))
 
-(local homedir (os.getenv "HOME"))
-(local customdir (.. homedir "/.spacehammer"))
-(tset fennel :path (.. customdir "/?.fnl;" fennel.path))
-(tset fennel :path (.. customdir "/?/init.fnl;" fennel.path))
-
 ;; Setup some globals for test files and debugging
 
 
 (global {: after
          : before
          : describe
-         : it} (require :lib.testing))
+         : it} (require :spacehammer.lib.testing))
 
 ;; Pull in some locals from the testing library as well
 
 (local {: init
         : collect-tests
-        : run-all-tests} (require :lib.testing))
+        : run-all-tests} (require :spacehammer.lib.testing))
 
 (fn load-tests
   [args]

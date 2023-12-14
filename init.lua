@@ -15,12 +15,10 @@ function Spacehammer:init()
   fennel = require("spacehammer.vendor.fennel")
   fennel.path = scriptPath .. "?.fnl;" .. scriptPath .. "?/init.fnl;" .. fennel.path
   fennel['macro-path'] = scriptPath .. "?.fnl;" .. scriptPath .. "?/init-macros.fnl;" .. scriptPath .. "?/init.fnl;" .. fennel.path
-  print(hs.inspect(package.searchers))
   table.insert(package.loaders or package.searchers, fennel.searcher)
 end
 
 function Spacehammer:start()
-  print(hs.inspect(package.searchers))
   require('spacehammer.core')
   hs.alert.show("Spacehammer config loaded")
 end

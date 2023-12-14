@@ -8,7 +8,6 @@
         : get-advice
         : print-advisable-keys} (require :spacehammer.lib.advice))
 
-(local fennel (require :spacehammer.vendor.fennel))
 (local is (require :spacehammer.lib.testing.assert))
 (local {: join
         : map} (require :spacehammer.lib.functional))
