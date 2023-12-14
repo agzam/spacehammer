@@ -8,13 +8,12 @@
 
 (local fennel (require :spacehammer.vendor.fennel))
 (require :spacehammer.lib.globals)
-(local {:contains? contains?
-        :for-each  for-each
-        :map       map
-        :merge     merge
-        :reduce    reduce
-        :split     split
-        :some      some} (require :spacehammer.lib.functional))
+(local {: file-exists?
+        : copy-file
+        : watch-files} (require :spacehammer.lib.files))
+(local {: map
+        : merge
+        : reduce} (require :spacehammer.lib.functional))
 (local atom (require :spacehammer.lib.atom))
 (require-macros :spacehammer.lib.macros)
 (require-macros :spacehammer.lib.advice.macros)
@@ -73,35 +72,11 @@ Returns nil. This function causes side-effects.
           "
           (error "get-config can only be called after all modules have initialized")))
 
-(fn file-exists?
-  [filepath]
-  "
-  Determine if a file exists and is readable.
-  Takes a file path string
-  Returns true if file is readable
-  "
-  (let [file (io.open filepath "r")]
-    (when file
-      (io.close file))
-    (~= file nil)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; create custom config file if it doesn't exist
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(fn copy-file
-  [source dest]
-  "
-  Copies the contents of a source file to a destination file.
-  Takes a source file path and a destination file path.
-  Returns nil
-  "
-  (let [default-config (io.open source "r")
-        custom-config (io.open dest "a")]
-    (each [line _ (: default-config :lines)]
-      (: custom-config :write (.. line "\n")))
-    (: custom-config :close)
-    (: default-config :close)))
 
 ;; If ~/.spacehammer/config.fnl does not exist
 ;; - Create ~/.spacehammer dir
@@ -117,66 +92,6 @@ Returns nil. This function causes side-effects.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; auto reload config
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(fn source-filename?
-  [file]
-  "
-  Determine if a file is not an emacs backup file which starts with \".#\"
-  Takes a file path string
-  Returns true if it's a source file and not an emacs backup file.
-  "
-  (not (string.match file ".#")))
-
-(fn source-extension?
-  [file]
-  "
-  Determine if a file is a .fnl or .lua file
-  Takes a file string
-  Returns true if file extension ends in .fnl or .lua
-  "
-  (let [ext (split "%p" file)]
-    (and
-     (or (contains? "fnl" ext)
-         (contains? "lua" ext))
-     (not (string.match file "-test%..*$")))))
-
-
-(fn source-updated?
-  [file]
-  "
-  Determine if a file is a valid source file that we can load
-  Takes a file string path
-  Returns true if file is not an emacs backup and is a .fnl or .lua type.
-  "
-  (and (source-filename? file)
-       (source-extension? file)))
-
-(fn config-reloader
-  [files]
-  "
-  If the list of files contains some hammerspoon or spacehammer source files:
-  reload hammerspoon
-  Takes a list of files from our config file watcher.
-  Performs side effect of reloading hammerspoon.
-  Returns nil
-  "
-  (when (some source-updated? files)
-    (hs.alert "Spacehammer reloaded")
-    (hs.console.clearConsole)
-    (hs.reload)))
-
-(fn watch-files
-  [dir]
-  "
-  Watches hammerspoon or spacehammer source files. When a file updates we reload
-  hammerspoon.
-  Takes a directory to watch.
-  Returns a function to stop the watcher.
-  "
-  (let [watcher (hs.pathwatcher.new dir config-reloader)]
-    (: watcher :start)
-    (fn []
-      (: watcher :stop))))
 
 ;; Create a global config-files-watcher. Calling it stops the default watcher
 (global config-files-watcher (watch-files hs.configdir))
