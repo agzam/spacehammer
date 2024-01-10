@@ -9,6 +9,7 @@
         :reduce    reduce
         :split     split
         :some      some} (require :lib.functional))
+(local {: logger} (require :lib.utils))
 (local atom (require :lib.atom))
 (require-macros :lib.macros)
 (require-macros :lib.advice.macros)
@@ -24,7 +25,7 @@
 (local customdir (.. homedir "/.spacehammer"))
 (tset fennel :path (.. customdir "/?.fnl;" fennel.path))
 
-(local log (hs.logger.new "\tcore.fnl\t" "debug"))
+(local log (logger "\tcore.fnl\t" "debug"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; defaults
@@ -236,3 +237,6 @@ Returns nil. This function causes side-effects.
                       {path (module.init config)})))
              (reduce #(merge $1 $2) {})))
 
+;; override log level for named loggers in config
+(each [logger-id level (pairs (or config.log-levels {}))]
+  (logger logger-id level))
