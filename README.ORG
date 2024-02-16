@@ -74,7 +74,7 @@
 
        b) because Spacehammer allows you to keep fingers on the home row.
 
-    By default =LEAD m a= - =jump to music app= is configured to work with Spotify, but you can change that in =~./spacehammer/config.fnl=
+    By default =LEAD m a= - =jump to music app= is configured to work with Spotify, but you can change that in =~/.spacehammer/config.fnl=
 
 *** Edit anything [with Emacs]
     You can edit any text in any app =Cmd+Ctrl+O=. Currently, it supports only Emacs. Read more [[docs/emacs.org][here]].
