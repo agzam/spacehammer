@@ -1,5 +1,6 @@
 (local {: do-action} (require :lib.bind))
-(local log (hs.logger.new "lifecycle.fnl" "debug"))
+(local {: logger} (require :lib.utils))
+(local log (logger "lifecycle.fnl" "debug"))
 
 
 "
