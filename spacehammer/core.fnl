@@ -6,7 +6,6 @@
       (hs.ipc.cliInstall homebrew-silicon-prefix)
       (hs.ipc.cliInstall)))
 
-(local fennel (require :spacehammer.vendor.fennel))
 (require :spacehammer.lib.globals)
 (local {: file-exists?
         : copy-file
@@ -15,6 +14,7 @@
         : merge
         : reduce} (require :spacehammer.lib.functional))
 (local atom (require :spacehammer.lib.atom))
+(local {: fennel : paths} (require :spacehammer.env))
 (require-macros :spacehammer.lib.macros)
 (require-macros :spacehammer.lib.advice.macros)
 
@@ -26,7 +26,7 @@
 
 ;; Make ~/.spacehammer folder override repo files
 (local homedir (os.getenv "HOME"))
-(local customdir (.. homedir "/.spacehammer"))
+(local customdir paths.configdir)
 (tset fennel :path (.. customdir "/?.fnl;" fennel.path))
 
 (local log (hs.logger.new "\tcore.fnl\t" "debug"))

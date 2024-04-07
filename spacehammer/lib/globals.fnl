@@ -1,4 +1,4 @@
-(local fennel (require :spacehammer.vendor.fennel))
+(local {: fennel} (require :spacehammer.env))
 (local {: map} (require :spacehammer.lib.functional))
 (require-macros :spacehammer.lib.advice.macros)
 

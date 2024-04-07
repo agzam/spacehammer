@@ -3,7 +3,7 @@ Advising API to register functions
 "
 
 (require-macros :spacehammer.lib.macros)
-(local fennel (require :spacehammer.vendor.fennel))
+(local {: fennel} (require :spacehammer.env))
 (local {: contains?
         : compose
         : filter

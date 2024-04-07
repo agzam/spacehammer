@@ -6,19 +6,18 @@ local Spacehammer = {
   homepage = "https://github.com/agzam/spacehammer"
 }
 
+Spacehammer.paths = {}
+
 function Spacehammer:init()
-  local scriptPath = hs.spoons.scriptPath()
-
-  package.path = package.path .. ";" .. scriptPath .. "?.lua;" .. scriptPath .. "?/init.lua;"
-  package.cpath = package.cpath .. ";" .. scriptPath .. "?.so;"
-
-  fennel = require("spacehammer.vendor.fennel")
-  fennel.path = scriptPath .. "?.fnl;" .. scriptPath .. "?/init.fnl;" .. fennel.path
-  fennel['macro-path'] = scriptPath .. "?.fnl;" .. scriptPath .. "?/init-macros.fnl;" .. scriptPath .. "?/init.fnl;" .. fennel.path
-  table.insert(package.loaders or package.searchers, fennel.searcher)
+  local fennelPath = hs.spoons.resourcePath("vendor/fennel.lua")
+  Spacehammer.paths.fennel = fennelPath
 end
 
 function Spacehammer:start()
+  local envPath = hs.spoons.resourcePath("spacehammer/env.lua")
+  local env = dofile(envPath)
+
+  _G['fennel-installed'] = nil
   require('spacehammer.core')
   hs.alert.show("Spacehammer config loaded")
 end
