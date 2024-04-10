@@ -24,6 +24,7 @@ switching menus in one place which is then powered by config.fnl.
         : map
         : merge}
        (require :lib.functional))
+(local {: logger} (require :lib.utils))
 (local {:align-columns align-columns}
        (require :lib.text))
 (local {:action->fn action->fn
@@ -31,7 +32,7 @@ switching menus in one place which is then powered by config.fnl.
        (require :lib.bind))
 (local lifecycle (require :lib.lifecycle))
 
-(local log (hs.logger.new "modal.fnl" "debug"))
+(local log (logger "modal.fnl" "debug"))
 (var fsm nil)
 (local default-style {:textFont "Menlo"
                       :textSize 16
