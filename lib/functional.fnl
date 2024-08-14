@@ -141,10 +141,9 @@
 
 (fn reduce
   [f acc tbl]
-  (var result acc)
-  (each [k v (seq tbl)]
-    (set result (f result v k)))
-  result)
+  (accumulate [acc acc
+               k v (seq tbl)]
+    (f acc v k)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

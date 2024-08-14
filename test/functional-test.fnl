@@ -42,4 +42,9 @@
         (fn []
           (is.eq? (f.some #(> $1 3) [1 2 3 4 5 6]) true "some did not find that table has elements greater than 3")
           (is.eq? (f.some #(> $1 3) [1 2 3]) false "some incorrectly found that table has elements greater than 3")))
+
+    (it "reduce applies a function to each k v of a sequence, accumulating an returning an end result"
+        (fn []
+          (is.eq? (f.reduce #(.. $1 $2) "" [5 4 3 2 1]) "54321" "reduce did not concat list into string")
+          (is.eq? (f.reduce #(if (> $1 $3) $1 $3) 0 [1 3 5 2 0]) 5 "reduce did not find max")))
     ))
