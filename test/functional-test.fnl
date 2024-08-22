@@ -47,4 +47,28 @@
         (fn []
           (is.eq? (f.reduce #(.. $1 $2) "" [5 4 3 2 1]) "54321" "reduce did not concat list into string")
           (is.eq? (f.reduce #(if (> $1 $3) $1 $3) 0 [1 3 5 2 0]) 5 "reduce did not find max")))
-    ))
+
+    (it "(map) traverses a table"
+        (fn []
+          (is.eq?
+           (fennel.view (f.map (fn [x] x) [:a :b :c]))
+           (fennel.view [:a :b :c])
+           "same table")))
+
+    (it "(map) traverses a table with a transform"
+        (fn []
+          (is.eq?
+           (fennel.view (f.map (fn [x] (string.upper x)) [:a :b :c]))
+           (fennel.view [:A :B :C])
+           "capitalized")))
+
+    (it "(map) traverses multiple tables"
+        (fn []
+          (is.eq?
+           (fennel.view
+            (f.map
+             (fn [a b]
+               (f.concat b a)) [:a :b :c] [1 2 3]))
+           (fennel.view
+            [[:a 1] [:b 2] [:c 3]])
+           "data from both tables appear")))))
