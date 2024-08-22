@@ -221,16 +221,6 @@
   []
   tbl))
 
-(fn concat
- [...]
- (reduce
-  (fn [cat tbl]
-    (each [_ v (ipairs tbl)]
-      (table.insert cat v))
-    cat)
-  []
-  [...]))
-
 (fn some
   [f tbl]
   (let [filtered (filter f tbl)]
