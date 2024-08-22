@@ -255,7 +255,8 @@
 ;; Exports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-{: butlast
+{: apply
+ : butlast
  : call-when
  : compose
  : concat
@@ -281,7 +282,7 @@
  : reduce
  : seq
  : seq?
- : some
  : slice
+ : some
  : split
  : tap}
