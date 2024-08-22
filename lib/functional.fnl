@@ -177,12 +177,11 @@
         result []]
     (if (= 1 (length tbls))
         (table.insert result (. tbls 1))
-        (let []
-          (for [idx 1 (length (. tbls 1))]
-            (let [inner []]
-              (each [_ tbl (ipairs tbls) &until (not (. tbl idx))]
-                (table.insert inner (. tbl idx)))
-              (table.insert result inner)))))
+        (for [idx 1 (length (. tbls 1))]
+          (let [inner []]
+            (each [_ tbl (ipairs tbls) &until (not (. tbl idx))]
+              (table.insert inner (. tbl idx)))
+            (table.insert result inner))))
     result))
 
 (fn map [f ...]
@@ -193,7 +192,7 @@
           (apply f v))
         (accumulate [acc []
                      _ t (ipairs tbls)]
-          (concat acc [(apply f (table.unpack t))])))))
+          (concat acc [(apply f t)])))))
 
 (fn map-kv [f coll]
   "Maps through an associative table, passing each k/v pair to f"
