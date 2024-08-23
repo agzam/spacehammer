@@ -1,0 +1,3 @@
+[submodule "hhtwm"]
+	path = hhtwm-upstream
+	url = https://github.com/szymonkaliski/hhtwm
