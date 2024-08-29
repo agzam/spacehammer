@@ -50,25 +50,25 @@
 
     (it "(map) traverses a table"
         (fn []
-          (is.eq?
-           (fennel.view (f.map (fn [x] x) [:a :b :c]))
-           (fennel.view [:a :b :c])
+          (is.seq-eq?
+           (f.map (fn [x] x) [:a :b :c])
+           [:a :b :c]
            "same table")))
 
     (it "(map) traverses a table with a transform"
         (fn []
-          (is.eq?
-           (fennel.view (f.map (fn [x] (string.upper x)) [:a :b :c]))
-           (fennel.view [:A :B :C])
+          (is.seq-eq?
+           (f.map (fn [x] (string.upper x)) [:a :b :c])
+           [:A :B :C]
            "capitalized")))
 
     (it "(map) traverses multiple tables"
         (fn []
-          (is.eq?
-           (fennel.view
-            (f.map
-             (fn [a b]
-               (f.concat b a)) [:a :b :c] [1 2 3]))
-           (fennel.view
-            [[:a 1] [:b 2] [:c 3]])
-           "data from both tables appear")))))
+           (is.eq?
+            (fennel.view
+             (f.map
+              (fn [a b]
+                (f.concat b a)) [:a :b :c] [1 2 3]))
+            (fennel.view
+             [[:a 1] [:b 2] [:c 3]])
+            "data from both tables appear")))))
