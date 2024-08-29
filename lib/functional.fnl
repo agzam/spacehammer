@@ -125,6 +125,10 @@
      (set ct (+ ct 1))))
   ct)
 
+(fn apply [f ...]
+  (let [args [...]]
+    (f (table.unpack args))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Reduce Primitives
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -145,6 +149,11 @@
                k v (seq tbl)]
     (f acc v k)))
 
+(fn concat [...]
+  (reduce (fn [cat tbl]
+            (each [_ v (ipairs tbl)]
+              (table.insert cat v))
+            cat) [] [...]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Reducers
@@ -162,14 +171,33 @@
    tbl
    paths))
 
-(fn map
-  [f tbl]
-  (reduce
-    (fn [new-tbl v k]
-      (table.insert new-tbl (f v k))
-      new-tbl)
-    []
-    tbl))
+(fn zip [...]
+  "Groups corresponding elements from multiple lists into a new list, truncating at the length of the smallest list."
+  (let [tbls [...]
+        result []]
+    (if (= 1 (length tbls))
+        (table.insert result (. tbls 1))
+        (for [idx 1 (length (. tbls 1))]
+          (let [inner []]
+            (each [_ tbl (ipairs tbls) &until (not (. tbl idx))]
+              (table.insert inner (. tbl idx)))
+            (table.insert result inner))))
+    result))
+
+(fn map [f ...]
+  (let [args [...]
+        tbls (zip (table.unpack args))]
+    (if (= 1 (count args))
+        (icollect [_ v (pairs (first args))]
+          (apply f v))
+        (accumulate [acc []
+                     _ t (ipairs tbls)]
+          (concat acc [(apply f t)])))))
+
+(fn map-kv [f coll]
+  "Maps through an associative table, passing each k/v pair to f"
+  (icollect [k v (pairs coll)]
+    (f k v)))
 
 (fn merge
   [...]
@@ -191,16 +219,6 @@
    xs)
   []
   tbl))
-
-(fn concat
- [...]
- (reduce
-  (fn [cat tbl]
-    (each [_ v (ipairs tbl)]
-      (table.insert cat v))
-    cat)
-  []
-  [...]))
 
 (fn some
   [f tbl]
@@ -237,7 +255,8 @@
 ;; Exports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-{: butlast
+{: apply
+ : butlast
  : call-when
  : compose
  : concat
@@ -257,12 +276,13 @@
  : last
  : logf
  : map
+ : map-kv
  : merge
  : noop
  : reduce
  : seq
  : seq?
- : some
  : slice
+ : some
  : split
  : tap}

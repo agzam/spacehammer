@@ -3,9 +3,13 @@
         : count
         : concat
         : contains?
+        : apply
         : map
+        : map-kv
         : for-each
-        : split} (require :lib.functional))
+        : split
+        : logf
+        } (require :lib.functional))
 (local {:global-filter global-filter} (require :lib.utils))
 (local {:atom   atom
         :deref  deref
@@ -436,7 +440,7 @@
   (reset! screen-number-canvases []))
 
 (fn monitor-item
-  [screen i]
+  [i screen]
   "
   Creates a menu item to move the frontMost window to the specified screen index
   Takes a hs.screen instance and an index integer
@@ -471,7 +475,7 @@
   Returns mutated modal menu table-map
   "
   (->> screens
-       (map monitor-item)
+       (map-kv monitor-item)
        (concat menu.items)
        (tset menu :items))
   menu)
