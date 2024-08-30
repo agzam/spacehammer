@@ -3,8 +3,9 @@
         : map
         : split}
        (require :lib.functional))
+(local {: logger} (require :lib.utils))
 
-(local log (hs.logger.new "bind.fnl" "debug"))
+(local log (logger "bind.fnl" "debug"))
 
 (fn do-action
   [action args]
