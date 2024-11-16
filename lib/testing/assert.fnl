@@ -18,6 +18,27 @@
                  (+ matches 1)
                  matches))) (.. message " instead got " (hs.inspect actual))))
 
+(fn all? [pred iter]
+  (var result true)
+  (each [k v (iter)]
+    (when (not (pred k v))
+      (set result false)))
+  result)
+
+(fn exports.table-eq? [actual expected message]
+  ; Ensure both are tables
+  (if (and (= (type actual) :table)
+           (= (type expected) :table))
+    ; NOTE: We have to wrap the iterators in a function returning them so all can use them in `each`
+    (assert (and
+              ; Ensure all keys in actual are in expected
+              (all? (fn [k v] (= v (. expected k))) #(pairs actual))
+              ; Ensure all keys in expected are in actual, to ensure expected isn't just a superset
+              (all? (fn [k v] (= v (. actual k))) #(pairs expected)))
+            (.. message " expected " (hs.inspect expected) " instead got " (hs.inspect actual)))
+    (assert false (.. message " expected two tables but got "
+                      (type actual) " and " (type expected)))))
+
 (fn exports.ok?
   [actual message]
   (assert (= (not (not actual)) true) (.. message " instead got " (hs.inspect actual))))
