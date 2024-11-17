@@ -171,16 +171,14 @@
     []
     tbl))
 
-(fn merge
-  [...]
-  (let [tbls [...]]
-    (reduce
-     (fn merger [merged tbl]
-       (each [k v (pairs tbl)]
-         (tset merged k v))
-       merged)
-     {}
-     tbls)))
+(fn merge [& tbls]
+  (reduce
+    (fn [merged tbl]
+      (each [k v (pairs tbl)]
+        (tset merged k v))
+      merged)
+    {}
+    tbls))
 
 (fn filter
  [f tbl]

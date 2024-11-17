@@ -47,4 +47,28 @@
         (fn []
           (is.eq? (f.reduce #(.. $1 $2) "" [5 4 3 2 1]) "54321" "reduce did not concat list into string")
           (is.eq? (f.reduce #(if (> $1 $3) $1 $3) 0 [1 3 5 2 0]) 5 "reduce did not find max")))
-    ))
+
+    (it "(merge) merges single table"
+        (fn []
+          (is.table-eq?
+            (f.merge {:a 1}) {:a 1}
+            "merge did not work with one table"))
+
+    (it "(merge) merges two tables"
+        (fn []
+          (is.table-eq?
+            (f.merge {:a 1} {:b 2}) {:a 1 :b 2}
+            "merge did not work for two tables")))
+
+    (it "(merge) merges many tables"
+        (fn []
+          (is.table-eq?
+            (f.merge {:a 1} {:b 2} {:c 3}) {:a 1 :b 2 :c 3}
+            "merge did not work for three tables")))
+
+    (it "(merge) merges tables with same key"
+        (fn []
+          (is.table-eq?
+            (f.merge {:a 2 :c 3} {:a 1 :b 2}) {:a 1 :b 2 :c 3}
+            "merge did not work for tables with repeated keys")))
+        )))
