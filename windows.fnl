@@ -203,10 +203,10 @@
 
 (local
  arrow-map
- {:k {:half [0  0  1 .5] :movement [  0 -20] :complement :h :resize "Shorter"}
-  :j {:half [0 .5  1 .5] :movement [  0  20] :complement :l :resize "Taller"}
-  :h {:half [0  0 .5  1] :movement [-20   0] :complement :j :resize "Thinner"}
-  :l {:half [.5 0 .5  1] :movement [ 20   0] :complement :k :resize "Wider"}})
+ {:k {:half [0  0  1 .5] :movement [  0 -20] :resize "Shorter"}
+  :j {:half [0 .5  1 .5] :movement [  0  20] :resize "Taller"}
+  :h {:half [0  0 .5  1] :movement [-20   0] :resize "Thinner"}
+  :l {:half [.5 0 .5  1] :movement [ 20   0] :resize "Wider"}})
 
 (fn grid
   [method direction]
