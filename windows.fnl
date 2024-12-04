@@ -329,11 +329,11 @@
 
 (fn resize-up
   []
-  (resize-window :j))
+  (resize-window :k))
 
 (fn resize-down
   []
-  (resize-window :k))
+  (resize-window :j))
 
 (fn resize-right
   []
