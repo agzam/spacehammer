@@ -518,7 +518,11 @@
   - Set the grid dimensions from config.fnl like {:grid {:size \"3x2\"}}
   "
   (hs.grid.setMargins (or (get-in [:grid :margins] config) [0 0]))
-  (hs.grid.setGrid (or (get-in [:grid :size] config) "3x2")))
+  (hs.grid.setGrid (or (get-in [:grid :size] config) "3x2"))
+  (let [grid-ui (get-in [:grid :ui] config)]
+    (when grid-ui
+      (each [key value (pairs grid-ui)]
+        (tset hs.grid.ui key value)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
