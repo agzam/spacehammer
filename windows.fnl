@@ -454,8 +454,8 @@
   "
   Update a menu by adding an item for each connected monitor
   Takes a menu table-map and a table-list of hs.screens
-  Mutates the menu.items by adding items for each monitor;
-  if any menu items were added previously for each monitor,
+  Mutates the menu.items by adding items for each monitor
+  If any menu items were added previously for each monitor,
   they are cleaned up.
   Returns mutated modal menu table-map
   "
