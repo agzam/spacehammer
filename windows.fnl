@@ -449,30 +449,19 @@
              (when screen
                (move-to-screen screen)))})
 
-(fn remove-monitor-items
-  [menu]
-  "
-  Removes the monitor items from a menu
-  Takes a menu table-map
-  Mutates the menu object to remove items with :group :monitor flags
-  Returns mutated table-map
-  "
-  (->> menu.items
-       (filter #(not (= (. $ :group) :monitor)))
-       (tset menu :items))
-  menu)
-
-(fn add-monitor-items
+(fn set-monitor-items
   [menu screens]
   "
   Update a menu by adding an item for each connected monitor
   Takes a menu table-map and a table-list of hs.screens
   Mutates the menu.items by adding items for each monitor
+  If any menu items were added previously for each monitor,
+  they are cleaned up.
   Returns mutated modal menu table-map
   "
   (->> screens
        (map monitor-item)
-       (concat menu.items)
+       (concat (filter #(not (= (. $ :group) :monitor)) menu.items))
        (tset menu :items))
   menu)
 
@@ -483,15 +472,13 @@
   Takes modal menu table-map
   - Hides any previous display numbers
   - Shows display numbers at top right of each screen
-  - Removes previous monitor items if any were added
-  - Adds monitor items based on currently connected monitors
+  - Sets monitor items based on currently connected monitors
   Returns mutated modal menu table-map for threading or chaining
   "
   (let [screens (hs.screen.allScreens)]
     (hide-display-numbers)
     (show-display-numbers screens)
-    (remove-monitor-items menu)
-    (add-monitor-items menu screens))
+    (set-monitor-items menu screens))
   menu)
 
 (fn exit-window-menu
