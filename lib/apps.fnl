@@ -20,9 +20,10 @@ This module works mechanically similar to lib/modal.fnl.
         :bind-keys bind-keys}
        (require :lib.bind))
 (local lifecycle (require :lib.lifecycle))
+(local {: logger} (require :lib.utils))
 
 
-(local log (hs.logger.new "apps.fnl" "debug"))
+(local log (logger "apps.fnl" "debug"))
 
 (local actions (atom.new nil))
 ;; Create a dynamic var to hold an accessible instance of our finite state
