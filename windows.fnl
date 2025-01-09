@@ -472,8 +472,7 @@
   Takes modal menu table-map
   - Hides any previous display numbers
   - Shows display numbers at top right of each screen
-  - Removes previous monitor items if any were added
-  - Adds monitor items based on currently connected monitors
+  - sets monitor items based on currently connected monitors
   Returns mutated modal menu table-map for threading or chaining
   "
   (let [screens (hs.screen.allScreens)]
