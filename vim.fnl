@@ -9,9 +9,11 @@
         : map
         : noop
         : some} (require :lib.functional))
+(local {: logger} (require :lib.utils))
+
 (local statemachine (require :lib.statemachine))
 (local {:bind-keys bind-keys} (require :lib.bind))
-(local log (hs.logger.new "vim.fnl" "debug"))
+(local log (logger "vim.fnl" "debug"))
 
 "
 Create a vim mode for any text editor!
