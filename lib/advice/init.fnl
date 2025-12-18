@@ -4,15 +4,12 @@ Advising API to register functions
 
 (require-macros :lib.macros)
 (local fennel (require :fennel))
-(local {: contains?
-        : compose
+(local {: compose
         : filter
         : first
         : join
-        : last
         : map
         : reduce
-        : seq
         : slice
         : split} (require :lib.functional))
 
@@ -171,7 +168,7 @@ Advising API to register functions
                    :__index (fn [tbl key]
                               (. tbl key))})
     (each [k v (pairs (or (. fennel.metadata f) []))]
-      (: fennel.metadata :set ret k v))
+      (fennel.metadata:set ret k v))
     ret))
 
 (fn add-advice
@@ -218,7 +215,7 @@ Advising API to register functions
   Prints a list of advisable function keys
   "
   (print "\nAdvisable functions:\n")
-  (each [i key (ipairs (advisable-keys))]
+  (each [_i key (ipairs (advisable-keys))]
     (print (.. "  :" key))))
 
 (fn get-advice

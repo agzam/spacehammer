@@ -2,7 +2,6 @@
         : get-in
         : count
         : concat
-        : contains?
         : map
         : for-each
         : split} (require :lib.functional))

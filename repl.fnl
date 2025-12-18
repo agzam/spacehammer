@@ -1,5 +1,4 @@
 (local coroutine (require :coroutine))
-(local fennel (require :fennel))
 (local jeejah (require :jeejah))
 (local {:merge merge} (require :lib.functional))
 
@@ -33,7 +32,7 @@
                         :code (-> f
                                   (: :read "*all")
                                   (: :gsub "^#![^\n]*\n" "")))
-                  (: f :close))
+                  (f:close))
     _ (f msg)))
 
 (local default-opts

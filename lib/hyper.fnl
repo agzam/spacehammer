@@ -24,7 +24,7 @@
   hotkey modal.
   "
   (set enabled true)
-  (: hyper :enter))
+  (hyper:enter))
 
 (fn exit-hyper-mode
   []
@@ -34,7 +34,7 @@
   hyper mode
   "
   (set enabled false)
-  (: hyper :exit))
+  (hyper:exit))
 
 (fn unbind-key
   [key]
@@ -55,7 +55,7 @@
   Takes a key string and a function to call when key is pressed
   Returns a function to remove the binding for this key.
   "
-  (: hyper :bind nil key nil f)
+  (hyper:bind nil key nil f)
   (fn unbind
     []
     (unbind-key key)))
@@ -73,7 +73,7 @@
   - release <function> A function to bind when the key is released
   - repeat <function> A function to bind when thek ey is repeated
   "
-  (: hyper :bind nil key press-f release-f repeat-f)
+  (hyper:bind nil key press-f release-f repeat-f)
   (fn unbind
     []
     (unbind-key key)))

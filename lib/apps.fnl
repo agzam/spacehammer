@@ -9,12 +9,10 @@ This module works mechanically similar to lib/modal.fnl.
 "
 (local atom (require :lib.atom))
 (local statemachine (require :lib.statemachine))
-(local os (require :os))
 (local {: call-when
         : find
         : merge
-        : noop
-        : tap}
+        : noop}
        (require :lib.functional))
 (local {:action->fn action->fn
         :bind-keys bind-keys}

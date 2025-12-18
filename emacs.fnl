@@ -9,22 +9,22 @@
   "Activates org-capture"
   (let [key         (if is-note "\"z\"" "")
         current-app (hs.window.focusedWindow)
-        pid         (.. "\"" (: current-app :pid) "\" ")
-        title       (.. "\"" (: current-app :title) "\" ")
+        pid         (.. "\"" (current-app:pid) "\" ")
+        title       (.. "\"" (current-app:title) "\" ")
         run-str     (..
                      (emacsclient-exe)
                      " -c -F '(quote (name . \"capture\"))'"
                      " -e '(spacehammer-activate-capture-frame "
                      pid title key " )' &")
         timer       (hs.timer.delayed.new .1 (fn [] (io.popen run-str)))]
-    (: timer :start)))
+    (timer:start)))
 
 (fn edit-with-emacs []
   "Executes emacsclient, evaluating a special elisp function in spacehammer.el
    (it must be pre-loaded), passing PID, title and display-id of the caller."
   (let [current-app (: (hs.window.focusedWindow) :application)
-        pid         (.. "\"" (: current-app :pid) "\"")
-        title       (.. "\"" (: current-app :title) "\"")
+        pid         (.. "\"" (current-app:pid) "\"")
+        title       (.. "\"" (current-app:title) "\"")
         screen      (.. "\"" (: (hs.screen.mainScreen) :id) "\"")
         run-str     (..
                      (emacsclient-exe)
@@ -89,17 +89,17 @@
   "Don't remove! - this is callable from Emacs See: `spacehammer/switch-to-app`
    in spacehammer.el "
   (let [app (hs.application.applicationForPID (tonumber pid))]
-    (when app (: app :activate))))
+    (when app (app:activate))))
 
 (fn switch-to-app-and-paste-from-clipboard [pid]
   "Don't remove! - this is callable from Emacs See:
    `spacehammer/finish-edit-with-emacs` in spacehammer.el."
   (let [app (hs.application.applicationForPID (tonumber pid))]
     (when app
-      (: app :activate)
+      (app:activate)
       (hs.timer.doAfter
        0.001
-       (fn [] (: app :selectMenuItem [:Edit :Paste]))))))
+       (fn [] (app:selectMenuItem [:Edit :Paste]))))))
 
 (fn maximize
   []
@@ -108,10 +108,9 @@
    1.5
    (fn []
      (let [app     (hs.application.find :Emacs)
-           windows (require :windows)
-           modal   (require :lib.modal)]
+           windows (require :windows)]
        (when app
-         (: app :activate)
+         (app:activate)
          (windows.maximize-window-frame))))))
 
 {:capture                          capture

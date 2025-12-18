@@ -11,7 +11,7 @@
   @TODO Make this advisable when #102 lands
   "
   (let [screen (hs.screen.mainScreen)
-        {: h} (: screen :currentMode)]
+        {: h} (screen:currentMode)]
     (/ h 2)))
 
 (fn init
@@ -34,7 +34,7 @@
   Runs side-effects
   Returns nil
   "
-  (: switcher :previous))
+  (switcher:previous))
 
 (fn next-app
   []
@@ -43,7 +43,7 @@
   Runs side-effects
   Returns nil
   "
-  (: switcher :next))
+  (switcher:next))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

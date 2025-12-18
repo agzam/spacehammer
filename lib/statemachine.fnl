@@ -40,13 +40,7 @@ the next transition.
 
 (require-macros :lib.macros)
 (local atom (require :lib.atom))
-(local {: butlast
-        : call-when
-        : concat
-        : conj
-        : last
-        : merge
-        : slice} (require :lib.functional))
+(local {: call-when : merge} (require :lib.functional))
 (local {: logger} (require :lib.utils))
 
 (fn update-state
@@ -68,22 +62,24 @@ the next transition.
   all subscribers with the previous state, new state, action, and extra.
   "
   (let [state (get-state fsm)
-        {: current-state : context} state]
+        {: current-state } state]
     (if-let [tx-fn (get-transition-function fsm current-state action)]
-            (let [
-                  transition (tx-fn state action extra)
+            (let [transition (tx-fn state action extra)
                   new-state (if transition transition.state state)
                   effect (if transition transition.effect nil)]
-
+              
               (update-state fsm new-state)
-              ; Call all subscribers
+              ;; Call all subscribers
               (each [_ sub (pairs (atom.deref fsm.subscribers))]
-                (sub {:prev-state state :next-state new-state : action : effect : extra}))
+                (sub {:prev-state state
+                      :next-state new-state
+                      : action : effect : extra}))
               true)
             (do
               (if fsm.log
-                  (fsm.log.df "Action :%s does not have a transition function in state :%s"
-                              action current-state))
+                  (fsm.log.df
+                   "Action :%s does not have a transition function in state :%s"
+                   action current-state))
               false))))
 
 (fn subscribe
@@ -98,7 +94,9 @@ the next transition.
                                   (merge {sub-key sub} subs)) sub)
     ; Return the unsub func
     (fn []
-      (atom.swap! fsm.subscribers (fn [subs key] (tset subs key nil) subs) sub-key))))
+      (atom.swap!
+       fsm.subscribers
+       (fn [subs key] (tset subs key nil) subs) sub-key))))
 
 (fn effect-handler
   [effect-map]
@@ -112,24 +110,29 @@ the next transition.
   ;; Create a one-time atom used to store the cleanup function
   (let [cleanup-ref (atom.new nil)]
     ;; Return a subscriber function
-    (fn [{: prev-state : next-state : action : effect : extra}]
+    (fn [{: _prev-state : next-state : _action : effect : extra}]
       ;; Whenever a transition occurs, call the cleanup function, if set
       (call-when (atom.deref cleanup-ref))
       ;; Get a new cleanup function or nil and update cleanup-ref atom
-      (atom.reset! cleanup-ref
-                   (call-when (. effect-map effect) next-state extra)))))
+      (atom.reset!
+       cleanup-ref
+       (call-when (. effect-map effect) next-state extra)))))
 
 (fn create-machine
   [template]
-  (let [fsm  {:state (atom.new {:current-state template.state.current-state :context template.state.context})
+  (let [fsm  {:state (atom.new {:current-state template.state.current-state
+                                :context template.state.context})
               :states template.states
               :subscribers (atom.new {})
               :log (if template.log (logger template.log "info"))}]
     ; Add methods
-    (tset fsm :get-state (partial get-state fsm))
-    (tset fsm :send (partial send fsm))
-    (tset fsm :subscribe (partial subscribe fsm))
-    fsm))
+    {:state fsm.state
+     :states fsm.states
+     :subscribers fsm.subscribers
+     :log fsm.log
+     :get-state (partial get-state fsm)
+     :send (partial send fsm)
+     :subscribe (partial subscribe fsm)}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Exports

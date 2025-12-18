@@ -56,7 +56,7 @@ switching menus in one place which is then powered by config.fnl.
     (fn destroy-task
       []
       (when task
-        (: task :stop)
+        (task:stop)
         nil))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -254,9 +254,9 @@ switching menus in one place which is then powered by config.fnl.
                    (align-columns))
         text (join "\n" items)]
     (hs.alert.closeAll)
-    (alert text
-           style
-           99999)))
+    (hs.alert text
+              style
+              99999)))
 
 (fn show-modal-menu
   [state]
@@ -274,8 +274,7 @@ switching menus in one place which is then powered by config.fnl.
       (hs.alert.closeAll 0)
       (unbind-keys)
       (call-when stop-timeout)
-      (lifecycle.exit-menu state.context.menu)
-      )))
+      (lifecycle.exit-menu state.context.menu))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Menus, & Config Navigation
@@ -334,7 +333,7 @@ switching menus in one place which is then powered by config.fnl.
 
 
 (fn ->enter-app
-  [state action extra]
+  [state _action _extra]
   "
   Transition our modal state machine the main menu to an app menu
   Takes the current modal state table and the app menu table.
@@ -365,7 +364,7 @@ switching menus in one place which is then powered by config.fnl.
   Returns new updated modal state if we are leaving the current app.
   "
   (let [{:config config
-        :menu prev-menu} state.context]
+         :menu prev-menu} state.context]
     (if (= prev-menu.key config.key)
         nil
         (->menu state))))
@@ -389,7 +388,7 @@ switching menus in one place which is then powered by config.fnl.
    :effect :open-menu})
 
 (fn ->previous
-  [state action extra]
+  [state _action _extra]
   "
   Transition to the previous submenu. Like if you went into the window menu
   and wanted to go back to the main menu.

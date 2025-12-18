@@ -9,7 +9,7 @@
   Returns nil
   "
   (when-let [app (: (hs.window.focusedWindow) :application)]
-            (: app :selectMenuItem ["File" "Open Location…"])))
+            (app:selectMenuItem ["File" "Open Location…"])))
 
 (fn prev-tab
   []
