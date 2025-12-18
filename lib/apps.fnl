@@ -347,9 +347,11 @@ Assign some simple keywords for each hs.application.watcher event type.
   "
   (when context.app
     (lifecycle.activate-app context.app)
-    (let [unbind-keys (bind-app-keys context.app.keys)]
+    (let [unbind-keys (when context.app.keys
+                        (bind-app-keys context.app.keys))]
       (fn []
-        (unbind-keys)))))
+        (when unbind-keys
+          (unbind-keys))))))
 
 (fn launch-app-effect
   [context]
@@ -359,9 +361,11 @@ Assign some simple keywords for each hs.application.watcher event type.
   "
   (when context.app
     (lifecycle.launch-app context.app)
-    (let [unbind-keys (bind-app-keys context.app.keys)]
+    (let [unbind-keys (when context.app.keys
+                        (bind-app-keys context.app.keys))]
       (fn []
-        (unbind-keys)))))
+        (when unbind-keys
+          (unbind-keys))))))
 
 (fn app-effect-handler
   [effect-map]
