@@ -39,7 +39,7 @@ Slack functions to make complex or less accessible features more vim like!
   (let [app (hs.application.find :Slack)]
     (when app
       (hs.eventtap.keyStroke [:cmd] :t)
-      (: app :unhide))))
+      (app:unhide))))
 
 
 ;; scroll to prev/next day

@@ -1,8 +1,6 @@
 (local fennel (require :fennel))
 (require :lib.globals)
-(local {: map
-        : slice
-        : pprint}  (require :lib.functional))
+(local {: slice}  (require :lib.functional))
 
 (local homedir (os.getenv "HOME"))
 (local customdir (.. homedir "/.spacehammer"))
@@ -35,8 +33,7 @@
     (each [i test-file (ipairs test-files)]
       (let [test-file-path (hs.fs.pathToAbsolute (.. dir "/" test-file))]
         (print "Running tests for" test-file-path)
-        (fennel.dofile test-file-path))
-      ))
+        (fennel.dofile test-file-path))))
 
 
   (collect-tests)

@@ -1,16 +1,5 @@
 (local atom (require :lib.atom))
-(local {: call-when
-        : contains?
-        : eq?
-        : filter
-        : find
-        : get-in
-        : has-some?
-        : map
-        : noop
-        : some} (require :lib.functional))
-(local {: logger} (require :lib.utils))
-
+(local {: get-in } (require :lib.functional))
 (local statemachine (require :lib.statemachine))
 (local {:bind-keys bind-keys} (require :lib.bind))
 (local log (logger "vim.fnl" "debug"))
@@ -38,14 +27,14 @@ TODO: Create another state machine system to support key chords for bindings
 (local text (hs.drawing.text shape ""))
 (local box (hs.drawing.rectangle shape))
 
-(: text :setBehaviorByLabels [:canJoinAllSpaces
-                              :transient])
+(text:setBehaviorByLabels [:canJoinAllSpaces
+                           :transient])
 
-(: box :setBehaviorByLabels [:canJoinAllSpaces
-                             :transient])
+(box:setBehaviorByLabels [:canJoinAllSpaces
+                          :transient])
 
-(: text :setLevel :overlay)
-(: box :setLevel :overlay)
+(text:setLevel :overlay)
+(box:setLevel :overlay)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -245,9 +234,9 @@ TODO: Create another state machine system to support key chords for bindings
 (fn create-screen-watcher
   [f]
   (let [watcher (hs.screen.watcher.newWithActiveScreen f)]
-    (: watcher :start)
+    (watcher:start)
     (fn destroy []
-      (: watcher :stop))))
+      (watcher:stop))))
 
 (fn state-box
   [label]
@@ -260,26 +249,26 @@ TODO: Create another state machine system to support key chords for bindings
                 :y (+ y (- height shape.h))
                 :h shape.h
                 :w shape.w}]
-    (: box :setFillColor {:hex "#000"
+    (box:setFillColor {:hex "#000"
                           :alpha 0.8})
-    (: box :setFill true)
-    (: text :setTextColor {:hex "#FFF"
+    (box:setFill true)
+    (text:setTextColor {:hex "#FFF"
                            :alpha 1.0})
-    (: text :setFrame coords)
-    (: box :setFrame coords)
-    (: text :setText label)
+    (text:setFrame coords)
+    (box:setFrame coords)
+    (text:setText label)
     (if (= label :Normal)
-        (: text :setTextColor {:hex "#999"
+        (text:setTextColor {:hex "#999"
                                :alpha 0.8})
         (= label :Insert)
-        (: text :setTextColor {:hex "#0F0"
+        (text:setTextColor {:hex "#0F0"
                                :alpha 0.8})
         (= label :Visual)
-        (: text :setTextColor {:hex "#F0F"
+        (text:setTextColor {:hex "#F0F"
                                :alpha 0.8}))
-    (: text :setTextStyle {:alignment :center})
-    (: box :show)
-    (: text :show))
+    (text:setTextStyle {:alignment :center})
+    (box:show)
+    (text:show))
   box)
 
 
@@ -288,24 +277,24 @@ TODO: Create another state machine system to support key chords for bindings
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn enter-normal-mode
-  [state extra]
+  [_state _extra]
   (state-box "Normal")
   (bind-keys bindings.normal))
 
 (fn enter-insert-mode
-  [state extra]
+  [_state _extra]
   (state-box "Insert")
   (bind-keys bindings.insert))
 
 (fn enter-visual-mode
-  [state extra]
+  [_state _extra]
   (state-box "Visual")
   (bind-keys bindings.visual))
 
 (fn disable-vim-mode
-  [state extra]
-  (: box :hide)
-  (: text :hide))
+  [_state _extra]
+  (box:hide)
+  (text:hide))
 
 (local vim-effect
        (statemachine.effect-handler
@@ -320,38 +309,38 @@ TODO: Create another state machine system to support key chords for bindings
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (fn disabled->normal
-  [state data]
+  [state _data]
   (when (get-in [:context :config :vim :enabled] state)
     {:state {:current-state :normal
              :context state.context}
      :effect :enter-normal-mode}))
 
 (fn normal->insert
-  [state data]
+  [state _data]
   {:state {:current-state :insert
            :context state.context}
    :effect :enter-insert-mode})
 
 (fn normal->visual
-  [state data]
+  [state _data]
   {:state {:current-state :visual
            :context state.context}
    :effect :enter-visual-mode})
 
 (fn ->disabled
-  [state data]
+  [state _data]
   {:state {:current-state :disabled
            :context state.context}
    :effect :disable-vim-mode})
 
 (fn insert->normal
-  [state data]
+  [state _data]
   {:state {:current-state :normal
            :context state.context}
    :effect :enter-normal-mode})
 
 (fn visual->normal
-  [state data]
+  [state _data]
   {:state {:current-state :normal
            :context state.context}
    :effect :enter-normal-mode})
@@ -383,7 +372,7 @@ TODO: Create another state machine system to support key chords for bindings
                     (log.f "Vim mode: %s" state.current-state))))
 
 (fn watch-screen
-  [fsm active-screen-changed]
+  [fsm _active-screen-changed]
   (let [state (atom.deref fsm.state)]
     (when (~= state.current-state :disabled)
       (state-box state.current-state))))

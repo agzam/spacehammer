@@ -6,7 +6,10 @@
   (let [filter (hs.window.filter.new)]
     (filter:setAppFilter
      :Emacs
-     {:allowRoles [:AXUnknown :AXStandardWindow :AXDialog :AXSystemDialog]})))
+     {:allowRoles [:AXUnknown
+                   :AXStandardWindow
+                   :AXDialog
+                   :AXSystemDialog]})))
 
 (fn get-or-add-logger [loggers id ?level]
   "If (. loggers id) exists, returns it; otherwise instantiates & stores a new one.

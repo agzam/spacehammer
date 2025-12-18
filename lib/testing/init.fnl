@@ -41,7 +41,7 @@
 
 (fn collect-tests
   []
-  (each [i suite-map (ipairs suites)]
+  (each [_i suite-map (ipairs suites)]
     (tset state :suite suite-map)
     (suite-map.suite))
   suites)
@@ -63,15 +63,13 @@
 (fn try-test
   [f]
   (let [(ok err) (xpcall f (fn [err]
-                             (do
-                               (tset state :failed (+ state.failed 1))
-                               (print (.. "    " (red "[ FAIL ]") "\n"))
-                               (print (debug.traceback err) "\n"))))]
+                             (tset state :failed (+ state.failed 1))
+                             (print (.. "    " (red "[ FAIL ]") "\n"))
+                             (print (debug.traceback err) "\n")))]
     (if ok
         (do
           (print  (.. "    " (green "[ OK ]") "\n"))
-          (tset state :passed (+ state.passed 1)))
-        )))
+          (tset state :passed (+ state.passed 1))))))
 
 (fn init
   []
@@ -87,11 +85,11 @@
   []
   (print "")
   (let [start (os.clock)]
-    (each [i before-f (ipairs state.before)]
+    (each [_i before-f (ipairs state.before)]
       (before-f))
-    (each [i suite-map (ipairs suites)]
+    (each [_i suite-map (ipairs suites)]
       (print suite-map.name "\n")
-      (each [i before-f (ipairs suite-map.before)]
+      (each [_i before-f (ipairs suite-map.before)]
         (before-f))
       (each [_ test-map (ipairs suite-map.tests)]
         (print (.. "  " test-map.desc " ...  \t"))

@@ -3,7 +3,6 @@
 (local fennel (require :fennel))
 (require :lib.globals)
 (local {:contains? contains?
-        :for-each  for-each
         :map       map
         :merge     merge
         :reduce    reduce
@@ -93,10 +92,10 @@ Returns nil. This function causes side-effects.
   "
   (let [default-config (io.open source "r")
         custom-config (io.open dest "a")]
-    (each [line _ (: default-config :lines)]
-      (: custom-config :write (.. line "\n")))
-    (: custom-config :close)
-    (: default-config :close)))
+    (each [line _ (default-config:lines)]
+      (custom-config:write (.. line "\n")))
+    (custom-config:close)
+    (default-config:close)))
 
 ;; If ~/.spacehammer/config.fnl does not exist
 ;; - Create ~/.spacehammer dir
@@ -168,9 +167,9 @@ Returns nil. This function causes side-effects.
   Returns a function to stop the watcher.
   "
   (let [watcher (hs.pathwatcher.new dir config-reloader)]
-    (: watcher :start)
+    (watcher:start)
     (fn []
-      (: watcher :stop))))
+      (watcher:stop))))
 
 ;; Create a global config-files-watcher. Calling it stops the default watcher
 (global config-files-watcher (watch-files hs.configdir))
