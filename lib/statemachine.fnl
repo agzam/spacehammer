@@ -47,7 +47,7 @@ the next transition.
         : last
         : merge
         : slice} (require :lib.functional))
-
+(local {: logger} (require :lib.utils))
 
 (fn update-state
   [fsm state]
@@ -124,7 +124,7 @@ the next transition.
   (let [fsm  {:state (atom.new {:current-state template.state.current-state :context template.state.context})
               :states template.states
               :subscribers (atom.new {})
-              :log (if template.log (hs.logger.new template.log "info"))}]
+              :log (if template.log (logger template.log "info"))}]
     ; Add methods
     (tset fsm :get-state (partial get-state fsm))
     (tset fsm :send (partial send fsm))
