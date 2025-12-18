@@ -69,11 +69,12 @@ the next transition.
                   effect (if transition transition.effect nil)]
               
               (update-state fsm new-state)
-              ;; Call all subscribers
-              (each [_ sub (pairs (atom.deref fsm.subscribers))]
-                (sub {:prev-state state
-                      :next-state new-state
-                      : action : effect : extra}))
+              ;; Call all subscribers - cache subscribers to avoid
+              ;; multiple derefs
+              (let [subs (atom.deref fsm.subscribers)]
+                (each [_ sub (pairs subs)]
+                  (sub {:prev-state state
+                        :next-state new-state : action : effect : extra})))
               true)
             (do
               (if fsm.log
