@@ -41,6 +41,7 @@ the next transition.
 (require-macros :lib.macros)
 (local atom (require :lib.atom))
 (local {: call-when : merge} (require :lib.functional))
+(local {: logger} (require :lib.utils))
 
 (fn update-state
   [fsm state]
@@ -63,8 +64,7 @@ the next transition.
   (let [state (get-state fsm)
         {: current-state } state]
     (if-let [tx-fn (get-transition-function fsm current-state action)]
-            (let [
-                  transition (tx-fn state action extra)
+            (let [transition (tx-fn state action extra)
                   new-state (if transition transition.state state)
                   effect (if transition transition.effect nil)]
               
@@ -94,7 +94,9 @@ the next transition.
                                   (merge {sub-key sub} subs)) sub)
     ; Return the unsub func
     (fn []
-      (atom.swap! fsm.subscribers (fn [subs key] (tset subs key nil) subs) sub-key))))
+      (atom.swap!
+       fsm.subscribers
+       (fn [subs key] (tset subs key nil) subs) sub-key))))
 
 (fn effect-handler
   [effect-map]
@@ -112,12 +114,14 @@ the next transition.
       ;; Whenever a transition occurs, call the cleanup function, if set
       (call-when (atom.deref cleanup-ref))
       ;; Get a new cleanup function or nil and update cleanup-ref atom
-      (atom.reset! cleanup-ref
-                   (call-when (. effect-map effect) next-state extra)))))
+      (atom.reset!
+       cleanup-ref
+       (call-when (. effect-map effect) next-state extra)))))
 
 (fn create-machine
   [template]
-  (let [fsm  {:state (atom.new {:current-state template.state.current-state :context template.state.context})
+  (let [fsm  {:state (atom.new {:current-state template.state.current-state
+                                :context template.state.context})
               :states template.states
               :subscribers (atom.new {})
               :log (if template.log (logger template.log "info"))}]

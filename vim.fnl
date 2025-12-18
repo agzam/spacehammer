@@ -1,5 +1,7 @@
 (local atom (require :lib.atom))
-(local {: get-in } (require :lib.functional))
+(local {: get-in} (require :lib.functional))
+(local {: logger} (require :lib.utils))
+
 (local statemachine (require :lib.statemachine))
 (local {:bind-keys bind-keys} (require :lib.bind))
 (local log (logger "vim.fnl" "debug"))
@@ -250,22 +252,22 @@ TODO: Create another state machine system to support key chords for bindings
                 :h shape.h
                 :w shape.w}]
     (box:setFillColor {:hex "#000"
-                          :alpha 0.8})
+                       :alpha 0.8})
     (box:setFill true)
     (text:setTextColor {:hex "#FFF"
-                           :alpha 1.0})
+                        :alpha 1.0})
     (text:setFrame coords)
     (box:setFrame coords)
     (text:setText label)
     (if (= label :Normal)
         (text:setTextColor {:hex "#999"
-                               :alpha 0.8})
+                            :alpha 0.8})
         (= label :Insert)
         (text:setTextColor {:hex "#0F0"
-                               :alpha 0.8})
+                            :alpha 0.8})
         (= label :Visual)
         (text:setTextColor {:hex "#F0F"
-                               :alpha 0.8}))
+                            :alpha 0.8}))
     (text:setTextStyle {:alignment :center})
     (box:show)
     (text:show))
@@ -292,7 +294,7 @@ TODO: Create another state machine system to support key chords for bindings
   (bind-keys bindings.visual))
 
 (fn disable-vim-mode
-  [_state _extra]
+  [state extra]
   (box:hide)
   (text:hide))
 
