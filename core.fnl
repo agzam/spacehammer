@@ -22,7 +22,7 @@
 ;; Make ~/.spacehammer folder override repo files
 (local homedir (os.getenv "HOME"))
 (local customdir (.. homedir "/.spacehammer"))
-(tset fennel :path (.. customdir "/?.fnl;" fennel.path))
+(set fennel.path (.. customdir "/?.fnl;" fennel.path))
 
 (local log (logger "\tcore.fnl\t" "debug"))
 
