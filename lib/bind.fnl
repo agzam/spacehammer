@@ -70,7 +70,7 @@
   Returns a function to remove bindings.
   "
   (let [modal (hs.hotkey.modal.new [] nil)]
-    (each [_ item (ipairs items)]
+    (each [_ item (ipairs (or items []))]
       (let [{:key key
              :mods mods
              :action action
