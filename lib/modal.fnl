@@ -32,7 +32,7 @@ switching menus in one place which is then powered by config.fnl.
        (require :lib.bind))
 (local lifecycle (require :lib.lifecycle))
 
-(local log (logger "modal.fnl" "debug"))
+(local log (logger "modal.fnl" "warning"))
 (var fsm nil)
 (local default-style {:textFont "Menlo"
                       :textSize 16

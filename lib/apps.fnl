@@ -21,7 +21,7 @@ This module works mechanically similar to lib/modal.fnl.
 (local {: logger} (require :lib.utils))
 
 
-(local log (logger "apps.fnl" "debug"))
+(local log (logger "apps.fnl" "warning"))
 
 (local actions (atom.new nil))
 ;; Create a dynamic var to hold an accessible instance of our finite state

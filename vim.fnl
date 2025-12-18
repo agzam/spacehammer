@@ -4,7 +4,7 @@
 
 (local statemachine (require :lib.statemachine))
 (local {:bind-keys bind-keys} (require :lib.bind))
-(local log (logger "vim.fnl" "debug"))
+(local log (logger "vim.fnl" "warning"))
 
 "
 Create a vim mode for any text editor!

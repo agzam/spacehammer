@@ -5,7 +5,7 @@
        (require :lib.functional))
 (local {: logger} (require :lib.utils))
 
-(local log (logger "bind.fnl" "debug"))
+(local log (logger "bind.fnl" "warning"))
 
 (fn do-action
   [action args]

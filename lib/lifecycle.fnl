@@ -1,6 +1,6 @@
 (local {: do-action} (require :lib.bind))
 (local {: logger} (require :lib.utils))
-(local log (logger "lifecycle.fnl" "debug"))
+(local log (logger "lifecycle.fnl" "info"))
 
 
 "
