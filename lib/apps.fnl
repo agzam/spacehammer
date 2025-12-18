@@ -309,7 +309,9 @@ Assign some simple keywords for each hs.application.watcher event type.
   Takes a transition record from the FSM.
   Returns nil.
   "
-  (emit action next-state.context.app))
+  ;; Only emit if we have an app context (app could be nil for unconfigured apps)
+  (when next-state.context
+    (emit action next-state.context.app)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -389,26 +391,32 @@ Assign some simple keywords for each hs.application.watcher event type.
     ;; Return a subscriber function
     (fn [{: prev-state : next-state : action : effect : extra}]
       ;; Call the cleanup function for this app if it's set
-      (call-when (.  (atom.deref cleanup-ref) extra))
+      ;; Only access cleanup-ref if extra (app-name) is not nil
+      (when extra
+        (call-when (. (atom.deref cleanup-ref) extra)))
       (let [cleanup-map (atom.deref cleanup-ref)
             effect-func (. effect-map effect)]
         ;; Update the cleanup entry for this app with a new func or nil
-        (atom.reset! cleanup-ref
-                     (merge cleanup-map
-                            {extra (call-when effect-func next-state extra)}))))))
+        ;; Only update if extra (app-name) is not nil
+        (when extra
+          (atom.reset! cleanup-ref
+                       (merge cleanup-map
+                              {extra (call-when effect-func next-state extra)})))))))
 
 (local apps-effect
        (app-effect-handler
          {:enter-app-effect (fn [state extra]
-                              (enter-app-effect state.context))
+                              (when (and state state.context)
+                                (enter-app-effect state.context)))
           :leave-app-effect (fn [state extra]
-                              (when state.context.prev-app
+                              (when (and state state.context state.context.prev-app)
                                 (lifecycle.deactivate-app state.context.prev-app))
                               nil)
           :launch-app-effect (fn [state extra]
-                               (launch-app-effect state.context))
+                               (when (and state state.context)
+                                 (launch-app-effect state.context)))
           :close-app-effect (fn [state extra]
-                              (when state.context.prev-app
+                              (when (and state state.context state.context.prev-app)
                                 (lifecycle.close-app state.context.prev-app))
                               nil)}))
 
