@@ -2,10 +2,15 @@
 ** 1.0.0 version
 Crazy that we never had official versioning, even though the project existed for years. Let's finally tag a version.
 
-** State machine optimizations
+** Pretty good performance improvements 
+*** State machine optimizations
 - Modals appear/disappear faster
 - Less lag when switching between apps
 - Lower CPU usage during active use
+  
+*** Reduced logging overhead
+*** Cached app lookup for reduced app switching latency
+*** Menu now renders slightly faster
 
 * [2023-04-13 Thu]
 ** Improved
