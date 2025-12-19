@@ -16,7 +16,7 @@ cask "spacehammer" do
 
   preflight do
     hammerspoon_dir = "#{Dir.home}/.hammerspoon"
-    
+
     # Warn if ~/.hammerspoon is a git repository (gives user time to cancel)
     if File.exist?("#{hammerspoon_dir}/.git")
       opoo "WARNING: ~/.hammerspoon appears to be a git repository"
@@ -24,7 +24,7 @@ cask "spacehammer" do
       opoo "Press Ctrl+C now to cancel, or wait 5 seconds to continue..."
       sleep 5
     end
-    
+
     # Remove symlink if present (Homebrew's artifact can't overwrite symlinks)
     if File.symlink?(hammerspoon_dir)
       File.delete(hammerspoon_dir)
@@ -35,24 +35,24 @@ cask "spacehammer" do
   postflight do
     # Find luarocks (try Homebrew path first, then system path as fallback)
     luarocks_path = "#{HOMEBREW_PREFIX}/bin/luarocks"
-    luarocks_path = `which luarocks 2>/dev/null`.strip if !File.exist?(luarocks_path)
-    
+    luarocks_path = `which luarocks 2>/dev/null`.strip unless File.exist?(luarocks_path)
+
     if luarocks_path.empty? || !File.exist?(luarocks_path)
       opoo "luarocks not found. Spacehammer requires Fennel (>= 1.0.0)"
       opoo "Install with: brew install luarocks && luarocks install fennel"
       return
     end
-    
+
     # Check if Fennel is installed and verify version
     fennel_check = system_command(luarocks_path, args: ["show", "fennel"], print_stderr: false)
-    
+
     if fennel_check.success?
       # Extract version from output (format: "fennel 1.5.3-1 - ...")
       version_match = fennel_check.stdout.match(/fennel\s+(\d+\.\d+\.\d+)/)
       if version_match
         version = version_match[1]
         major = version.split(".").first.to_i
-        
+
         if major < 1
           # Upgrade old Fennel version
           opoo "Fennel #{version} is too old (need >= 1.0.0), upgrading..."
@@ -65,9 +65,7 @@ cask "spacehammer" do
       # Fennel not installed, install it
       ohai "Installing Fennel..."
       result = system_command(luarocks_path, args: ["install", "fennel"])
-      unless result.success?
-        opoo "Failed to install Fennel. Please run manually: luarocks install fennel"
-      end
+      opoo "Failed to install Fennel. Please run manually: luarocks install fennel" unless result.success?
     end
   end
 
@@ -81,7 +79,7 @@ cask "spacehammer" do
     end
   end
 
-  # Note: ~/.spacehammer is created automatically by Spacehammer on first launch
+  # NOTE: ~/.spacehammer is created automatically by Spacehammer on first launch
   # and is intentionally NOT touched by this cask (user customizations preserved)
 
   caveats <<~EOS
