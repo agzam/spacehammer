@@ -147,7 +147,10 @@ Example:
   ;; => 2
   "
   (let [prev-value (deref atom)
-        next-value (f (copy prev-value) (table.unpack [...]))]
+        ;; Don't copy - trust that transition functions return new
+        ;; state This is a massive performance improvement for large
+        ;; state objects
+        next-value (f prev-value (table.unpack [...]))]
     (set atom.state next-value)
     (notify-watchers atom next-value prev-value)
     atom))

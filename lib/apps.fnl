@@ -10,7 +10,6 @@ This module works mechanically similar to lib/modal.fnl.
 (local atom (require :lib.atom))
 (local statemachine (require :lib.statemachine))
 (local {: call-when
-        : find
         : merge
         : noop}
        (require :lib.functional))
@@ -21,17 +20,41 @@ This module works mechanically similar to lib/modal.fnl.
 (local {: logger} (require :lib.utils))
 
 
-(local log (logger "apps.fnl" "debug"))
+(local log (logger "apps.fnl" "warning"))
 
 (local actions (atom.new nil))
 ;; Create a dynamic var to hold an accessible instance of our finite state
 ;; machine for apps.
 (var fsm nil)
+;; App lookup cache: maps app-name -> app-config for O(1) lookups
+(var app-cache {})
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utils
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(fn build-app-cache
+  [apps]
+  "
+  Builds a lookup table mapping app keys to app configs for O(1) lookups.
+  Takes a list of app configs from config.fnl
+  Returns a table with app.key as keys and app config as values
+  "
+  (let [cache {}]
+    (each [_ app (ipairs apps)]
+      (when app.key
+        (tset cache app.key app)))
+    cache))
+
+(fn get-app-by-key
+  [app-name]
+  "
+  Fast O(1) lookup of app config by app name using cache.
+  Takes an app name string
+  Returns the app config or nil if not found
+  "
+  (. app-cache app-name))
 
 (fn gen-key
   []
@@ -118,23 +141,6 @@ This module works mechanically similar to lib/modal.fnl.
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Apps Navigation
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(fn by-key
-  [target]
-  "
-  Checker to search for app definitions to find the app with a key property
-  that matches the target.
-  Takes a target key string
-  Returns a predicate that takes an app menu table and returns true if
-  app.key == target
-  "
-  (fn [app]
-    (= app.key target)))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; State Transitions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -149,7 +155,7 @@ This module works mechanically similar to lib/modal.fnl.
   "
   (let [{: apps
          : app} state.context
-        next-app (find (by-key app-name) apps)]
+        next-app (get-app-by-key app-name)]
     {:state {:current-state :in-app
              :context {:apps apps
                        :app next-app
@@ -184,7 +190,7 @@ This module works mechanically similar to lib/modal.fnl.
   "
   (let [{: apps
          : app} state.context
-        next-app (find (by-key app-name) apps)]
+        next-app (get-app-by-key app-name)]
     {:state {:current-state :in-app
              :context {:apps apps
                        :app next-app
@@ -303,7 +309,9 @@ Assign some simple keywords for each hs.application.watcher event type.
   Takes a transition record from the FSM.
   Returns nil.
   "
-  (emit action next-state.context.app))
+  ;; Only emit if we have an app context (app could be nil for unconfigured apps)
+  (when next-state.context
+    (emit action next-state.context.app)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -383,26 +391,32 @@ Assign some simple keywords for each hs.application.watcher event type.
     ;; Return a subscriber function
     (fn [{: prev-state : next-state : action : effect : extra}]
       ;; Call the cleanup function for this app if it's set
-      (call-when (.  (atom.deref cleanup-ref) extra))
+      ;; Only access cleanup-ref if extra (app-name) is not nil
+      (when extra
+        (call-when (. (atom.deref cleanup-ref) extra)))
       (let [cleanup-map (atom.deref cleanup-ref)
             effect-func (. effect-map effect)]
         ;; Update the cleanup entry for this app with a new func or nil
-        (atom.reset! cleanup-ref
-                     (merge cleanup-map
-                            {extra (call-when effect-func next-state extra)}))))))
+        ;; Only update if extra (app-name) is not nil
+        (when extra
+          (atom.reset! cleanup-ref
+                       (merge cleanup-map
+                              {extra (call-when effect-func next-state extra)})))))))
 
 (local apps-effect
        (app-effect-handler
          {:enter-app-effect (fn [state extra]
-                              (enter-app-effect state.context))
+                              (when (and state state.context)
+                                (enter-app-effect state.context)))
           :leave-app-effect (fn [state extra]
-                              (when state.context.prev-app
+                              (when (and state state.context state.context.prev-app)
                                 (lifecycle.deactivate-app state.context.prev-app))
                               nil)
           :launch-app-effect (fn [state extra]
-                               (launch-app-effect state.context))
+                               (when (and state state.context)
+                                 (launch-app-effect state.context)))
           :close-app-effect (fn [state extra]
-                              (when state.context.prev-app
+                              (when (and state state.context state.context.prev-app)
                                 (lifecycle.close-app state.context.prev-app))
                               nil)}))
 
@@ -419,6 +433,9 @@ Assign some simple keywords for each hs.application.watcher event type.
   Takes the current config.fnl table
   Returns a function to cleanup the hs.application.watcher.
   "
+  ;; Build app lookup cache for O(1) access
+  (set app-cache (build-app-cache config.apps))
+  
   (let [active-app (active-app-name)
         initial-context {:apps config.apps
                          :app nil}
