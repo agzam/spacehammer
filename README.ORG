@@ -14,20 +14,15 @@ Spacehammer initially was written in Lua - most Hammerspoon configs are, later c
 
 ** Installation
 #+begin_src bash
+brew tap agzam/spacehammer
 brew install spacehammer
 #+end_src
 
-*** Installing from source
+If you have your custom config somewhere already:
+
 #+begin_src bash
-brew install hammerspoon
-
-# Install Fennel >= v1.0.0
-brew install luarocks
-
-luarocks install fennel
-
-# Clone Spacehammer
-git clone https://github.com/agzam/spacehammer ~/.hammerspoon
+HOMEBREW_SPACEHAMMER_CONFIG=git@github.com:username/my-config.git \
+brew install spacehammer
 #+end_src
 
 ** LEAD keybinding
