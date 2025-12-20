@@ -1,3 +1,6 @@
+* [2025-12-19 Fri]
+** brew tap https://github.com/agzam/homebrew-spacehammer 
+
 * [2025-12-18 Thu]
 ** 1.6.0 version
 Crazy that we never had official versioning, even though the project existed for years. Let's finally tag a version.
