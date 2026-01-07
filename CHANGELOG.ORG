@@ -1,3 +1,6 @@
+* [2026-01-07 Wed]
+** 1.6.1 - fix emacsclient location detection
+
 * [2025-12-19 Fri]
 ** brew tap https://github.com/agzam/homebrew-spacehammer 
 

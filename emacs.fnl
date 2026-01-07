@@ -1,9 +1,13 @@
 (fn emacsclient-exe []
   "Locate emacsclient executable."
-  (-> "Emacs"
-      hs.application.find
-      (: :path)
-      (: :gsub "Emacs.app" "bin/emacsclient")))
+  (let [(output status) (hs.execute "export PATH=$PATH:/opt/homebrew/bin && which emacsclient")
+        path (and status (not= output "") (output:gsub "\n$" ""))]
+    (if path
+        path
+        (-> "Emacs"
+            hs.application.find
+            (: :path)
+            (: :gsub "Emacs.app" "bin/emacsclient")))))
 
 (fn capture [is-note]
   "Activates org-capture"
