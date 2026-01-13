@@ -425,20 +425,28 @@
                {:mods [:ctrl]
                 :key :t
                 :action "slack:thread"}
-               {:mods [:ctrl]
-                :key :p
-                :action "slack:prev-day"}
-               {:mods [:ctrl]
-                :key :n
-                :action "slack:next-day"}
-               {:mods [:ctrl]
-                :key :e
-                :action "slack:scroll-up"
-                :repeat true}
-               {:mods [:ctrl]
-                :key :y
-                :action "slack:scroll-down"
-                :repeat true}
+               ;; {:mods [:ctrl]
+               ;;  :key :p
+               ;;  :action "slack:prev-day"}
+               ;; {:mods [:ctrl]
+               ;;  :key :n
+               ;;  :action "slack:next-day"}
+               ;; {:mods [:ctrl]
+               ;;  :key :e
+               ;;  :action "slack:scroll-up"
+               ;;  :repeat true}
+               ;; {:mods [:ctrl]
+               ;;  :key :y
+               ;;  :action "slack:scroll-down"
+               ;;  :repeat true}
+               ;; {:mods [:ctrl]
+               ;;  :key :k
+               ;;  :action "slack:up"
+               ;;  :repeat true}
+               ;; {:mods [:ctrl]
+               ;;  :key :j
+               ;;  :action "slack:down"
+               ;;  :repeat true}
                {:mods [:ctrl]
                 :key :i
                 :action "slack:next-history"
@@ -446,14 +454,6 @@
                {:mods [:ctrl]
                 :key :o
                 :action "slack:prev-history"
-                :repeat true}
-               {:mods [:ctrl]
-                :key :j
-                :action "slack:down"
-                :repeat true}
-               {:mods [:ctrl]
-                :key :k
-                :action "slack:up"
                 :repeat true}]})
 
 (local apps
