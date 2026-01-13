@@ -58,8 +58,8 @@
 ;; [x] |-- f - fullscreen
 ;; [x] |-- v - split
 ;;
-;; [x] alt-n - next-app
-;; [x] alt-p - prev-app
+;; [x] cmd-alt-n - next-app
+;; [x] cmd-alt-p - prev-app
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -326,10 +326,10 @@
        [{:mods [:alt]
          :key :space
          :action "lib.modal:activate-modal"}
-        {:mods [:alt]
+        {:mods [:cmd :alt]
          :key :n
          :action "apps:next-app"}
-        {:mods [:alt]
+        {:mods [:cmd :alt]
          :key :p
          :action "apps:prev-app"}
         {:mods [:cmd :ctrl]
