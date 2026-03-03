@@ -1,0 +1,354 @@
+#+TITLE: Edit-with-Emacs — Feature Specification
+#+STARTUP: showall
+
+* Overview
+
+Edit-with-Emacs (EWE) lets you edit any text field in any macOS app using
+Emacs. It is a *two-process system*:
+
+- *Hammerspoon side* (~emacs.fnl~, Fennel/Lua): captures text, manages
+  sessions, writes text back to the target app.
+- *Emacs side* (~spacehammer.el~, Elisp): provides the editing buffer, minor
+  mode, keybindings, and IPC calls back to Hammerspoon.
+
+Communication flows in both directions:
+- Hammerspoon → Emacs: via ~emacsclient -e~ (evaluates elisp)
+- Emacs → Hammerspoon: via ~hs -c~ CLI (evaluates Lua/Fennel)
+
+* Architecture
+
+** Write-back modes
+
+Every session operates in one of two modes, chosen at session creation:
+
+| Mode       | Condition                             | Read text via | Write text via          |
+|------------+---------------------------------------+---------------+-------------------------|
+| =:ax=        | Focused element is a recognized text  | Clipboard     | AXUIElement setAXValue  |
+|            | role AND AXValue is settable          | (Cmd+C)       | (direct, no app switch) |
+|------------+---------------------------------------+---------------+-------------------------|
+| =:clipboard= | AX element unavailable or unsupported | Clipboard     | Clipboard + Cmd+V       |
+|            |                                       | (Cmd+C)       | (requires app switch)   |
+
+AX element detection checks for these roles: =AXTextArea=, =AXTextField=,
+=AXComboBox=, =AXTextView=. The element must also report ~isAttributeSettable
+:AXValue~ as true.
+
+** Session state
+
+Each invocation creates a session (stored in the ~sessions~ table, keyed by
+session-id). A session contains:
+
+| Field         | Description                                             |
+|---------------+---------------------------------------------------------|
+| =pid=           | Process ID of the originating app                       |
+| =title=         | Window title of the originating app                     |
+| =screen=        | Display ID where the invocation happened                |
+| =ax-element=    | Stored AXUIElement reference (nil in clipboard mode)    |
+| =mode=          | =:ax= or =:clipboard=                                       |
+| =has-selection= | Boolean — true if user had text selected at invocation  |
+| =prefix=        | Text before the selection (nil if no selection / no AX) |
+| =suffix=        | Text after the selection (nil if no selection / no AX)  |
+| =original=      | The original text that was copied (from clipboard)      |
+
+** Selection-aware editing
+
+When the user selects a portion of text before invoking EWE:
+
+1. *Read*: Cmd+C copies just the selection. The Emacs buffer contains only the
+   selected text.
+2. *Anchoring*: ~build-session~ uses ~string.find~ to locate the selected text
+   within the full AXValue, splitting it into prefix and suffix.
+3. *Write-back*: ~session-write-ax~ reconstructs: ~prefix .. edited_text ..
+   suffix~, then writes the full string via AXValue.
+4. *Re-selection*: After a 100ms delay (apps reset AXSelectedTextRange when
+   AXValue changes), sets AXSelectedTextRange to
+   ~{:location (length prefix) :length (length edited_text)}~.
+
+This means subsequent syncs continue to replace only the selected portion.
+
+*Known limitation*: prefix/suffix anchoring uses ~string.find~ with plain match.
+If the selected text appears multiple times in the field, it will anchor to the
+*first* occurrence. Using AXSelectedTextRange at capture time would be more
+reliable but is not yet implemented.
+
+* Lifecycle
+
+** 1. Invocation (~edit-with-emacs~)
+
+Triggered by a global hotkey (default: Cmd+Ctrl+O).
+
+#+begin_example
+User presses hotkey
+    │
+    ├─ Capture: current window, app PID, title, screen ID
+    ├─ Probe: get-focused-text-element (AX check)
+    ├─ Generate: unique session-id
+    ├─ Send: Cmd+C (copy)
+    │
+    ├─ wait-for-clipboard-change (poll up to 500ms)
+    │   │
+    │   ├─ Clipboard changed? → User had a selection
+    │   │   └─ build-session(... had-selection=true)
+    │   │
+    │   └─ No change? → Nothing was selected
+    │       ├─ Send: Cmd+A, Cmd+C (select all, copy)
+    │       ├─ wait-for-clipboard-change again
+    │       │   ├─ Changed? → build-session(... had-selection=false)
+    │       │   └─ Still nothing? → Last resort: read AXValue directly
+    │       │       └─ Set clipboard from AXValue, build-session(... had-selection=false)
+#+end_example
+
+** 2. Buffer creation (~spacehammer-edit-with-emacs~, Emacs side)
+
+Called by Hammerspoon via emacsclient.
+
+1. Create/reuse buffer named =* spacehammer-edit TITLE [SESSION-ID] *=
+2. Set buffer-local variables: pid, title, session-id, selection-only
+3. ~clipboard-yank~ — paste text from system clipboard into buffer
+4. Enable ~spacehammer-edit-with-emacs-mode~ (minor mode)
+5. ~pop-to-buffer~ — display the buffer
+6. Run ~spacehammer-edit-with-emacs-hook~ (user customization point)
+7. Set header-line (after hooks, so major-mode changes don't clobber it)
+
+** 3a. Sync (~C-c C-s~ → ~spacehammer-sync-edit-with-emacs~)
+
+Pushes buffer text to the originating app *without* closing the buffer.
+
+#+begin_example
+Emacs                                    Hammerspoon
+  │                                          │
+  ├─ Get buffer text                         │
+  ├─ Escape for Lua string                   │
+  ├─ hs -c syncText(session-id, text) ──────►│
+  │                                          ├─ AX mode?
+  │                                          │   ├─ session-write-ax (write prefix+text+suffix)
+  │                                          │   ├─ After 100ms: set AXSelectedTextRange
+  │                                          │   └─ Set clipboard (safety net)
+  │                                          │
+  │                                          └─ Clipboard mode?
+  │                                              ├─ Selection: paste-via-clipboard, return to Emacs
+  │                                              └─ No selection: Cmd+A, Cmd+V, return to Emacs
+  │                                          │
+  ├─ Show "Synced" message                   │
+  └─ Run spacehammer-after-sync-hook         │
+#+end_example
+
+** 3b. Finish (~C-c C-c~ → ~spacehammer-finish-edit-with-emacs~)
+
+Pushes buffer text and *ends* the session.
+
+1. Run ~spacehammer-before-finish-edit-with-emacs-hook~
+2. Kill buffer (or buffer+window if not sole window)
+3. IPC: ~finishSession(session-id, text)~
+   - AX mode: write via AX, set clipboard (safety), re-select, activate app
+   - Clipboard mode: ~paste-via-clipboard~
+4. Session removed from sessions table
+
+Legacy fallback (no session-id): uses ~clipboard-kill-ring-save~ +
+~switchToAppAndPasteFromClipboard~.
+
+** 3c. Cancel (~C-c C-k~ → ~spacehammer-cancel-edit-with-emacs~)
+
+Abandons edits, returns to originating app.
+
+1. Run ~spacehammer-before-cancel-edit-with-emacs-hook~
+2. Kill buffer (or buffer+window)
+3. IPC: ~cancelSession(session-id)~ — activates app, removes session
+
+No text is written back.
+
+* Invariants
+
+These must always hold. Violating any of them is a regression.
+
+** Clipboard safety net
+Every text transition must leave a trace in the system clipboard:
+- *On read*: Text is always copied to the clipboard via Cmd+C (or set
+  explicitly via ~hs.pasteboard.setContents~ as a last resort).
+- *On write (sync/finish)*: ~hs.pasteboard.setContents text~ is called even
+  in AX mode. This ensures clipboard history managers always have a copy.
+
+** Buffer-local variables survive major-mode changes
+~spacehammer--caller-pid~, ~spacehammer--session-id~,
+~spacehammer--selection-only~, ~spacehammer--caller-title~ all have
+~permanent-local~ property set. Hooks that change major mode (e.g., activating
+~markdown-mode~) must not lose session state.
+
+** Selection-only edits preserve surrounding text
+When ~has-selection~ is true and prefix/suffix are set, write-back must
+reconstruct ~prefix + edited_text + suffix~. The buffer only ever contains the
+selected portion — never the full field.
+
+** Selection re-adjustment after write-back
+After setting AXValue in selection mode, AXSelectedTextRange must be set (with
+a 100ms delay) to ~{:location (length prefix) :length (length edited_text)}~.
+This keeps the replaced portion visually selected in the target app, enabling
+repeated sync cycles.
+
+** Session cleanup
+~finish-session~ and ~cancel-session~ must always remove the session from the
+sessions table, even if the write-back fails.
+
+** AX element re-acquisition
+~session-write-ax~ must attempt to re-acquire the AX element via
+~ax-get-app-element~ if the stored reference is nil (element went stale). The
+re-acquired reference must be stored back in the session.
+
+** Header-line set after hooks
+~spacehammer--set-header-line~ is called after
+~spacehammer-edit-with-emacs-hook~ runs, because hook functions commonly change
+the major mode (which resets ~header-line-format~).
+
+** Emacs window cleanup
+Buffer kill uses ~kill-buffer-and-window~ when the edit buffer is not the sole
+window, ~kill-buffer~ otherwise. This avoids leaving empty windows.
+
+* Emacs-side extension points
+
+| Hook                                           | When                   | Args                    |
+|------------------------------------------------+------------------------+-------------------------|
+| ~spacehammer-edit-with-emacs-hook~               | Buffer created & shown | buffer-name, pid, title |
+| ~spacehammer-before-finish-edit-with-emacs-hook~ | Before buffer killed   | buffer-name, pid        |
+| ~spacehammer-before-cancel-edit-with-emacs-hook~ | Before buffer killed   | buffer-name, pid        |
+| ~spacehammer-after-sync-hook~                    | After sync IPC sent    | buffer-name, session-id |
+
+Typical hook usage: switch major mode based on app title, set visited-file-name
+for LSP, enter insert state (Evil/Vim).
+
+* Keybindings (spacehammer-edit-with-emacs-mode)
+
+| Key     | Command                            | Action                      |
+|---------+------------------------------------+-----------------------------|
+| ~C-c C-c~ | ~spacehammer-finish-edit-with-emacs~ | Submit text, close buffer   |
+| ~C-c C-s~ | ~spacehammer-sync-edit-with-emacs~   | Push text, keep buffer open |
+| ~C-c C-k~ | ~spacehammer-cancel-edit-with-emacs~ | Abandon, close buffer       |
+
+* IPC interface
+
+** Hammerspoon → Emacs (via emacsclient -e)
+
+| Elisp function              | Args                                           |
+|-----------------------------+------------------------------------------------|
+| ~spacehammer-edit-with-emacs~ | pid, title, screen, session-id, selection-only |
+
+** Emacs → Hammerspoon (via hs -c)
+
+| Lua expression (via require("emacs"))  | Purpose                          |
+|----------------------------------------+----------------------------------|
+| ~.syncText(session-id, text)~            | Push text without ending session |
+| ~.finishSession(session-id, text)~       | Push text and end session        |
+| ~.cancelSession(session-id)~             | End session without writing      |
+| ~.getSessionInfo(session-id)~            | Query session metadata           |
+| ~.switchToApp(pid)~                      | Legacy: activate app by PID      |
+| ~.switchToAppAndPasteFromClipboard(pid)~ | Legacy: activate + Edit>Paste    |
+
+* String escaping chain
+
+Text passes through multiple escaping layers:
+
+1. *Lua side* (~escape-elisp-string~): escapes ~\~, ~"~, ~\n~, ~\r~ for
+   embedding in elisp string literals sent via emacsclient.
+2. *Elisp side* (~spacehammer--escape-lua-string~): escapes ~\~, ~"~, ~\n~,
+   ~\r~ for embedding in Lua string literals sent via ~hs -c~.
+
+This is a fragile area. Any text containing unusual characters (backslashes,
+quotes, control characters, unicode) must survive the round-trip without
+corruption.
+
+* Known limitations
+
+1. *Prefix/suffix anchoring uses string.find*: If the selected text appears
+   multiple times in the field, it anchors to the first occurrence. Could be
+   fixed by using AXSelectedTextRange at capture time instead.
+
+2. *Clipboard mode sync is disruptive*: In clipboard fallback mode, sync
+   requires switching to the target app, pasting, and switching back. The user
+   sees a brief app flash.
+
+3. *AX element staleness*: Stored AXUIElement references can go stale if the
+   target app's UI changes (e.g., navigating to a different view). Re-acquisition
+   via ~ax-get-app-element~ helps but depends on the same field being focused.
+
+4. *100ms delay for selection re-adjustment*: Apps reset AXSelectedTextRange
+   when AXValue changes. The 100ms timer is empirically chosen; some slow apps
+   might need more.
+
+5. *Cmd+C race*: ~wait-for-clipboard-change~ polls at 50ms intervals for up to
+   500ms. Extremely slow apps may not respond in time.
+
+6. *No multi-cursor/multi-selection support*: Only a single contiguous
+   selection is supported.
+
+* Customization example: direction-aware buffer placement
+
+The edit buffer can be displayed on the side of the Emacs frame closest to the
+caller app. This is a personal customization (not part of spacehammer.el) since
+it only applies to GUI Emacs.
+
+The approach: a custom ~display-buffer~ action function reads
+~spacehammer--caller-pid~ from the buffer (already set before ~pop-to-buffer~),
+queries Hammerspoon for the caller app's window center via ~hs -c~, compares
+with ~(frame-position)~ + ~(frame-pixel-width)~, and passes the direction to
+~display-buffer-in-quadrant~.
+
+~do-applescript~ (Emacs built-in) is used rather than ~hs -c~ or ~osascript~
+because it runs in-process with zero subprocess overhead. Requires Emacs to
+have Accessibility permission in macOS Privacy & Security settings. If the
+permission is stale (e.g., after an Emacs upgrade), remove and re-add Emacs,
+then restart it — macOS caches permission denials per-process.
+
+* Manual test matrix
+
+Use this after changes to verify nothing is broken.
+
+** Scenario 1: Full-field edit, AX mode app (e.g., Slack, Notes)
+1. Focus a text field with some text, no selection
+2. Press Cmd+Ctrl+O
+3. *Expect*: Emacs buffer opens with full text, header shows app name, no "[selection]"
+4. Edit text, press C-c C-c
+5. *Expect*: Buffer closes, target app activates, text is replaced
+6. *Expect*: Clipboard contains the edited text
+
+** Scenario 2: Selection-only edit, AX mode app
+1. Select a portion of text in a text field
+2. Press Cmd+Ctrl+O
+3. *Expect*: Emacs buffer contains only the selected text, header shows "[selection]"
+4. Edit text, press C-c C-s (sync)
+5. *Expect*: Target app text updates — only the selected portion is replaced, surrounding text intact
+6. *Expect*: The replaced portion is visually selected in the target app
+7. Edit again, press C-c C-s again
+8. *Expect*: Same behavior — only the (now changed) portion is replaced again
+9. Press C-c C-c (finish)
+10. *Expect*: Buffer closes, target app activates, final text in place
+
+** Scenario 3: Cancel
+1. Start an edit session (either full or selection)
+2. Make some changes in the buffer
+3. Press C-c C-k
+4. *Expect*: Buffer closes, target app activates, original text unchanged
+
+** Scenario 4: Clipboard fallback (e.g., app where AX is not available)
+1. Focus a text field in an app that doesn't expose AX text elements
+2. Press Cmd+Ctrl+O
+3. *Expect*: Emacs buffer opens with text
+4. Edit and C-c C-c
+5. *Expect*: App activates, text is pasted via clipboard
+
+** Scenario 5: Clipboard safety
+1. Perform any edit session (AX or clipboard mode)
+2. After finish or sync, check clipboard history manager
+3. *Expect*: The edited text appears in clipboard history
+
+** Scenario 6: Hook-driven major mode change
+1. Configure ~spacehammer-edit-with-emacs-hook~ to activate a major mode
+   (e.g., ~markdown-mode~)
+2. Start an edit session
+3. *Expect*: Major mode is active, header-line is visible, C-c C-c/C-s/C-k all work
+4. *Expect*: Buffer-local session variables (pid, session-id) survived the mode change
+
+** Scenario 7: Multiple simultaneous sessions
+1. Start an edit session from App A — don't finish it
+2. Switch to App B, start another edit session
+3. *Expect*: Both buffers exist with distinct names and session IDs
+4. Finish each independently
+5. *Expect*: Each writes back to its own originating app

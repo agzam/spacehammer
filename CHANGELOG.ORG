@@ -1,3 +1,20 @@
+* [2026-03-03 Mon]
+** 2.0.0 - Edit-with-Emacs v2
+*** Session-based architecture
+Each edit invocation creates a unique session, enabling multiple simultaneous edit buffers across different apps.
+*** Direct text injection via macOS Accessibility API
+Text fields with settable AXValue are written to directly - no clipboard clobbering, no app switching (for supported apps). Falls back to clipboard-based Cmd+V for apps without AX support.
+*** Selection-aware editing
+Selecting a portion of text before invoking edit-with-emacs opens a buffer with only the selected text. On sync/finish, only the selected portion is replaced (prefix/suffix anchoring), and the replaced range is re-selected in the target app via AXSelectedTextRange.
+*** Live sync (C-c C-s)
+Push text changes to the target app without closing the edit buffer. Enables iterative editing with visual feedback.
+*** Clipboard safety net
+Text always passes through the system clipboard (even in AX mode), so clipboard history managers can always recover it.
+*** Informative header-line
+Edit buffers display the caller app name, [selection] indicator, and keybindings for submit/sync/cancel.
+*** Comprehensive feature spec
+Added =docs/edit-with-emacs-spec.org= documenting architecture, invariants, IPC interface, and manual test matrix.
+
 * [2026-01-07 Wed]
 ** 1.6.1 - fix emacsclient location detection
 
