@@ -1,0 +1,57 @@
+name: Release & Update Homebrew Tap
+
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+
+      - name: Download source tarball
+        run: |
+          curl -sL -o spacehammer.tar.gz \
+            "https://github.com/agzam/spacehammer/archive/refs/tags/${{ steps.version.outputs.version }}.tar.gz"
+
+      - name: Compute SHA-256
+        id: sha
+        run: |
+          sha=$(shasum -a 256 spacehammer.tar.gz | awk '{print $1}')
+          echo "sha256=${sha}" >> "$GITHUB_OUTPUT"
+          echo "SHA-256: ${sha}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.version.outputs.version }}" \
+            --repo agzam/spacehammer \
+            --title "v${{ steps.version.outputs.version }}" \
+            --generate-notes
+
+      - name: Update Homebrew tap
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          git clone "https://x-access-token:${TAP_TOKEN}@github.com/agzam/homebrew-spacehammer.git" tap
+          cd tap
+
+          VERSION="${{ steps.version.outputs.version }}"
+          SHA="${{ steps.sha.outputs.sha256 }}"
+
+          sed -i "s/version \".*\"/version \"${VERSION}\"/" Casks/spacehammer.rb
+          sed -i "s/sha256 \".*\"/sha256 \"${SHA}\"/" Casks/spacehammer.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/spacehammer.rb
+          git commit -m "spacehammer ${VERSION}"
+          git push
