@@ -7,6 +7,10 @@ package.path = package.path .. ";" .. os.getenv("HOME") .. "/.luarocks/share/lua
 package.cpath = package.cpath .. ";" .. os.getenv("HOME") .. "/.luarocks/lib/lua/5.3/?.so"
 
 fennel = require("fennel")
-table.insert(package.loaders or package.searchers, fennel.searcher)
+fennel_path = os.getenv("HOME") .. "/.spacehammer/?.fnl" .. ";" .. os.getenv("HOME") .. "/.hammerspoon/?.fnl" .. ";" .. os.getenv("HOME") .. "/.hammerspoon/?/init.fnl"
+fennel.path = fennel_path
+fennel["macro-path"] = fennel_path
+table.insert(package.loaders or package.searchers, fennel.makeSearcher({ path = fennel_path }))
+table.insert(fennel.macroSearchers, fennel.makeSearcher({ path = fennel_path }))
 
 require "core"
