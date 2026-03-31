@@ -1,3 +1,9 @@
+* [2026-03-31 Mon]
+** 2.0.1 - Fix fennel load path resolution
+Dynamically discover Lua version directories instead of hardcoding 5.3/5.4, fixing fennel not being found after =brew upgrade=. Covers Homebrew prefixes on both Intel and Apple Silicon Macs.
+
+https://github.com/agzam/spacehammer/pull/217
+
 * [2026-03-03 Mon]
 ** 2.0.0 - Edit-with-Emacs v2
 *** Session-based architecture
