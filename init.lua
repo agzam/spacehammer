@@ -3,14 +3,33 @@ hs.alert.show("Spacehammer config loaded")
 -- Add luarocks/fennel installation paths for Homebrew and user-local trees.
 -- Hammerspoon embeds a specific version of Lua (5.4 at time of writing), but luarocks may
 -- install under any Lua version and fennel is directly packaged by homebrew, so we search
--- all common versions at both Homebrew prefixes and ~/.luarocks.
-local installation_prefixes = {"/opt/homebrew", "/usr/local", os.getenv("HOME") .. "/.luarocks"}
-local lua_versions = {"5.1", "5.3", "5.4", "5.5"}
-for _, base in ipairs(installation_prefixes) do
-  for _, ver in ipairs(lua_versions) do
-    package.path  = package.path  .. ";" .. base .. "/share/lua/" .. ver .. "/?.lua;" .. base .. "/share/lua/" .. ver .. "/?/init.lua"
-    package.cpath = package.cpath .. ";" .. base .. "/lib/lua/"   .. ver .. "/?.so"
-  end
+-- all available versions within both Homebrew prefixes and ~/.luarocks.
+local prefixes = {"/opt/homebrew", "/usr/local", os.getenv("HOME") .. "/.luarocks"}
+
+local function subdirs(path)
+   local result = {}
+   local pathAttrs = hs.fs.attributes(path)
+
+   if pathAttrs and pathAttrs["mode"] == "directory" then
+     local iter, dir_obj = hs.fs.dir(path)
+     if iter then
+       for entry in iter, dir_obj do
+         if entry ~= "." and entry ~= ".." then
+           table.insert(result, entry)
+         end
+       end
+     end
+   end
+   return result
+end
+
+for _, base in ipairs(prefixes) do
+   for _, ver in ipairs(subdirs(base .. "/share/lua")) do
+      package.path = package.path .. ";" .. base .. "/share/lua/" .. ver .. "/?.lua;" .. base .. "/share/lua/" .. ver .. "/?/init.lua"
+   end
+   for _, ver in ipairs(subdirs(base .. "/lib/lua")) do
+      package.cpath = package.cpath .. ";" .. base .. "/lib/lua/" .. ver .. "/?.so"
+   end
 end
 
 fennel = require("fennel")
