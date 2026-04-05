@@ -33,6 +33,9 @@ for _, base in ipairs(prefixes) do
 end
 
 fennel = require("fennel")
+local home = os.getenv("HOME")
+fennel.path = fennel.path .. ";" .. home .. "/.hammerspoon/?.fnl;" .. home .. "/.hammerspoon/?/init.fnl"
+fennel["macro-path"] = fennel["macro-path"] .. ";" .. home .. "/.hammerspoon/?.fnl;" .. home .. "/.hammerspoon/?/init.fnl"
 table.insert(package.loaders or package.searchers, fennel.searcher)
 
 require "core"
