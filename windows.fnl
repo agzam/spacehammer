@@ -66,18 +66,22 @@
   "
   Draw a border around the active window for a short period to highlight
   "
-  (let [rect (hs.drawing.rectangle (: (hs.window.focusedWindow) :frame))]
-    (: rect :setStrokeColor {:red 1 :blue 0 :green 1 :alpha 1})
-    (: rect :setStrokeWidth 5)
-    (: rect :setFill false)
-    (: rect :show)
-    (hs.timer.doAfter .3 (fn [] (: rect :delete)))))
+  (let [win (hs.window.focusedWindow)]
+    (when win
+      (let [rect (hs.drawing.rectangle (: win :frame))]
+        (: rect :setStrokeColor {:red 1 :blue 0 :green 1 :alpha 1})
+        (: rect :setStrokeWidth 5)
+        (: rect :setFill false)
+        (: rect :show)
+        (hs.timer.doAfter .3 (fn [] (: rect :delete)))))))
 
 (fn maximize-window-frame
   []
-  (: history :push)
-  (: (hs.window.focusedWindow) :maximize 0)
-  (highlight-active-window))
+  (let [win (hs.window.focusedWindow)]
+    (when win
+      (: history :push)
+      (: win :maximize 0)
+      (highlight-active-window))))
 
 (defn position-window-center
       [ratio-str window screen]
