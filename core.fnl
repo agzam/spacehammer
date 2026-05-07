@@ -216,6 +216,7 @@ Returns nil. This function causes side-effects.
 (local modules [:lib.hyper
                 :vim
                 :windows
+                :tiling
                 :apps
                 :lib.bind
                 :lib.modal
